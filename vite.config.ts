@@ -8,9 +8,7 @@ const alias = {
   '@pages': path.resolve(__dirname, 'src/pages'),
   '@img': path.resolve(__dirname, 'src/assets/images'),
   '@type': path.resolve(__dirname, 'src/types'),
-  '@router': path.resolve(__dirname, 'src/router'),
-  '@layout': path.resolve(__dirname, 'src/layout'),
-  '@setting': path.resolve(__dirname, 'src/setting.ts')
+  '@layout': path.resolve(__dirname, 'src/layout')
 }
 
 export default defineConfig({
