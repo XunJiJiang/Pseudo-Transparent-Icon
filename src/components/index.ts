@@ -1,51 +1,62 @@
-// import defineEle from '@utils/defineEle'
+import define from '@utils/defineEle'
+// import BaseElement from '@utils/BaseElement'
 import css from './index.scss?toJs'
 import html from './index.html?toJs'
+import effect from '@utils/effect'
+import ref from '@utils/ref'
+import refTemplate from '@/utils/refTemplate'
 
-// 为这个元素创建类
-export class MyCustomElement extends HTMLElement {
-  // static observedAttributes = ['count']
-
-  constructor() {
-    super()
-  }
-
-  connectedCallback() {
-    // 创建影子根
-    const shadow = this.attachShadow({ mode: 'open' })
-    const style = document.createElement('style')
-    style.innerHTML = css
-    shadow.innerHTML = html
-    shadow.appendChild(style)
-    // 获取全部包括on-click属性的元素
-    const elements = shadow.querySelectorAll('[on-click]')
-    const data = {
-      count: 0
-    }
-    const events = {
-      add(target: HTMLElement) {
-        data.count++
-        target.innerHTML = `count = ${data.count}`
+export default define('my-custom-element', {
+  template: html,
+  style: css,
+  setup(props) {
+    const count = ref(0)
+    const countButton = refTemplate('count')
+    const root = refTemplate('element-root')
+    effect(() => {
+      if (!('count' in props)) {
+        if (root.value) {
+          const child = document.createElement('div')
+          child.setAttribute('count', '1')
+          child.innerHTML = '<my-custom-element count="0"></my-custom-element>'
+          root.value?.appendChild(child)
+        }
+      }
+    })
+    return {
+      count,
+      add() {
+        if (!('count' in props)) count.value++
+      },
+      render() {
+        if (!('count' in props)) {
+          if (countButton.value)
+            countButton.value.innerHTML = `count = ${count.value}`
+          const child = root.value?.querySelector('my-custom-element[count]')
+          if (child) {
+            child.setAttribute('count', `${count.value}`)
+          }
+        }
+      },
+      update(v: string) {
+        if (countButton.value) countButton.value.innerHTML = `count = ${v}`
       }
     }
-    elements.forEach((ele) => {
-      const target = ele as HTMLElement
-      const click = target.getAttribute('on-click') as 'add'
-      ele.addEventListener('click', (e) => {
-        if (e.target) events[click](e.target as HTMLElement)
-      })
+  },
+  observedAttributes: ['count'],
+  connected(data, { methods }) {
+    effect(() => {
+      // this.$refs.count.value.innerHTML = `count = ${this.data.count.value}`
+      methods('render')
     })
-  }
-
-  disconnectedCallback() {
+  },
+  disconnected() {
     console.log('自定义元素从页面中移除。')
-  }
-
-  adoptedCallback() {
+  },
+  adopted() {
     console.log('自定义元素移动至新页面。')
+  },
+  attributeChanged(name, oldValue, newValue, data, { methods }) {
+    methods('update', newValue)
   }
-
-  // attributeChangedCallback(name, oldValue, newValue) {
-  //   console.log(`属性 ${name} 已变更。`)
-  // }
-}
+})

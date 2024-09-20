@@ -13,7 +13,6 @@ const alias = {
   '@layout': path.resolve(__dirname, 'src/layout')
 }
 
-// const filterScss = createFilter('**/*.scss?toJs')
 const filterTs = createFilter('**/*.ts?toJs=*')
 const filterJs = createFilter('**/*.js?toJs=*')
 
@@ -23,15 +22,6 @@ export default defineConfig({
     {
       name: 'vite-plugin-scss-to-css',
       transform(code, id) {
-        // if (filterScss(id)) {
-        //   const result = sass.compileString(code)
-        //   return {
-        //     code:
-        //       `const css = \`${result.css}\`;\n` + `export default css;`,
-        //     map: null
-        //   }
-        // }
-
         // 处理 ts?toJs 和 js?toJs 的引入
         if (filterTs(id) || filterJs(id)) {
           const fileType = id
@@ -96,7 +86,8 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 3000
+    port: 3000,
+    open: true
   },
   preview: {
     port: 8080

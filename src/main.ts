@@ -1,7 +1,7 @@
 import './style.scss'
-import { MyCustomElement } from './components'
+import define from './components'
 import html from './main.html?toJs'
 
-customElements.define('my-custom-element', MyCustomElement)
+define()
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = html
