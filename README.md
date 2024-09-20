@@ -11,9 +11,7 @@ pnpm i
 ```
 
 启动开发服务器
-···shell
+
+```shell
 npm run dev
-
-```
-
 ```
