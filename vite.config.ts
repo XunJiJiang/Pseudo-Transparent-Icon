@@ -7,7 +7,7 @@ const alias = {
   '@': path.resolve(__dirname, 'src'),
   '@components': path.resolve(__dirname, 'src/components'),
   '@utils': path.resolve(__dirname, 'src/utils'),
-  '@pages': path.resolve(__dirname, 'src/pages'),
+  '@views': path.resolve(__dirname, 'src/views'),
   '@img': path.resolve(__dirname, 'src/assets/images'),
   '@type': path.resolve(__dirname, 'src/types'),
   '@layout': path.resolve(__dirname, 'src/layout')
@@ -37,6 +37,7 @@ export default defineConfig({
           if (fileType === 'scss') {
             try {
               const result = sass.compile(realPath)
+              // TODO: 可能需要引入`@use '@assets/scss/global.scss' as *;`, 目前来看并不需要
               return {
                 code:
                   `const css = \`${result.css}\`;\n` + `export default css;`,

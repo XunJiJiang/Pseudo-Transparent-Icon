@@ -1,14 +1,8 @@
-import BaseElement from './BaseElement'
+import { getCurrentComponent } from './fixComponentIns'
 import ref from './ref'
 
-let currentComponent: BaseElement | null = null
-
-// 修改正在实例化的组件
-export const setComponentIns = (instance: BaseElement | null) => {
-  currentComponent = instance
-}
-
 const refTemplate = <T extends HTMLElement = HTMLElement>(refKey: string) => {
+  const currentComponent = getCurrentComponent()
   if (currentComponent) {
     const _ref = ref<T>(null)
     currentComponent.$refs[refKey] = _ref

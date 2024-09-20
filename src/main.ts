@@ -1,7 +1,9 @@
 import './style.scss'
-import define from './components'
 import html from './main.html?toJs'
+import defineComponent from '@components/index'
+import defineLayout from '@layout/index'
 
-define()
+defineComponent()
+defineLayout()
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = html

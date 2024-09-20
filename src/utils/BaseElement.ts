@@ -9,6 +9,8 @@ export default class BaseElement extends HTMLElement {
 
   $methods: Record<string, Func> = {}
 
+  $exposeMethods: Record<string, Func> = {}
+
   methods: (key: string, ...args: unknown[]) => unknown = () => {}
 
   /** 影子 DOM 根 */

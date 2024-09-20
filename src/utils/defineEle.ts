@@ -1,7 +1,8 @@
 import { Func } from '@type/function'
 import BaseElement from './BaseElement'
 import reactive from './reactive'
-import { setComponentIns } from './refTemplate'
+import { setComponentIns, getParentComponent } from './fixComponentIns'
+import { exposeMethods } from './exposeMethods'
 
 type EleCallback = (
   this: BaseElement,
@@ -28,11 +29,17 @@ const define = (
   }: {
     template?: string
     style?: string
-    setup?: (props: Record<string, string | null>) => Record<string, unknown>
+    setup?: (
+      props: Record<string, string | null>,
+      context: {
+        expose: (methods: Record<string, Func>) => void
+        emits: (key: string, ...args: unknown[]) => unknown
+      }
+    ) => Record<string, unknown> | void
     // TODO: data的类型声明存在
     data?: () => Record<string, unknown>
     methods?: Record<string, (this: BaseElement, ...args: unknown[]) => void>
-    observedAttributes: string[]
+    observedAttributes?: string[]
     connected?: EleCallback
     disconnected?: EleCallback
     adopted?: EleCallback
@@ -52,11 +59,12 @@ const define = (
   class Ele extends BaseElement {
     constructor() {
       super()
+      setComponentIns(this)
       this.data = reactive(data?.() || {})
       this.$methods = methods || {}
 
       // 获取属性
-      for (const attr of observedAttributes) {
+      for (const attr of observedAttributes ?? []) {
         if (this.hasAttribute(attr)) {
           this.props[attr] = this.getAttribute(attr)
         }
@@ -64,9 +72,25 @@ const define = (
 
       const shadow = this.shadowRoot
 
-      setComponentIns(this)
-      const setupData = setup?.(this.props) || {}
-      setComponentIns(null)
+      const parentComponent = getParentComponent()
+      const emits = (key: string, ...args: unknown[]): unknown => {
+        if (parentComponent) {
+          if (key in parentComponent.$exposeMethods) {
+            return parentComponent.$exposeMethods[key](...args)
+          }
+          /*@__PURE__*/ console.error(
+            `${parentComponent.localName} 未定义 ${key} 方法。`
+          )
+        } else {
+          /*@__PURE__*/ console.warn(`${this.localName} 没有父组件。`)
+        }
+      }
+
+      const setupData =
+        setup?.(this.props, {
+          expose: exposeMethods,
+          emits
+        }) || {}
 
       for (const key in setupData) {
         const val = setupData[key]
@@ -131,10 +155,11 @@ const define = (
           })
         })
       }
+      setComponentIns(null)
     }
 
     static get observedAttributes() {
-      return observedAttributes
+      return observedAttributes || []
     }
 
     connectedCallback() {
