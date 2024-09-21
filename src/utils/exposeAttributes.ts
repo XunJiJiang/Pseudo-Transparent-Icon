@@ -1,11 +1,11 @@
 import { Func } from '@type/function'
 import { getCurrentComponent } from './fixComponentIns'
 
-export const exposeMethods = (methods: Record<string, Func>) => {
+export const exposeAttributes = (methods: Record<string, Func>) => {
   const currentComponent = getCurrentComponent()
   if (currentComponent) {
-    currentComponent.$exposeMethods = methods
+    currentComponent.$exposeAttributes = methods
   }
 }
 
-export default exposeMethods
+export default exposeAttributes

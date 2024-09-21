@@ -1,8 +1,8 @@
 import { Func } from '@type/function'
 import BaseElement from './BaseElement'
 import reactive from './reactive'
-import { setComponentIns, getParentComponent } from './fixComponentIns'
-import { exposeMethods } from './exposeMethods'
+import { setComponentIns, getCurrentComponent } from './fixComponentIns'
+import { exposeAttributes } from './exposeAttributes'
 
 type EleCallback = (
   this: BaseElement,
@@ -59,24 +59,30 @@ const define = (
   class Ele extends BaseElement {
     constructor() {
       super()
+      // 保存父组件实例
+      const parentComponent = getCurrentComponent()
+      // 设置当前组件实例
       setComponentIns(this)
-      this.data = reactive(data?.() || {})
+      this.$data = reactive(data?.() || {})
       this.$methods = methods || {}
 
-      // 获取属性
+      // 获取监视的属性
       for (const attr of observedAttributes ?? []) {
         if (this.hasAttribute(attr)) {
-          this.props[attr] = this.getAttribute(attr)
+          this.$props[attr] = this.getAttribute(attr)
         }
       }
 
-      const shadow = this.shadowRoot
+      const shadow = this.$shadowRoot
 
-      const parentComponent = getParentComponent()
+      // 包装父组件暴露的方法
       const emits = (key: string, ...args: unknown[]): unknown => {
         if (parentComponent) {
-          if (key in parentComponent.$exposeMethods) {
-            return parentComponent.$exposeMethods[key](...args)
+          if (
+            key in parentComponent.$exposeAttributes &&
+            typeof parentComponent.$exposeAttributes[key] === 'function'
+          ) {
+            return parentComponent.$exposeAttributes[key](...args)
           }
           /*@__PURE__*/ console.error(
             `${parentComponent.localName} 未定义 ${key} 方法。`
@@ -86,21 +92,36 @@ const define = (
         }
       }
 
+      // 获取setup中的数据
       const setupData =
-        setup?.(this.props, {
-          expose: exposeMethods,
+        setup?.(this.$props, {
+          expose: exposeAttributes,
           emits
         }) || {}
 
+      // 将setup中的数据分别放入data和$methods中
       for (const key in setupData) {
         const val = setupData[key]
         if (typeof val === 'function') {
           this.$methods[key] = val as Func
         } else {
-          this.data[key] = val
+          this.$data[key] = val
         }
       }
 
+      // 将$methods中的方法封装一层, 使其在调用内部创建的自定义组件可以获取正确的父组件实例
+      for (const key in this.$methods) {
+        const fn = this.$methods[key].bind(this)
+        this.$methods[key] = (...args: unknown[]) => {
+          const parentComponent = getCurrentComponent()
+          setComponentIns(this)
+          const _return = fn(...args)
+          setComponentIns(parentComponent)
+          return _return
+        }
+      }
+
+      // 将$methods中的方法绑定到methods上
       this.methods = (key, ...args) => {
         if (key in this.$methods) {
           return this.$methods[key](...args)
@@ -155,7 +176,9 @@ const define = (
           })
         })
       }
-      setComponentIns(null)
+
+      // 恢复父组件实例
+      setComponentIns(parentComponent)
     }
 
     static get observedAttributes() {
@@ -163,19 +186,20 @@ const define = (
     }
 
     connectedCallback() {
-      connected?.call(this, this.data, { methods: this.methods })
+      connected?.call(this, this.$data, { methods: this.methods })
     }
 
     disconnectedCallback() {
-      disconnected?.call(this, this.data, { methods: this.methods })
+      disconnected?.call(this, this.$data, { methods: this.methods })
     }
 
     adoptedCallback() {
-      adopted?.call(this, this.data, { methods: this.methods })
+      adopted?.call(this, this.$data, { methods: this.methods })
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-      attributeChanged?.call(this, name, oldValue, newValue, this.data, {
+      this.$props[name] = newValue
+      attributeChanged?.call(this, name, oldValue, newValue, this.$data, {
         methods: this.methods
       })
     }

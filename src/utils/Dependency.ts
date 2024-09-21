@@ -3,6 +3,9 @@
  * 创建一个依赖项
  */
 
+import BaseElement from './BaseElement'
+import { setComponentIns, getCurrentComponent } from './fixComponentIns'
+
 export type EffectCallback = () => (() => void) | void
 
 let currentEffectFn: EffectCallback | null = null
@@ -17,9 +20,11 @@ class Dependency<T extends object> {
   private _value: object
   private _proxy: ProxyHandler<T>
   private _deps: Set<EffectCallback> = new Set()
+  private _currentComponent: BaseElement | null
 
-  constructor(value: T) {
+  constructor(value: T, currentComponent: BaseElement | null) {
     this._value = value
+    this._currentComponent = currentComponent
 
     this._proxy = new Proxy(this._value, {
       get: (target, key, receiver) => {
@@ -41,12 +46,15 @@ class Dependency<T extends object> {
   }
 
   private distribute() {
+    const parentComponent = getCurrentComponent()
+    setComponentIns(this._currentComponent)
     this._deps.forEach((dep) => {
       const _return = dep()
       if (_return) {
         _return()
       }
     })
+    setComponentIns(parentComponent)
   }
 
   get value() {

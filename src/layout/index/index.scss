@@ -1,5 +1,12 @@
-:root {
-  
+#layout-index {
+  // 唯一子元素居中置顶
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  position: relative;
 }
 
 @media (prefers-color-scheme: light) {
