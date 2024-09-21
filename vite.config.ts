@@ -72,14 +72,14 @@ export default defineConfig({
         // 处理 scss?toJs 的引入
         // 将js/ts文件中的scss?toJs替换为js?toJs=scss
         if (
-          code.includes('css?toJs') ||
           code.includes('scss?toJs') ||
+          code.includes('css?toJs') ||
           code.includes('html?toJs')
         ) {
           return {
             code: code
-              .replace('css?toJs', 'js?toJs=css')
               .replace('scss?toJs', 'js?toJs=scss')
+              .replace('css?toJs', 'js?toJs=css')
               .replace('html?toJs', 'js?toJs=html'),
             map: null
           }
