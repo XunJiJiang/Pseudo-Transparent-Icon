@@ -1,20 +1,20 @@
 // import refTemplate from '@utils/refTemplate'
-import html from './index.html?toJs'
-import css from './index.scss?toJs'
+import html from './index.html?raw'
+import css from './index.scss?raw'
 import define from '@utils/defineEle'
 
-export default define('comp-page', {
+export default define('c-page', {
   template: html,
   style: css,
-  observedAttributes: ['style'],
-  setup(_, { emits }) {
-    emits('console')
-    // const pageRootRef = refTemplate('comp-page-ref')
+  observedAttributes: ['data-index'],
+  setup(props) {
+    // const pageRootRef = refTemplate('c-page-ref')
+    console.log('c-page props', props['data-index'])
   },
-  attributeChanged() {
-    this.$defineRefs['comp-page-ref']?.setAttribute(
-      'style',
-      this.$props.style || ''
+  connected() {
+    console.log(this.$defineRefs['c-page-ref'], this.$shadowRoot)
+    this.$defineRefs['c-page-ref']?.classList.add(
+      `page-${this.$props['data-index'] || '1'}`
     )
   }
 })

@@ -1,10 +1,8 @@
-.comp-page {
+.c-page {
   position: absolute;
-  transform: translateX(-50%);
   border: 1px solid #00000033;
   padding: 10px;
-  --top: 0;
-  top: var(--top);
+  transform: translateX(-50%);
 }
 
 @media (prefers-color-scheme: light) {

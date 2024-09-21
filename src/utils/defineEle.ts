@@ -1,3 +1,11 @@
+/*
+ * WARN: 可能存在的问题:
+ * 1. 在定义的方法或effect中创建超出一层的自定义组件时,
+ *    可能无法获取正确的父组件实例,
+ *    而是会获取的最外层的自定义组件实例。
+ *    因此最好不要在定义的方法或effect中创建超出一层的自定义组件。
+ */
+
 import { Func } from '@type/function'
 import BaseElement from './BaseElement'
 import reactive from './reactive'
