@@ -20,7 +20,7 @@ export default defineConfig({
   plugins: [
     // vitePluginSass(),
     {
-      name: 'vite-plugin-scss-to-css',
+      name: 'vite-plugin-raw-after-compile',
       transform(code, id) {
         // 处理 ts?toJs 和 js?toJs 的引入
         if (filterTs(id) || filterJs(id)) {
@@ -33,8 +33,18 @@ export default defineConfig({
           // 解析真实后缀
           const realPath = id.replace('ts?toJs=', '').replace('js?toJs=', '')
 
-          // TODO: 此处仅处理了 scss 和 html 两种类型，可根据需求添加其他类型
-          if (fileType === 'scss') {
+          // TODO: 此处仅处理了 css scss 和 html，可根据需求添加其他类型
+          if (fileType === 'css') {
+            try {
+              const result = fs.readFileSync(realPath, 'utf-8')
+              return {
+                code: `const css = \`${result}\`;\n` + `export default css;`,
+                map: null
+              }
+            } catch (error) {
+              console.error('error:', error)
+            }
+          } else if (fileType === 'scss') {
             try {
               const result = sass.compile(realPath)
               // TODO: 可能需要引入`@use '@assets/scss/global.scss' as *;`, 目前来看并不需要
@@ -61,9 +71,14 @@ export default defineConfig({
 
         // 处理 scss?toJs 的引入
         // 将js/ts文件中的scss?toJs替换为js?toJs=scss
-        if (code.includes('scss?toJs') || code.includes('html?toJs')) {
+        if (
+          code.includes('css?toJs') ||
+          code.includes('scss?toJs') ||
+          code.includes('html?toJs')
+        ) {
           return {
             code: code
+              .replace('css?toJs', 'js?toJs=css')
               .replace('scss?toJs', 'js?toJs=scss')
               .replace('html?toJs', 'js?toJs=html'),
             map: null
