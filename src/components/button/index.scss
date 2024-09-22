@@ -1,0 +1,23 @@
+.c-button {
+  padding: 10px 20px;
+  border: 1px solid #00000000;
+  border-radius: 5px;
+  font-size: 1em;
+  padding: 0.4em 0.6em 0.2em 0.3em;
+  background-color: #ffffff00;
+  color: $button-color;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #ffffff11;
+  }
+
+  @media (prefers-color-scheme: light) {
+    background-color: #00000000;
+
+    &:hover {
+      background-color: #00000011;
+    }
+  }
+}

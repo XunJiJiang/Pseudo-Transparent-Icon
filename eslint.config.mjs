@@ -26,6 +26,7 @@ export default [
           viteConfig: {
             resolve: {
               alias: {
+                'xj-web-core': path.resolve(__dirname, 'src/core'),
                 '@': path.resolve(__dirname, 'src'),
                 '@components': path.resolve(__dirname, 'src/components'),
                 '@utils': path.resolve(__dirname, 'src/utils'),

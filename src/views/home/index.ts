@@ -1,12 +1,26 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import define from '@utils/defineEle'
-// import refTemplate from '@utils/refTemplate'
+import { define } from 'xj-web-core/index'
 
 export default define('v-home', {
   template: html,
   style: css,
-  setup() {
+  emit: {
+    prev: {
+      required: true
+    }
+  },
+  props: {
+    count: {
+      required: true
+    }
+  },
+  setup(props, { emit }) {
     // const homeRef = refTemplate('home-ref')
+    return {
+      handleClick() {
+        emit('prev')
+      }
+    }
   }
 })

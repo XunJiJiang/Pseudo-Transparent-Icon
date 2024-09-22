@@ -1,13 +1,39 @@
 import sass from 'sass'
+import fs from 'node:fs'
 
-const compileScss = (code: string) => {
-  const _code = sass.compileString(
-    code.replace('export default "', '').slice(0, -1).split('\\n').join('\n')
-  )
-  return 'export default `' + _code.css.toString() + '`'
+type Options = {
+  scss?: {
+    global?: false | string
+  }
 }
 
-export default () => {
+export default (option: Options | void) => {
+  const globalScss =
+    typeof option?.scss?.global === 'string'
+      ? (() => {
+          try {
+            return fs.readFileSync(option.scss.global, 'utf-8')
+          } catch (error) {
+            console.error('error:', error)
+            return ''
+          }
+        })()
+      : ''
+  const compileScss = (code: string) => {
+    const _scss = code.replace('export default "', '').slice(0, -1).split('\\n')
+    const _otherList: string[] = []
+    const _importList = _scss.filter((item) => {
+      if (item.startsWith('@use') || item.startsWith('@import')) {
+        return true
+      }
+      _otherList.push(item)
+      return false
+    })
+    const _code = sass.compileString(
+      _importList.join('\n') + '\n' + globalScss + '\n' + _otherList.join('\n')
+    )
+    return 'export default `' + _code.css.toString() + '`'
+  }
   return {
     name: 'vite-plugin-raw-after-compile',
     assetsInclude: ['**/*.*?toJs'],

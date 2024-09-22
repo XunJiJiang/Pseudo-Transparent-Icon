@@ -3,6 +3,7 @@ import path from 'node:path'
 import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
 
 const alias = {
+  'xj-web-core': path.resolve(__dirname, 'src/core'),
   '@': path.resolve(__dirname, 'src'),
   '@components': path.resolve(__dirname, 'src/components'),
   '@utils': path.resolve(__dirname, 'src/utils'),
@@ -13,7 +14,13 @@ const alias = {
 }
 
 export default defineConfig({
-  plugins: [rawAfterCompile()],
+  plugins: [
+    rawAfterCompile({
+      scss: {
+        global: path.resolve(__dirname, 'src/assets/scss/variable.scss')
+      }
+    })
+  ],
   css: {
     preprocessorOptions: {
       scss: {
