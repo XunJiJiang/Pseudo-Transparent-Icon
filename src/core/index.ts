@@ -14,7 +14,7 @@ export { default as refTemplate } from './refTemplate'
 
 export { default as reactive } from './reactive'
 
-export { default as effect } from './effect'
+export { effect } from './Dependency'
 
 export { default as define } from './defineEle'
 

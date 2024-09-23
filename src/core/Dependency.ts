@@ -3,18 +3,17 @@
  * 创建一个依赖项
  */
 
+import { Func } from '@/types/function'
 import BaseElement from './BaseElement'
 import { setComponentIns, getCurrentComponent } from './fixComponentIns'
 import { mounted } from './hooks/lifecycle/mounted'
-import AsyncTaskQueue from './utils/asyncTaskQueue'
+import AutoAsyncTask from './utils/AutoAsyncTask'
 
 export type EffectCallback = () => (() => void) | void
 
 let currentEffectFn: EffectCallback | null = null
 
-let currentEffectFnReturn: (() => void) | null = null
-
-export const useEffect = (effCallback: EffectCallback) => {
+export const effect = (effCallback: EffectCallback) => {
   mounted(() => {
     const ele = getCurrentComponent()
     if (!ele) {
@@ -28,16 +27,15 @@ export const useEffect = (effCallback: EffectCallback) => {
       return _ret
     }
     currentEffectFn = effect
-    currentEffectFnReturn = effect() ?? null
+    const cb = effect() ?? null
+    cb?.()
     currentEffectFn = null
-    currentEffectFnReturn = null
   })
 }
 
 class Dependency<T extends object> {
   private _deps = new Map<string | symbol, Set<EffectCallback>>()
   private _depCleanups = new Map<string | symbol, Set<() => void>>()
-  private _distributeTask = new AsyncTaskQueue()
   private _value: object
   private _currentComponent: BaseElement | null
   private _proxy: ProxyHandler<T>
@@ -62,6 +60,7 @@ class Dependency<T extends object> {
         return _ret
       },
       set: (target, key, value, receiver) => {
+        this.cleanup(key)
         const _ret = Reflect.set(target, key, value, receiver)
         this.distribute(key)
         return _ret
@@ -70,17 +69,33 @@ class Dependency<T extends object> {
   }
 
   private collect(key: string | symbol) {
-    if (currentEffectFnReturn) {
-      const _depCleanup =
-        this._depCleanups.get(key) ??
-        this._depCleanups.set(key, new Set()).get(key)
-      _depCleanup!.add(currentEffectFnReturn)
-    }
     if (currentEffectFn) {
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)
       _dep!.add(currentEffectFn)
+      // TODO: 先收集依赖
+      // 收集完成后立刻运行清理函数
+      // 再异步发布任务
+      // 这样可以保证清理函数在发布任务之前运行
+      // 但会导致在收集依赖时期会运行两次副作用函数
+      // 有待优化
+      AutoAsyncTask.addTask(() => {
+        this.distribute(key)
+      }, this.distribute as Func)
     }
+  }
+
+  private cleanup(key: string | symbol) {
+    const parentComponent = getCurrentComponent()
+    setComponentIns(this._currentComponent)
+    const _depCleanup =
+      this._depCleanups.get(key) ??
+      this._depCleanups.set(key, new Set()).get(key)
+    _depCleanup!.forEach((cleanup, _, set) => {
+      AutoAsyncTask.addTask(cleanup, cleanup)
+      set.delete(cleanup)
+    })
+    setComponentIns(parentComponent)
   }
 
   private distribute(key: string | symbol) {
@@ -89,20 +104,15 @@ class Dependency<T extends object> {
     const _depCleanup =
       this._depCleanups.get(key) ??
       this._depCleanups.set(key, new Set()).get(key)
-    _depCleanup!.forEach((cleanup) => {
-      this._distributeTask.addTask(cleanup)
-    })
-    _depCleanup!.clear()
     const _dep = this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)
     _dep!.forEach((dep) => {
-      this._distributeTask.addTask(() => {
+      AutoAsyncTask.addTask(() => {
         const _return = dep()
         if (_return) {
           _depCleanup!.add(_return)
         }
       }, dep)
     })
-    this._distributeTask.runOnce()
     setComponentIns(parentComponent)
   }
 
