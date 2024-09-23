@@ -8,13 +8,13 @@ import { getCurrentComponent } from 'xj-web-core/fixComponentIns'
 
 const callbackMap = new WeakMap<BaseElement, Set<LifecycleCallback>>()
 
-export const unmounted: LifecycleFn = (callback) => {
+export const onUnmounted: LifecycleFn = (callback) => {
   if (!getRunningSetup()) {
-    return /*@__PURE__*/ console.error('unmounted 必须在 setup 函数中调用')
+    return /*@__PURE__*/ console.error('onUnmounted 必须在 setup 函数中调用')
   }
   const ele = getCurrentComponent()
   if (!ele) {
-    return /*@__PURE__*/ console.error('unmounted 必须在 setup 函数中调用')
+    return /*@__PURE__*/ console.error('onUnmounted 必须在 setup 函数中调用')
   }
   if (!callbackMap.has(ele)) {
     callbackMap.set(ele, new Set())

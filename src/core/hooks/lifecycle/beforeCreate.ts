@@ -4,16 +4,16 @@ import {
   getRunningSetup
 } from './verifySetup'
 
-// beforeCreate在setup函数中调用
+// onBeforeCreate在setup函数中调用
 // setup结束后，构造器调用前执行runBeforeCreate
 // 此时同步函数未执行完毕，而callbackSet已经清空
 // 因此可以复用callbackSet
 
 const callbackSet = new Set<LifecycleCallback>()
 
-export const beforeCreate: LifecycleFn = (callback) => {
+export const onBeforeCreate: LifecycleFn = (callback) => {
   if (!getRunningSetup()) {
-    return /*@__PURE__*/ console.error('beforeCreate 必须在 setup 函数中调用')
+    return /*@__PURE__*/ console.error('onBeforeCreate 必须在 setup 函数中调用')
   }
   callbackSet.add(callback)
 }

@@ -15,10 +15,9 @@ export const exposeAttributes = (attrs: Record<string, unknown>) => {
         currentComponent.$exposeAttributes[key] = (
           ...args: Parameters<typeof _val>
         ) => {
-          const parentComponent = getCurrentComponent()
-          setComponentIns(currentComponent)
+          const { restore } = setComponentIns(currentComponent)
           const _return = _val.call(currentComponent, ...args)
-          setComponentIns(parentComponent)
+          restore()
           return _return
         }
       } else {
@@ -26,6 +25,9 @@ export const exposeAttributes = (attrs: Record<string, unknown>) => {
       }
     }
   }
+  /*@__PURE__*/ console.error(
+    'exposeAttributes: 当前组件实例不存在, 可能是由于错误的调用时机。'
+  )
 }
 
 export default exposeAttributes

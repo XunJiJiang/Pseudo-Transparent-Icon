@@ -1,12 +1,12 @@
-export { beforeCreate } from './hooks/lifecycle/beforeCreate'
+export { onBeforeCreate } from './hooks/lifecycle/beforeCreate'
 
-export { created } from './hooks/lifecycle/created'
+export { onCreated } from './hooks/lifecycle/created'
 
-export { beforeMount } from './hooks/lifecycle/beforeMount'
+export { onBeforeMount } from './hooks/lifecycle/beforeMount'
 
-export { mounted } from './hooks/lifecycle/mounted'
+export { onMounted } from './hooks/lifecycle/mounted'
 
-export { unmounted } from './hooks/lifecycle/unmounted'
+export { onUnmounted } from './hooks/lifecycle/unmounted'
 
 export { default as ref } from './ref'
 

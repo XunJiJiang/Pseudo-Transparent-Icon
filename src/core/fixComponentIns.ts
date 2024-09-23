@@ -2,21 +2,28 @@ import BaseElement from './BaseElement'
 
 // INFO: 可能并不是符合dom树的实例, 有待验证, 不过对于目前的使用场景来说, 可以满足需求
 /** 组件实例调用树, 不包括当前实例 */
-const componentInsTree: BaseElement[] = []
+// const componentInsTree: BaseElement[] = []
 
 // 当前实例
 let currentComponent: BaseElement | null = null
 
 // 修改正在实例化的组件
-export const setComponentIns = (instance: BaseElement | null) => {
-  if (instance) {
-    if (currentComponent) componentInsTree.push(currentComponent)
-    currentComponent = instance
-  } else {
-    if (componentInsTree.length) {
-      currentComponent = componentInsTree.pop()!
-    } else {
-      currentComponent = null
+export const setComponentIns = (instance: BaseElement) => {
+  let restoreRun = false
+  const old = currentComponent
+  currentComponent = instance
+
+  return {
+    restore() {
+      currentComponent = old
+      restoreRun = true
+    },
+    get old() {
+      if (!restoreRun) {
+        return old
+      }
+      /*@__PURE__*/ console.error('setComponentIns: restore has been run')
+      return null
     }
   }
 }

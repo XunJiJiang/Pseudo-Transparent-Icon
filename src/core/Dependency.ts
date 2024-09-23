@@ -6,7 +6,7 @@
 import { Func } from '@/types/function'
 import BaseElement from './BaseElement'
 import { setComponentIns, getCurrentComponent } from './fixComponentIns'
-import { mounted } from './hooks/lifecycle/mounted'
+import { onMounted } from './hooks/lifecycle/mounted'
 import AutoAsyncTask from './utils/AutoAsyncTask'
 
 export type EffectCallback = () => (() => void) | void
@@ -14,16 +14,15 @@ export type EffectCallback = () => (() => void) | void
 let currentEffectFn: EffectCallback | null = null
 
 export const effect = (effCallback: EffectCallback) => {
-  mounted(() => {
+  onMounted(() => {
     const ele = getCurrentComponent()
     if (!ele) {
       return /*@__PURE__*/ console.error('effect 必须在 setup 函数中调用')
     }
     const effect = () => {
-      const parentComponent = getCurrentComponent()
-      setComponentIns(ele)
+      const { restore } = setComponentIns(ele)
       const _ret = effCallback()
-      setComponentIns(parentComponent)
+      restore()
       return _ret
     }
     currentEffectFn = effect
@@ -86,8 +85,9 @@ class Dependency<T extends object> {
   }
 
   private cleanup(key: string | symbol) {
-    const parentComponent = getCurrentComponent()
-    setComponentIns(this._currentComponent)
+    const { restore } = this._currentComponent
+      ? setComponentIns(this._currentComponent)
+      : { restore: () => {} }
     const _depCleanup =
       this._depCleanups.get(key) ??
       this._depCleanups.set(key, new Set()).get(key)
@@ -95,12 +95,13 @@ class Dependency<T extends object> {
       AutoAsyncTask.addTask(cleanup, cleanup)
       set.delete(cleanup)
     })
-    setComponentIns(parentComponent)
+    restore()
   }
 
   private distribute(key: string | symbol) {
-    const parentComponent = getCurrentComponent()
-    setComponentIns(this._currentComponent)
+    const { restore } = this._currentComponent
+      ? setComponentIns(this._currentComponent)
+      : { restore: () => {} }
     const _depCleanup =
       this._depCleanups.get(key) ??
       this._depCleanups.set(key, new Set()).get(key)
@@ -113,7 +114,7 @@ class Dependency<T extends object> {
         }
       }, dep)
     })
-    setComponentIns(parentComponent)
+    restore()
   }
 
   get value() {

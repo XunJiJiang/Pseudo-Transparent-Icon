@@ -5,22 +5,22 @@ import {
   getRunningSetup
 } from './verifySetup'
 
-// beforeMount在setup函数中调用
+// onBeforeMount在setup函数中调用
 // setup结束后，构造器调用前执行runBeforeMount
 // 此时同步函数未执行完毕，而callbackSet已经清空
 // 因此可以复用callbackSet
 
 const callbackSet = new Set<LifecycleCallback>()
 
-export const beforeMount: LifecycleFn = (callback) => {
+export const onBeforeMount: LifecycleFn = (callback) => {
   if (!getRunningSetup()) {
-    return /*@__PURE__*/ console.error('beforeMount 必须在 setup 函数中调用')
+    return /*@__PURE__*/ console.error('onBeforeMount 必须在 setup 函数中调用')
   }
   callbackSet.add(callback)
 }
 
 // 同理，可以复用
-// 注意: beforeMount的清理函数clearFnMap不是同步执行的，不能复用
+// 注意: onBeforeMount的清理函数clearFnMap不是同步执行的，不能复用
 
 const clearFnMap = new WeakMap<BaseElement, Set<() => void>>()
 

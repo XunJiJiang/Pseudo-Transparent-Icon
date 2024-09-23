@@ -8,7 +8,7 @@
 import { Func } from '@type/function'
 import BaseElement, { type EventHandlers } from './BaseElement'
 import reactive from './reactive'
-import { setComponentIns, getCurrentComponent } from './fixComponentIns'
+import { setComponentIns } from './fixComponentIns'
 import { exposeAttributes } from './exposeAttributes'
 import { setRunningSetup } from './hooks/lifecycle/verifySetup'
 import {
@@ -100,10 +100,8 @@ const define = (
   class Ele extends BaseElement {
     constructor() {
       super()
-      // 保存父组件实例
-      const parentComponent = getCurrentComponent()
-      // 设置当前组件实例
-      setComponentIns(this)
+      // 设置当前组件实例, 并返回父组件实例
+      const { old: parentComponent, restore } = setComponentIns(this)
       this.$data = reactive(data?.() || {})
       this.$methods = methods || {}
 
@@ -137,10 +135,9 @@ const define = (
             ) {
               const fn = _emit[key].default
               return (...args: Parameters<typeof fn>) => {
-                const parentComponent = getCurrentComponent()
-                setComponentIns(this)
+                const { restore } = setComponentIns(this)
                 const _return = fn(...args)
-                setComponentIns(parentComponent)
+                restore()
                 return _return
               }
             }
@@ -217,10 +214,9 @@ const define = (
       for (const key in this.$methods) {
         const fn = this.$methods[key].bind(this)
         this.$methods[key] = (...args: unknown[]) => {
-          const parentComponent = getCurrentComponent()
-          setComponentIns(this)
+          const { restore } = setComponentIns(this)
           const _return = fn(...args)
-          setComponentIns(parentComponent)
+          restore()
           return _return
         }
       }
@@ -286,7 +282,7 @@ const define = (
       }
 
       // 恢复父组件实例
-      setComponentIns(parentComponent)
+      restore()
     }
 
     static get observedAttributes() {
@@ -294,42 +290,39 @@ const define = (
     }
 
     connectedCallback() {
-      const parentComponent = getCurrentComponent()
-      setComponentIns(this)
+      const { restore } = setComponentIns(this)
       // WARN: 由于暂时没有多文档支持, 所以暂时不需要考虑多文档的情况
       // 在多文档的情况下, 此函数会被调用多次，而当前clearBeforeMount、clearMounted仅支持单次调用
       clearBeforeMount(this)
       // Lifecycle: mounted 调用时机
       runMounted(this)
       connected?.call(this, this.$data, { methods: this.$methods })
-      setComponentIns(parentComponent)
+      restore()
     }
 
     disconnectedCallback() {
-      const parentComponent = getCurrentComponent()
-      setComponentIns(this)
+      const { restore } = setComponentIns(this)
       clearMounted(this)
       // Lifecycle: unmounted 调用时机
       runUnmounted()
       disconnected?.call(this, this.$data, { methods: this.$methods })
-      setComponentIns(parentComponent)
+      restore()
     }
 
     adoptedCallback() {
-      const parentComponent = getCurrentComponent()
+      const { restore } = setComponentIns(this)
       // Lifecycle: 暂时没有多文档支持
       adopted?.call(this, this.$data, { methods: this.$methods })
-      setComponentIns(parentComponent)
+      restore()
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-      const parentComponent = getCurrentComponent()
-      setComponentIns(this)
+      const { restore } = setComponentIns(this)
       this.$props[name] = newValue
       attributeChanged?.call(this, name, oldValue, newValue, this.$data, {
         methods: this.$methods
       })
-      setComponentIns(parentComponent)
+      restore()
     }
   }
 
