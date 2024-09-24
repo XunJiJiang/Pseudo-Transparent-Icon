@@ -50,10 +50,15 @@ type DefaultOptions<T = unknown> = {
   }
 }
 
-const checkPropsEmit = /*@__PURE__*/ <T>(opts: DefaultOptions<T>) => {
+const checkPropsEmit = /*@__PURE__*/ <T>(
+  opts: DefaultOptions<T>,
+  ele: BaseElement
+) => {
   for (const key in opts) {
     if (!opts[key].required && !('default' in opts[key])) {
-      /*@__PURE__*/ console.error(`emit: ${key} 为非必须属性, 但未设置默认值。`)
+      /*@__PURE__*/ console.error(
+        `${ele.localName}: emit: ${key} 为非必须属性, 但未设置默认值。`
+      )
     }
   }
 }
@@ -114,8 +119,8 @@ const define = (
 
       const shadow = this.$shadowRoot
 
-      /*@__PURE__*/ checkPropsEmit<Func>(emit ?? {})
-      /*@__PURE__*/ checkPropsEmit(props ?? {})
+      /*@__PURE__*/ checkPropsEmit<Func>(emit ?? {}, this)
+      /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
 
       // TODO: 此处的key的类型声明存在问题
       // 包装父组件暴露的方法
@@ -145,21 +150,21 @@ const define = (
           /*@__PURE__*/ console.error(
             (() => {
               if (!(key in parentAttrs) && _emit[key]?.required) {
-                return `${parentComponent.localName} 未暴露 ${key} 方法。`
+                return `${this.localName}: ${parentComponent.localName} 未暴露 ${key} 方法。`
               }
               if (!(key in _emit)) {
-                return `${this.localName} 未定义 emit: ${key} 方法。`
+                return `${this.localName}: 未定义 emit: ${key} 方法。`
               }
-              return `${parentComponent.localName} ${key} 不是一个方法。`
+              return `${this.localName}: ${parentComponent.localName} ${key} 不是一个方法。`
             })()
           )
         } else {
           /*@__PURE__*/ console.warn(
             (() => {
               if (!parentComponent) {
-                return `${this.localName} 未找到父组件实例。`
+                return `${this.localName}: 未找到父组件实例。`
               }
-              return `${this.localName} 未定义 emit: ${key} 方法。`
+              return `${this.localName}: 未定义 emit: ${key} 方法。`
             })()
           )
         }
@@ -179,9 +184,9 @@ const define = (
             /*@__PURE__*/ console.error(
               (() => {
                 if (required) {
-                  return `${parentComponent.localName} 未暴露 ${key} 属性。`
+                  return `${this.localName}: ${parentComponent.localName} 未暴露 ${key} 属性。`
                 }
-                return `${this.localName} 未定义 ${key} 属性。`
+                return `${this.localName}: 未定义 ${key} 属性。`
               })()
             )
           }
@@ -272,7 +277,7 @@ const define = (
             this.$methods[fnName as keyof typeof this.$methods]?.bind(this)
           if (!fn) {
             return /*@__PURE__*/ console.error(
-              `${this.localName} 未定义 ${fnName} 方法。`
+              `${this.localName}: 未定义 ${fnName} 方法。`
             )
           }
           target.addEventListener(event, (e: Event) => {

@@ -1,14 +1,21 @@
-<c-page ref="home-ref" data-index="0">
+<c-page ref="c-page-ref" data-index="0">
   <div slot="header">
-    <c-button on-click="handleClick">
-      <span slot="default">
-        <c-icon name="left" size="12"></c-icon>
-        back
-      </span>
-    </c-button>
-    <h>开始创建透明图标</h>
+    <!-- <span class="back">
+      <c-button on-click="handleClick" data-type="back">
+        <span slot="default">
+          <c-icon name="left" size="1rem"></c-icon>
+          返回
+        </span>
+      </c-button>
+    </span> -->
+
+    <h class="title">创建透明图标</h>
   </div>
-  <div slot="default">
-    <span>home</span>
+  <div slot="default" class="content">
+    <span>
+      <c-button on-click="handleClick" data-type="default">
+        <span slot="default">现在开始</span>
+      </c-button>
+    </span>
   </div>
 </c-page>

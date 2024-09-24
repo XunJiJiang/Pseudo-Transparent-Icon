@@ -1,10 +1,13 @@
 import { getCurrentComponent } from './fixComponentIns'
-import ref from './ref'
 
 const refTemplate = <T extends HTMLElement = HTMLElement>(refKey: string) => {
   const currentComponent = getCurrentComponent()
   if (currentComponent) {
-    const _ref = ref<T>(null)
+    const _ref = {
+      value: null
+    } as {
+      value: T | null
+    }
     currentComponent.$refs[refKey] = _ref
     return _ref
   }

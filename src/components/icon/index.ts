@@ -17,7 +17,7 @@ export default define('c-icon', {
       const { $shadowRoot } = getInstance()
       const iconRoot = document.createElement('i')
       iconRoot.className = `iconfont icon-${props.name}`
-      if (props.size) iconRoot.style.fontSize = `${props.size}px`
+      if (props.size) iconRoot.style.fontSize = `${props.size}`
       if (props.style) iconRoot.style.cssText += props.style
       $shadowRoot.appendChild(iconRoot)
     })

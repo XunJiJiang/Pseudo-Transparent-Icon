@@ -9,3 +9,8 @@ defineLayout()
 defineView()
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = html
+
+// 禁用双指缩放
+document.addEventListener('gesturestart', function (event) {
+  event.preventDefault()
+})

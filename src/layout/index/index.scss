@@ -1,12 +1,237 @@
 #l-index {
-  // 唯一子元素居中置顶
-  display: flex;
+  // display: flex;
+  position: relative;
   justify-content: center;
   align-items: center;
   height: 100%;
-  width: 100%;
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 320px;
   text-align: center;
+
+  overflow: hidden;
+  transition: all 0.3s;
+
+  background-color: $background-color-dark;
+
+  @media (prefers-color-scheme: light) {
+    background-color: $background-color-light;
+  }
+
+  & header {
+    position: absolute;
+    top: 7px;
+    left: 0;
+    z-index: 1;
+
+    & .back {
+      transition: all 0.5s;
+      margin: 5px;
+
+      &.hide {
+        opacity: 0;
+        transform: translateX(-100%);
+      }
+
+      & .but-slot-def {
+        display: flex;
+
+        & .back-span {
+          display: inline-block;
+          transition: all 0.5s $cubic-bezier;
+          width: 4rem;
+          &.add {
+            & span {
+              transition: all 0.5s $cubic-bezier;
+              display: inline-block;
+              position: absolute;
+              white-space: nowrap;
+              &:first-child {
+                animation: index-add-1 0.5s $cubic-bezier forwards;
+                @media (min-width: 601px) {
+                  animation: index-add-1-600 0.5s $cubic-bezier forwards;
+                }
+              }
+
+              &:last-child {
+                animation: index-add-2 0.5s $cubic-bezier forwards;
+                @media (min-width: 601px) {
+                  animation: index-add-2-600 0.5s $cubic-bezier forwards;
+                }
+              }
+            }
+          }
+
+          &.reduce {
+            & span {
+              transition: all 0.5s $cubic-bezier;
+              display: inline-block;
+              position: absolute;
+              white-space: nowrap;
+
+              &:first-child {
+                animation: index-reduce-1 0.5s $cubic-bezier forwards;
+                @media (min-width: 601px) {
+                  animation: index-reduce-1-600 0.5s $cubic-bezier forwards;
+                }
+              }
+
+              &:last-child {
+                animation: index-reduce-2 0.5s $cubic-bezier forwards;
+                @media (min-width: 601px) {
+                  animation: index-reduce-2-600 0.5s $cubic-bezier forwards;
+                }
+              }
+            }
+          }
+        }
+
+        @keyframes index-add-1 {
+          0% {
+            top: 0.2rem;
+            left: calc(50vw - 50%);
+            opacity: 0;
+          }
+          100% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+        }
+
+        @keyframes index-add-2 {
+          0% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+          100% {
+            top: 0.2rem;
+            left: calc(-100% - 1em);
+            opacity: 0;
+            pointer-events: none;
+          }
+        }
+
+        @keyframes index-reduce-1 {
+          0% {
+            top: 0.2rem;
+            left: calc(-100% - 1em);
+            opacity: 0;
+          }
+          100% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+        }
+
+        @keyframes index-reduce-2 {
+          0% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+          100% {
+            top: 0.2rem;
+            left: calc(50vw - 50%);
+            opacity: 0;
+            pointer-events: none;
+          }
+        }
+
+        @keyframes index-add-1-600 {
+          0% {
+            top: 0.2rem;
+            left: calc(250px - 50%);
+            opacity: 0;
+          }
+          100% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+        }
+
+        @keyframes index-add-2-600 {
+          0% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+          100% {
+            top: 0.2rem;
+            left: calc(-100% - 1em);
+            opacity: 0;
+            pointer-events: none;
+          }
+        }
+
+        @keyframes index-reduce-1-600 {
+          0% {
+            top: 0.2rem;
+            left: calc(-100% - 1em);
+            opacity: 0;
+          }
+          100% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+        }
+
+        @keyframes index-reduce-2-600 {
+          0% {
+            top: 0.2rem;
+            left: 1.6rem;
+            opacity: 1;
+          }
+          100% {
+            top: 0.2rem;
+            left: calc(250px - 50%);
+            opacity: 0;
+            pointer-events: none;
+          }
+        }
+      }
+    }
+  }
 }
 
 @media (prefers-color-scheme: light) {
+}
+
+@media (max-width: 600px) {
+  /* 针对小型设备的样式 */
+}
+
+@media (min-width: 601px) {
+  /* 针对中型设备的样式 */
+  #l-index {
+    top: 10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 550px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px 0 #ffffff33;
+
+    @media (prefers-color-scheme: light) {
+      box-shadow: 0 0 10px 0 #00000033;
+    }
+  }
+}
+
+@media (max-height: 600px) and (min-width: 601px) {
+  #l-index {
+    height: 60vh;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* 针对大型设备的样式 */
+}
+
+@media (min-width: 1440px) {
+  /* 针对超大型设备的样式 */
 }

@@ -1,5 +1,31 @@
+// @use 'sass:color';
+
 $font-color-dark: rgba(255, 255, 255, 0.87);
 $font-color-light: rgba(0, 0, 0, 0.87);
-$background-color-dark: #242424;
+$background-color-dark: #000000;
 $background-color-light: #ffffff;
-$button-color: #3b81f6;
+$fg-white: rgba(255, 255, 255, 0.87);
+$fg-black: rgba(0, 0, 0, 0.87);
+$bg-black: #242424;
+$fg-blue: #3b81f6;
+$bg-blue: #3374ff;
+
+$cubic-bezier: cubic-bezier(0.27, 0.4, 0.2, 0.99);
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #00000022;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #00000033;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: #00000044;
+}

@@ -1,38 +1,128 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define, effect, reactive } from 'xj-web-core/index'
+import { define, effect, onMounted, ref, refTemplate } from 'xj-web-core/index'
 
 export default define('l-index', {
   template: html,
   style: css,
   setup(_, { expose }) {
-    // const view = refTemplate('v-home-ref')
-    const count = reactive({
-      value: 0,
-      test: {
-        value: 0
-      }
-    })
-    expose({
-      prev() {
-        // console.log('l-index prev')
-        count.value++
-        count.test.value++
-        count.test.value++
-        count.test.value++
+    const backRootRef = refTemplate('back-root-ref')
+    const backSpanRef = refTemplate('back-span-ref')
+    const views = [
+      [refTemplate('v-home-ref'), '首页'],
+      [refTemplate('v-sd-type-ref'), '选择设备'],
+      [refTemplate('v-sd-type-ref2'), '选择设备类型'],
+      [refTemplate('v-sd-type-ref3'), '选择'],
+      [refTemplate('v-sd-type-ref4'), '选择设备类型'],
+      [refTemplate('v-sd-type-ref5'), '选择设备']
+    ] as [
+      {
+        value: HTMLElement | null
       },
-      next() {
-        console.log('l-index next')
-      },
-      count
+      string
+    ][]
+
+    /** 当前下标 */
+    const index = ref(0)
+
+    const pageList: string[] = []
+
+    onMounted(() => {
+      views.forEach((view, i) => {
+        view[0].value?.setAttribute(
+          'data-style',
+          i === index.value ? '' : `transform: translateX(100%);`
+        )
+        view[0].value?.setAttribute(
+          'data-header-style',
+          i === index.value ? '' : `opacity: 0; left: -50%;`
+        )
+      })
     })
+
     effect(() => {
-      console.log(count.test)
-      console.log('l-index setup', count.test.value)
+      const prevIndex = index.value
+      views[prevIndex][0].value?.setAttribute(
+        'data-style',
+        `transform: translateX(0);`
+      )
+      views[prevIndex][0].value?.setAttribute(
+        'data-header-style',
+        `opacity: 1; left: 0;`
+      )
+
+      const prevTitle = views[index.value][1]
 
       return () => {
-        console.log('l-index cleanup')
+        const leftTitle =
+          backSpanRef.value?.querySelector('span:first-child')?.textContent ||
+          ''
+
+        views[prevIndex][0].value?.setAttribute(
+          'data-style',
+          `transform: translateX(${index.value > prevIndex ? '-50%' : '100%'});`
+        )
+        views[prevIndex][0].value?.setAttribute(
+          'data-header-style',
+          `opacity: 0;left: ${index.value > prevIndex ? `${leftTitle.length + 3}rem` : '-40%'};`
+        )
+
+        const nowTitle = index.value === 0 ? '' : views[index.value - 1][1]
+
+        backSpanRef.value?.classList.remove('add')
+        backSpanRef.value?.classList.remove('reduce')
+
+        backSpanRef.value?.setAttribute(
+          'style',
+          `width: ${nowTitle.length * 1.08}rem;`
+        )
+
+        if (index.value > prevIndex) {
+          pageList.push(prevTitle)
+
+          if (backSpanRef.value) {
+            backSpanRef.value.classList.add('add')
+            backSpanRef.value.innerHTML = `
+              <span>${nowTitle}</span>
+              <span>${leftTitle}</span>
+            `
+          }
+        } else {
+          pageList.pop()
+
+          if (backSpanRef.value) {
+            backSpanRef.value.classList.add('reduce')
+            backSpanRef.value.innerHTML = `
+              <span>${nowTitle}</span>
+              <span>${leftTitle}</span>
+            `
+          }
+        }
+        if (pageList.length === 0) {
+          backRootRef.value?.classList.add('hide')
+        } else {
+          backRootRef.value?.classList.remove('hide')
+        }
       }
     })
+
+    const handle = {
+      prev() {
+        if (index.value === 0) return
+        index.value--
+      },
+      next() {
+        if (index.value === views.length - 1) return
+        index.value++
+      }
+    }
+
+    expose(handle)
+
+    return {
+      back() {
+        handle.prev()
+      }
+    }
   }
 })

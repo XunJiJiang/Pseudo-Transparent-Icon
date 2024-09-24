@@ -25,9 +25,6 @@ export const exposeAttributes = (attrs: Record<string, unknown>) => {
       }
     }
   }
-  /*@__PURE__*/ console.error(
-    'exposeAttributes: 当前组件实例不存在, 可能是由于错误的调用时机。'
-  )
 }
 
 export default exposeAttributes

@@ -8,6 +8,7 @@ import BaseElement from './BaseElement'
 import { setComponentIns, getCurrentComponent } from './fixComponentIns'
 import { onMounted } from './hooks/lifecycle/mounted'
 import AutoAsyncTask from './utils/AutoAsyncTask'
+import { isArray } from './utils/shared'
 
 export type EffectCallback = () => (() => void) | void
 
@@ -32,6 +33,8 @@ export const effect = (effCallback: EffectCallback) => {
   })
 }
 
+const SYMBOL_EFFECT = Symbol('effect')
+
 class Dependency<T extends object> {
   private _deps = new Map<string | symbol, Set<EffectCallback>>()
   private _depCleanups = new Map<string | symbol, Set<() => void>>()
@@ -47,6 +50,9 @@ class Dependency<T extends object> {
 
     this._proxy = new Proxy(this._value, {
       get: (target, key, receiver) => {
+        const collect = this.collect.bind(this)
+        const cleanup = this.cleanup.bind(this)
+        const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
         if (typeof _value === 'object' && !this._isProxy.includes(key)) {
@@ -55,19 +61,45 @@ class Dependency<T extends object> {
           _ret = newDep.value
           this._isProxy.push(key)
         }
-        this.collect(key)
+
+        if (
+          typeof _value === 'function' &&
+          isArray(target) &&
+          [
+            'push',
+            'pop',
+            'shift',
+            'unshift',
+            'splice',
+            'sort',
+            'reverse'
+          ].includes(key as string)
+        ) {
+          return function (...args: Parameters<typeof _value>) {
+            // 调用原始方法
+            cleanup()
+            const result = _value.apply(target, args)
+            distribute()
+            return result
+          }
+        }
+
+        if (isArray(target)) collect()
+        else collect(key)
         return _ret
       },
       set: (target, key, value, receiver) => {
-        this.cleanup(key)
+        if (isArray(target)) this.cleanup()
+        else this.cleanup(key)
         const _ret = Reflect.set(target, key, value, receiver)
-        this.distribute(key)
+        if (isArray(target)) this.distribute()
+        else this.distribute(key)
         return _ret
       }
     })
   }
 
-  private collect(key: string | symbol) {
+  private collect(key: string | symbol = SYMBOL_EFFECT) {
     if (currentEffectFn) {
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)
@@ -84,7 +116,7 @@ class Dependency<T extends object> {
     }
   }
 
-  private cleanup(key: string | symbol) {
+  private cleanup(key: string | symbol = SYMBOL_EFFECT) {
     const { restore } = this._currentComponent
       ? setComponentIns(this._currentComponent)
       : { restore: () => {} }
@@ -98,7 +130,7 @@ class Dependency<T extends object> {
     restore()
   }
 
-  private distribute(key: string | symbol) {
+  private distribute(key: string | symbol = SYMBOL_EFFECT) {
     const { restore } = this._currentComponent
       ? setComponentIns(this._currentComponent)
       : { restore: () => {} }

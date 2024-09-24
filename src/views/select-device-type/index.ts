@@ -2,7 +2,7 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import { define } from 'xj-web-core/index'
 
-export default define('v-home', {
+export default define('v-sd-type', {
   template: html,
   style: css,
   observedAttributes: ['data-style', 'data-header-style'],
@@ -12,17 +12,22 @@ export default define('v-home', {
     }
   },
   emit: {
+    prev: {
+      required: true
+    },
     next: {
       required: true
     }
   },
   setup({ style }, { emit, expose }) {
-    // const homeRef = refTemplate('home-ref')
     expose({
       style: style
     })
     return {
-      handleClick() {
+      back() {
+        emit('prev')
+      },
+      next() {
         emit('next')
       }
     }

@@ -1,9 +1,5 @@
 import BaseElement from './BaseElement'
 
-// INFO: 可能并不是符合dom树的实例, 有待验证, 不过对于目前的使用场景来说, 可以满足需求
-/** 组件实例调用树, 不包括当前实例 */
-// const componentInsTree: BaseElement[] = []
-
 // 当前实例
 let currentComponent: BaseElement | null = null
 

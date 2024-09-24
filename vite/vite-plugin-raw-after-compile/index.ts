@@ -1,4 +1,4 @@
-import sass from 'sass'
+import * as sass from 'sass'
 import fs from 'node:fs'
 
 type Options = {
@@ -7,7 +7,7 @@ type Options = {
   }
 }
 
-export default (option: Options | void) => {
+const updateGlobalScss = (option: Options | void) => {
   const globalScss =
     typeof option?.scss?.global === 'string'
       ? (() => {
@@ -19,6 +19,12 @@ export default (option: Options | void) => {
           }
         })()
       : ''
+
+  return globalScss
+}
+
+export default (option: Options | void) => {
+  let globalScss = updateGlobalScss(option)
   const compileScss = (code: string) => {
     const _scss = code.replace('export default "', '').slice(0, -1).split('\\n')
     const _otherList: string[] = []
@@ -36,16 +42,15 @@ export default (option: Options | void) => {
   }
   return {
     name: 'vite-plugin-raw-after-compile',
-    assetsInclude: ['**/*.*?toJs'],
     // enforce: 'pre',
     transform(code: string, id: string) {
-      // 处理 ts?toJs 和 js?toJs 的引入
-      if (id.endsWith('?toJs') || id.endsWith('?raw')) {
+      if (id.endsWith('.scss')) {
+        globalScss = updateGlobalScss(option)
+      }
+      if (id.endsWith('?raw')) {
         const fileType = (
           id.split('/').pop()?.split('.').slice(1).join('.') || ''
-        )
-          .replace('?toJs', '')
-          .replace('?raw', '')
+        ).replace('?raw', '')
 
         // TODO: 此处仅处理了 scss，可根据需求添加其他类型
         if (fileType === 'scss') {
