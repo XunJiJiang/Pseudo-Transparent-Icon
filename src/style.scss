@@ -10,14 +10,34 @@ body {
   height: 100vh;
   touch-action: manipulation;
 
-  background-color: $background-color-dark;
+  transition: background-color 0.5s $cubic-bezier;
 
-  @media (min-width: 601px) {
-    background-color: $bg-black;
-  }
+  background-color: $background-color-dark;
 
   @media (prefers-color-scheme: light) {
     background-color: $background-color-light;
+  }
+
+  &.pure {
+    background-color: $background-color-dark;
+
+    @media (prefers-color-scheme: light) {
+      background-color: $background-color-light;
+    }
+  }
+
+  &.vague {
+    background-color: rgba($bg-black, 0.9);
+
+    @media (prefers-color-scheme: light) {
+      background-color: rgba($bg-white, 0.9);
+    }
+  }
+}
+
+@media (min-width: 601px) and (max-height: 428.5px) {
+  body {
+    height: 428.5px;
   }
 }
 

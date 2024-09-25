@@ -5,7 +5,7 @@ import { define } from 'xj-web-core/index'
 export default define('v-sd-type', {
   template: html,
   style: css,
-  observedAttributes: ['data-style', 'data-header-style'],
+  observedAttributes: ['data-style'],
   props: {
     style: {
       default: ''
@@ -17,11 +17,17 @@ export default define('v-sd-type', {
     },
     next: {
       required: true
+    },
+    scroll: {
+      required: true
     }
   },
   setup({ style }, { emit, expose }) {
     expose({
-      style: style
+      style: style,
+      scroll(scrollTop: number) {
+        emit('scroll', scrollTop)
+      }
     })
     return {
       back() {
@@ -35,10 +41,5 @@ export default define('v-sd-type', {
   attributeChanged(name, _oldValue, newValue) {
     if (name === 'data-style')
       this.$defineRefs['c-page-ref']?.setAttribute('data-style', newValue)
-    else if (name === 'data-header-style')
-      this.$defineRefs['c-page-ref']?.setAttribute(
-        'data-header-style',
-        newValue
-      )
   }
 })

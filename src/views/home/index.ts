@@ -5,7 +5,7 @@ import { define } from 'xj-web-core/index'
 export default define('v-home', {
   template: html,
   style: css,
-  observedAttributes: ['data-style', 'data-header-style'],
+  observedAttributes: ['data-style'],
   props: {
     style: {
       default: ''
@@ -14,12 +14,18 @@ export default define('v-home', {
   emit: {
     next: {
       required: true
+    },
+    scroll: {
+      required: true
     }
   },
   setup({ style }, { emit, expose }) {
     // const homeRef = refTemplate('home-ref')
     expose({
-      style: style
+      style: style,
+      scroll(scrollTop: number) {
+        emit('scroll', scrollTop)
+      }
     })
     return {
       handleClick() {
@@ -30,10 +36,5 @@ export default define('v-home', {
   attributeChanged(name, _oldValue, newValue) {
     if (name === 'data-style')
       this.$defineRefs['c-page-ref']?.setAttribute('data-style', newValue)
-    else if (name === 'data-header-style')
-      this.$defineRefs['c-page-ref']?.setAttribute(
-        'data-header-style',
-        newValue
-      )
   }
 })
