@@ -31,6 +31,8 @@
   overflow-y: auto;
   user-select: none;
   -webkit-user-select: none;
+  justify-content: center;
+  align-items: center;
 
   background-color: $background-color-dark;
 
@@ -47,29 +49,20 @@
   & main {
     box-sizing: border-box;
     overflow-x: hidden;
+    padding: calc(2.8rem + 16px) 0 32px 0;
   }
 
   // 首级页面，标题居中，占多半高度，不展示返回按钮
-  &.page-0 {
-    justify-content: center;
-    align-items: center;
-
-    & main {
-      margin: 240px 0 100px 0;
-      max-height: 100px;
-      overflow: hidden;
-    }
-  }
+  // &.page-0 {
+  //   & main {
+  //   }
+  // }
 
   // 一级页面，标题置顶，占很少高度，展示返回按钮
-  &.page-1 {
-    justify-content: center;
-    align-items: center;
-
-    & main {
-      padding: calc(2.8rem + 16px) 0 32px 0;
-    }
-  }
+  // &.page-1 {
+  //   & main {
+  //   }
+  // }
 }
 
 @media (prefers-color-scheme: light) {

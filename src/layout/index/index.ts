@@ -67,6 +67,7 @@ export default define('l-index', {
 
     effect(() => {
       if (!backSpanRef.value || !titleSpanRef.value) return
+      handle.scroll(0)
 
       const nowIndex = index.value
       views[nowIndex][0].value?.setAttribute(

@@ -73,14 +73,6 @@
       @content;
     }
 
-    @mixin titleToBackBut {
-      top: 50%;
-      left: calc(1.6rem + 5px - var(--root-width) / 2);
-      transform: translate(0, -50%);
-      color: $fg-blue;
-      @content;
-    }
-
     @mixin backButDisappear {
       top: 50%;
       transform: translate(0, -50%);
@@ -94,6 +86,14 @@
       left: calc(var(--root-width) / 2 - 5px);
       transform: translate(-50%, -50%);
       pointer-events: none;
+      @content;
+    }
+
+    @mixin titleToBackBut {
+      top: 50%;
+      left: calc(1.6rem + 5px - var(--root-width) / 2);
+      transform: translate(0, -50%);
+      color: $fg-blue;
       @content;
     }
 

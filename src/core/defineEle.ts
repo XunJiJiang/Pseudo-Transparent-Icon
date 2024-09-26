@@ -9,7 +9,7 @@ import { Func } from '@type/function'
 import BaseElement, { type EventHandlers } from './BaseElement'
 import reactive from './reactive'
 import { setComponentIns } from './fixComponentIns'
-import { exposeAttributes, getExposeAttributes } from './exposeAttributes'
+import { exposeAttributes } from './exposeAttributes'
 import { setRunningSetup } from './hooks/lifecycle/verifySetup'
 import {
   clearBeforeCreate,
@@ -321,7 +321,7 @@ const define = (
             `${this.localName}: expose 属性只能用于自定义组件。`
           )
         }
-        this.$defineExposes[exposeName] = getExposeAttributes(ele)
+        this.$defineExposes[exposeName] = ele.$exposeAttributes
         if (exposeName in this.$exposes) {
           this.$exposes[exposeName].value = this.$defineExposes[exposeName]
         }
