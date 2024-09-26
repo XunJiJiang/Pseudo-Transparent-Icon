@@ -5,8 +5,13 @@ import { define, getInstance, onMounted } from 'xj-web-core/index'
 export default define('c-button', {
   template: html,
   style: css,
+  emit: {
+    click: {
+      default: () => {}
+    }
+  },
   observedAttributes: ['style', 'data-type'],
-  setup({ style, ...props }) {
+  setup({ style, ...props }, { emit }) {
     onMounted(() => {
       const { $defineRefs } = getInstance()
       const button = $defineRefs['c-button-ref']
@@ -32,5 +37,11 @@ export default define('c-button', {
         window.removeEventListener('touchend', touchend)
       }
     })
+
+    return {
+      handleClick(e: Event) {
+        emit('click', e)
+      }
+    }
   }
 })

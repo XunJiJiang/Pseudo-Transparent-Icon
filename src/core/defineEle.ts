@@ -63,6 +63,33 @@ const checkPropsEmit = /*@__PURE__*/ <T>(
   }
 }
 
+// 不能使用on-、x-开头的属性
+const checkObservedAttributes = /*@__PURE__*/ (attrs: string[]) => {
+  for (const attr of attrs) {
+    if (/^(on-|x-)/.test(attr)) {
+      /*@__PURE__*/ console.error(
+        `observedAttributes: ${attr} 不能以 on- 或 x- 开头。`
+      )
+    } else if (reservedKeys.includes(attr)) {
+      /*@__PURE__*/ console.error(`observedAttributes: ${attr} 为保留键。`)
+    }
+  }
+}
+
+/** 保留键 */
+const reservedKeys = ['ref', 'expose']
+
+/** 记录自定义web组件名 */
+const customElementNameSet = new Set<string>()
+
+/** 添加自定义web组件名 */
+const addCustomElement = (name: string) => {
+  customElementNameSet.add(name)
+}
+
+/** 是否是自定义web组件 */
+const isCustomElement = (name: string) => customElementNameSet.has(name)
+
 const define = (
   name: string,
   {
@@ -110,28 +137,47 @@ const define = (
       this.$data = reactive(data?.() || {})
       this.$methods = methods || {}
 
-      // 获取监视的属性
-      for (const attr of observedAttributes ?? []) {
-        if (this.hasAttribute(attr)) {
-          this.$props[attr] = this.getAttribute(attr)
-        }
-      }
+      const _observedAttributes = observedAttributes || []
 
       const shadow = this.$shadowRoot
 
       /*@__PURE__*/ checkPropsEmit<Func>(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
+      /*@__PURE__*/ checkObservedAttributes(_observedAttributes)
+
+      // 获取on-、x-开头的和observedAttributes定义属性的键值
+      const attrs = Array.from(this.attributes)
+      const _propsKey = {} as Record<string, string>
+      const _emitKey = {} as Record<string, string>
+      for (const attr of attrs) {
+        const { name, value } = attr
+        if (/^(on-)/.test(name)) {
+          _emitKey[name.slice(3)] = value
+        } else if (/^(x-)/.test(name)) {
+          _propsKey[name.slice(2)] = value
+        } else if (_observedAttributes.includes(name)) {
+          this.$props[name] = value
+        } else if (reservedKeys.includes(name)) {
+          continue
+        } else {
+          /*@__PURE__*/ console.warn(
+            `由 ${parentComponent?.localName} 赋予 ${this.localName} 的属性 ${name} 可能不被 ${name} 需要。`
+          )
+        }
+      }
 
       // TODO: 此处的key的类型声明存在问题
       // 包装父组件暴露的方法
       const emitFn = (key: string, ...args: unknown[]): unknown => {
         if (parentComponent && emit) {
+          const parentMethods = parentComponent.$methods
           const _emit = emit
-          const parentAttrs = parentComponent.$exposeAttributes
+          const _parentKey = _emitKey[key]
           if (key in _emit) {
             // 父组件暴露了该方法, 调用父组件的方法
-            if (key in parentAttrs && typeof parentAttrs[key] === 'function') {
-              return parentAttrs[key](...args)
+            if (_parentKey in parentMethods) {
+              const fn = parentMethods[_parentKey]
+              return fn(...args)
             }
             // 非必须的方法, 且有默认值
             else if (
@@ -149,8 +195,9 @@ const define = (
           }
           /*@__PURE__*/ console.error(
             (() => {
-              if (!(key in parentAttrs) && _emit[key]?.required) {
-                return `${this.localName}: ${parentComponent.localName} 未暴露 ${key} 方法。`
+              if (!(_parentKey in parentMethods) && _emit[key]?.required) {
+                console.log(parentMethods)
+                return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。`
               }
               if (!(key in _emit)) {
                 return `${this.localName}: 未定义 emit: ${key} 方法。`
@@ -173,18 +220,19 @@ const define = (
       // 从父组件的暴露中获取props定义的属性
       if (props && parentComponent) {
         const _props = props
-        const parentAttrs = parentComponent.$exposeAttributes
+        const parentData = parentComponent.$data
         for (const key in _props) {
+          const _parentKey = _propsKey[key]
           const { default: def, required } = _props[key]
-          if (key in parentAttrs) {
-            this.$props[key] = parentAttrs[key]
+          if (_parentKey in parentData) {
+            this.$props[key] = parentData[_parentKey]
           } else if (!required && 'default' in _props[key]) {
             this.$props[key] = def
           } else {
             /*@__PURE__*/ console.error(
               (() => {
                 if (required) {
-                  return `${this.localName}: ${parentComponent.localName} 未暴露 ${key} 属性。`
+                  return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 属性。`
                 }
                 return `${this.localName}: 未定义 ${key} 属性。`
               })()
@@ -260,11 +308,17 @@ const define = (
       // 获取全部请求绑定事件的元素
       const elements = BaseElement.events.reduce(
         (acc, event) => {
-          acc[event] = Array.from(shadow.querySelectorAll(`[on-${event}]`))
+          acc[event] = Array.from(
+            shadow.querySelectorAll(`[on-${event}]`)
+          ).filter((ele) => {
+            const target = ele
+            const targetTagName = target.tagName
+            return !isCustomElement(targetTagName.toLowerCase())
+          })
           return acc
         },
         // TODO: 这里的类型声明有问题: HTMLElement[]
-        {} as Record<(typeof BaseElement.events)[number], HTMLElement[]>
+        {} as Record<(typeof BaseElement.events)[number], Element[]>
       )
 
       // 绑定事件
@@ -331,7 +385,10 @@ const define = (
     }
   }
 
-  return () => customElements.define(name, Ele, options)
+  return () => {
+    addCustomElement(name.toLowerCase())
+    customElements.define(name, Ele, options)
+  }
 }
 
 export default define

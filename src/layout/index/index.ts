@@ -180,7 +180,8 @@ export default define('l-index', {
     return {
       back() {
         handle.prev()
-      }
+      },
+      ...handle
     }
   }
 })
