@@ -23,18 +23,17 @@ export default define('v-sd-type', {
     }
   },
   setup({ style }, { emit, expose }) {
-    expose({
-      style: style,
-      scroll(scrollTop: number) {
-        emit('scroll', scrollTop)
-      }
-    })
+    expose({})
     return {
       back() {
         emit('prev')
       },
       next() {
         emit('next')
+      },
+      style: style,
+      scroll(scrollTop: number) {
+        emit('scroll', scrollTop)
       }
     }
   },

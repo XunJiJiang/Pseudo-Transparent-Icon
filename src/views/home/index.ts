@@ -22,14 +22,15 @@ export default define('v-home', {
   setup({ style }, { emit, expose }) {
     // const homeRef = refTemplate('home-ref')
     expose({
-      style: style,
-      scroll(scrollTop: number) {
-        emit('scroll', scrollTop)
-      }
+      aaa: 123
     })
     return {
       handleClick() {
         emit('next')
+      },
+      style: style,
+      scroll(scrollTop: number) {
+        emit('scroll', scrollTop)
       }
     }
   },

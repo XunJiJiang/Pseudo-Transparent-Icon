@@ -9,7 +9,7 @@ import { Func } from '@type/function'
 import BaseElement, { type EventHandlers } from './BaseElement'
 import reactive from './reactive'
 import { setComponentIns } from './fixComponentIns'
-import { exposeAttributes } from './exposeAttributes'
+import { exposeAttributes, getExposeAttributes } from './exposeAttributes'
 import { setRunningSetup } from './hooks/lifecycle/verifySetup'
 import {
   clearBeforeCreate,
@@ -231,7 +231,10 @@ const define = (
           } else {
             /*@__PURE__*/ console.error(
               (() => {
-                if (required) {
+                const parentMethods = parentComponent.$methods
+                if (_parentKey in parentMethods) {
+                  return `${this.localName}: 无法使用x-${key}将一个${parentComponent.localName}公开的方法绑定 。`
+                } else if (required) {
                   return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 属性。`
                 }
                 return `${this.localName}: 未定义 ${key} 属性。`
@@ -302,6 +305,25 @@ const define = (
         this.$defineRefs[refName] = ele
         if (refName in this.$refs) {
           this.$refs[refName].value = ele
+        }
+      })
+
+      // 获取定义了expose属性的元素
+      const exposes = Array.from(shadow.querySelectorAll('[expose]'))
+      exposes.forEach((ele: Element) => {
+        const exposeName = ele.getAttribute('expose')
+        if (!exposeName) {
+          return /*@__PURE__*/ console.error(
+            `${this.localName}: expose 属性不能为空。`
+          )
+        } else if (!(ele instanceof BaseElement)) {
+          return /*@__PURE__*/ console.error(
+            `${this.localName}: expose 属性只能用于自定义组件。`
+          )
+        }
+        this.$defineExposes[exposeName] = getExposeAttributes(ele)
+        if (exposeName in this.$exposes) {
+          this.$exposes[exposeName].value = this.$defineExposes[exposeName]
         }
       })
 

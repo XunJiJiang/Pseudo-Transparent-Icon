@@ -2,6 +2,7 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import { define, effect, onMounted, ref, refTemplate } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
+import exposeTemplate from 'xj-web-core/exposeTemplate'
 
 type BgColorType = 'pure' | 'vague'
 
@@ -14,7 +15,7 @@ const setBodyBgColor = (type: BgColorType) => {
 export default define('l-index', {
   template: html,
   style: css,
-  setup(_, { expose }) {
+  setup() {
     const lIndexRef = refTemplate('l-index-ref')
     const headerRef = refTemplate('header-ref')
     const backSpanRef = refTemplate('back-span-ref')
@@ -175,7 +176,13 @@ export default define('l-index', {
       }
     }
 
-    expose(handle)
+    const homeExp = exposeTemplate<{
+      aaa: number
+    }>('home-exp')
+
+    onMounted(() => {
+      console.dir(homeExp.value)
+    })
 
     return {
       back() {

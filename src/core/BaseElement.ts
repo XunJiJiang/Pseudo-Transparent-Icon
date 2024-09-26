@@ -244,16 +244,26 @@ const events = [
 export default class BaseElement extends HTMLElement {
   static events = events
 
+  /** 整合observedAttributes和从父组件获取的数据(由x-开头的属性所得) */
   $props: Record<string, unknown> = {}
 
+  /** 当前组件暴露给子组件的数据 */
   $data: Record<string, unknown> = {}
 
+  /** 当前组件暴露给子组件的方法 */
   $methods: Record<string, Func> = {}
 
+  /** 当前组件暴露给父组件的属性 */
   $exposeAttributes: Record<string, unknown> = {}
 
   /** 影子 DOM 根 */
   $shadowRoot = this.attachShadow({ mode: 'open' })
+
+  /** 模板中声明了 expose 的元素 */
+  $defineExposes: Record<string, Record<string, unknown> | null> = {}
+
+  /** setup 函数中 使用 exposeTemplate 声明的元素 */
+  $exposes: Record<string, { value: Record<string, unknown> | null }> = {}
 
   /** 模板中声明了 ref 的元素 */
   $defineRefs: Record<string, Element | null> = {}
