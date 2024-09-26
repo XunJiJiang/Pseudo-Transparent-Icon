@@ -14,7 +14,7 @@ export default define('c-page', {
   },
   emit: {
     scroll: {
-      required: true
+      default: () => {}
     }
   },
   setup({ style, ...props }, { emit }) {

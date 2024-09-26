@@ -2,7 +2,6 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import { define, effect, onMounted, ref, refTemplate } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
-import exposeTemplate from 'xj-web-core/exposeTemplate'
 
 type BgColorType = 'pure' | 'vague'
 
@@ -45,7 +44,6 @@ export default define('l-index', {
         `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
       )
     })
-
     onMounted(() => {
       views.forEach((view, i) => {
         view[0].value?.setAttribute(
@@ -176,14 +174,6 @@ export default define('l-index', {
         }
       }
     }
-
-    const homeExp = exposeTemplate<{
-      aaa: number
-    }>('home-exp')
-
-    onMounted(() => {
-      console.dir(homeExp.value)
-    })
 
     return {
       back() {

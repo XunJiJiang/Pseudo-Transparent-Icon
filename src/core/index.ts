@@ -12,6 +12,10 @@ export { default as ref } from './ref'
 
 export { default as refTemplate } from './refTemplate'
 
+export { default as exposeTemplate } from './exposeTemplate'
+
+export { default as expose } from './exposeAttributes'
+
 export { default as reactive } from './reactive'
 
 export { effect } from './Dependency'

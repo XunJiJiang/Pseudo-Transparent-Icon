@@ -1,10 +1,16 @@
-@media (prefers-color-scheme: light) {
-}
+.card {
+  width: calc(100% - $margin * 2);
+  padding: $margin;
+  margin: 0 $margin $margin;
+  border-radius: $radius;
+  background-color: $bg-black;
+  box-sizing: border-box;
 
-.content {
-  width: calc(100% - $scrollbar-width);
+  @media (prefers-color-scheme: light) {
+    background-color: $bg-white;
+  }
 
-  & .card {
+  & .default {
     padding-top: 3px;
     & .header-icon {
       // 内含四个icon，正方形排列gird, 紧凑居中,总体呈正方形,不占满父元素
@@ -13,34 +19,22 @@
       grid-template-rows: repeat(2, 1fr);
       justify-items: center;
       align-items: center;
-      gap: 0.6rem;
-      width: 3.9rem;
+      gap: 0.5rem;
+      width: 4rem;
       margin: 0 auto $margin;
       animation: rotate 16s linear infinite;
 
       & span {
-        font-size: 2rem;
         line-height: 1.4rem;
       }
     }
     & .content {
-      & h1 {
-        margin: 0 0 $margin;
-        font-size: 1.2rem;
-        line-height: 1.2rem;
-
-        color: $fg-white;
-
-        @media (prefers-color-scheme: light) {
-          color: $fg-black;
-        }
-      }
       & p {
         margin: 0;
-        font-size: 0.8rem;
-        line-height: 0.9rem;
         & a {
           color: $fg-blue;
+          font-size: 0.8rem;
+          line-height: 0.8rem;
 
           &:hover {
             color: $fg-white;

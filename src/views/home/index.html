@@ -1,9 +1,32 @@
 <c-page ref="c-page-ref" data-index="0" on-scroll="scroll" x-style="style">
   <div slot="default" class="content">
-    <span>
-      <c-button on-click="handleClick" data-type="default">
-        <span slot="default">现在开始</span>
-      </c-button>
-    </span>
+    <c-card>
+      <div slot="default" class="card">
+        <div class="header-icon">
+          <span><c-icon name="radius-upleft" size="1.6rem"></c-icon></span>
+          <span><c-icon name="radius-setting" size="1.6rem"></c-icon></span>
+          <span><c-icon name="radius-bottomleft" size="1.6rem"></c-icon></span>
+          <span><c-icon name="radius-bottomright" size="1.6rem"></c-icon></span>
+        </div>
+        <div class="content">
+          <h1>快速创建伪透明图标</h1>
+          <p>
+            使用xj-web创建的快速伪透明图标生成，生产美妙绝伦无与伦比的完美壁纸。
+          </p>
+          <p>
+            <a
+              href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon"
+              target="_blank"
+            >
+              <c-icon name="github-fill" size="0.8rem"></c-icon>
+              进一步了解伪透明图标和xj-web...
+            </a>
+          </p>
+        </div>
+      </div>
+    </c-card>
+    <c-button on-click="handleClick" data-type="default">
+      <span slot="default">现在开始</span>
+    </c-button>
   </div>
 </c-page>

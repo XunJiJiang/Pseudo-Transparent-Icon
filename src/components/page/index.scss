@@ -16,18 +16,14 @@
 
 .c-page {
   position: absolute;
-  // left: 0;
   transform: translateX(0);
   transition:
     transform 0.5s $cubic-bezier,
     opacity 0.5s $cubic-bezier;
-  width: calc(100% + 4px);
-  min-width: 320px;
+  width: calc(100% + $scrollbar-width);
   height: 100%;
-  min-height: 100vh;
-  max-height: 100vh;
+  height: -webkit-fill-available;
   box-sizing: border-box;
-  overflow-x: hidden;
   overflow-y: auto;
   user-select: none;
   -webkit-user-select: none;
@@ -40,16 +36,9 @@
     background-color: $background-color-light;
   }
 
-  @supports (-webkit-touch-callout: none) {
-    height: -webkit-fill-available;
-    min-height: -webkit-fill-available;
-    max-height: -webkit-fill-available;
-  }
-
   & main {
     box-sizing: border-box;
-    overflow-x: hidden;
-    padding: calc(2.8rem + 16px) 0 32px 0;
+    padding: calc(2.8rem + $margin) 0 32px 0;
   }
 
   // 首级页面，标题居中，占多半高度，不展示返回按钮

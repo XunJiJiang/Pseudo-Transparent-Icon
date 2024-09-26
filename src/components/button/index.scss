@@ -11,13 +11,14 @@
 }
 
 .c-button[data-type='default'] {
-  border-radius: 16px;
+  border-radius: $radius;
   padding: 0.8rem 0rem;
   width: calc(100% - 32px);
   max-width: 360px;
   box-sizing: border-box;
   background-color: $bg-blue;
   color: #fff;
+  margin: 0 auto $margin;
 
   &:hover {
     background-color: scale-color($bg-blue, $lightness: 10%);

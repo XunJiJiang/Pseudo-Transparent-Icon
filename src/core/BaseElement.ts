@@ -257,7 +257,7 @@ export default class BaseElement extends HTMLElement {
   $exposeAttributes: Record<string, unknown> = {}
 
   /** 影子 DOM 根 */
-  $shadowRoot = this.attachShadow({ mode: 'open' })
+  $root: ShadowRoot | BaseElement | null = null
 
   /** 模板中声明了 expose 的元素 */
   $defineExposes: Record<string, Record<string, unknown> | null> = {}

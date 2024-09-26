@@ -14,24 +14,15 @@ export default define('v-home', {
   emit: {
     next: {
       required: true
-    },
-    scroll: {
-      required: true
     }
   },
-  setup({ style }, { emit, expose }) {
+  setup({ style }, { emit }) {
     // const homeRef = refTemplate('home-ref')
-    expose({
-      aaa: 123
-    })
     return {
       handleClick() {
         emit('next')
       },
-      style: style,
-      scroll(scrollTop: number) {
-        emit('scroll', scrollTop)
-      }
+      style: style
     }
   },
   attributeChanged(name, _oldValue, newValue) {

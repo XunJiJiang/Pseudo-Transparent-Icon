@@ -3,9 +3,9 @@
 $font-color-dark: rgba(255, 255, 255, 0.87);
 $font-color-light: rgba(0, 0, 0, 0.87);
 $background-color-dark: #000000;
-$background-color-light: #ffffff;
+$background-color-light: #f2f1f6;
 $fg-white: rgba(255, 255, 255, 0.87);
-$bg-white: #faf9fa;
+$bg-white: #ffffff;
 $fg-black: rgba(0, 0, 0, 0.87);
 $bg-black: #242424;
 $fg-blue: #3b81f6;
@@ -13,9 +13,21 @@ $bg-blue: #3374ff;
 
 $cubic-bezier: cubic-bezier(0.27, 0.4, 0.2, 0.99);
 
+$margin: 16px;
+
+$radius: 10px;
+
+$scrollbar-width: 4px;
+
+a {
+  text-decoration: none;
+  transition: color 0.5s $cubic-bezier;
+  cursor: pointer;
+}
+
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: $scrollbar-width;
+  height: $scrollbar-width;
 }
 
 ::-webkit-scrollbar-thumb {

@@ -95,6 +95,7 @@ const define = (
   {
     template,
     style,
+    shadow = true,
     setup,
     props,
     emit,
@@ -109,6 +110,7 @@ const define = (
   }: {
     template?: string
     style?: string
+    shadow?: boolean
     setup?: (
       props: Record<string, unknown>,
       context: {
@@ -129,6 +131,7 @@ const define = (
   },
   options?: ElementDefinitionOptions
 ) => {
+  const _shadow = shadow
   class Ele extends BaseElement {
     constructor() {
       super()
@@ -139,7 +142,13 @@ const define = (
 
       const _observedAttributes = observedAttributes || []
 
-      const shadow = this.$shadowRoot
+      if (_shadow) {
+        this.$root = this.attachShadow({ mode: 'open' })
+      } else {
+        this.$root = this
+      }
+
+      const shadow = this.$root
 
       /*@__PURE__*/ checkPropsEmit<Func>(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
@@ -310,6 +319,7 @@ const define = (
 
       // 获取定义了expose属性的元素
       const exposes = Array.from(shadow.querySelectorAll('[expose]'))
+      // 使用exposeTemplate声明的元素
       exposes.forEach((ele: Element) => {
         const exposeName = ele.getAttribute('expose')
         if (!exposeName) {
@@ -325,6 +335,13 @@ const define = (
         if (exposeName in this.$exposes) {
           this.$exposes[exposeName].value = this.$defineExposes[exposeName]
         }
+      })
+      const exposeTemplates = /*@__PURE__*/ Object.entries(this.$exposes)
+      /*@__PURE__*/ exposeTemplates.forEach(([key, value]) => {
+        if (!value) return
+        console.error(
+          `${this.localName}: 尝试使用exposeTemplate获取${key}, 但没有在任何自定义组将上定义[expose=${key}]。`
+        )
       })
 
       // 获取全部请求绑定事件的元素
