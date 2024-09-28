@@ -22,6 +22,9 @@ export default define('v-home', {
       handleClick() {
         emit('next')
       },
+      handleClick2() {
+        emit('next', 4, 'absolute')
+      },
       style: style
     }
   },

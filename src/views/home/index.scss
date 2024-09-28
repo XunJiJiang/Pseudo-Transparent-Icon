@@ -1,7 +1,7 @@
 @media (prefers-color-scheme: light) {
 }
 
-.content {
+.root {
   width: calc(100% - $scrollbar-width);
 
   & .card {

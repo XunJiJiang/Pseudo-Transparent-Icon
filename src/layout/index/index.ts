@@ -2,6 +2,7 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import { define, effect, onMounted, ref, refTemplate } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
+import getStringWidth from '@utils/getStringWidth'
 
 type BgColorType = 'pure' | 'vague'
 
@@ -20,12 +21,11 @@ export default define('l-index', {
     const backSpanRef = refTemplate('back-span-ref')
     const titleSpanRef = refTemplate('title-span-ref')
     const views = [
-      [refTemplate('v-home-ref'), '首页'],
       [refTemplate('v-sd-type-ref'), '选择设备类型'],
-      [refTemplate('v-sd-type-ref2'), '选择设备'],
-      [refTemplate('v-sd-type-ref3'), '类型'],
-      [refTemplate('v-sd-type-ref4'), '备类型'],
-      [refTemplate('v-sd-type-ref5'), '选择设备类型']
+      [refTemplate('v-home-ref'), '首页'],
+      [refTemplate('v-sd-type-ref2'), '选择设备类型2'],
+      [refTemplate('v-sd-type-ref3'), '选择设备类型3'],
+      [refTemplate('v-sd-type-ref4'), '选择设备类型4']
     ] as [
       {
         value: HTMLElement | null
@@ -105,42 +105,48 @@ export default define('l-index', {
 
         const prevTitle = nowTitle
 
-        const leftTitle =
-          backSpanRef.value?.querySelector('span:first-child')?.textContent ||
-          ''
-
         views[prevIndex][0].value?.setAttribute(
           'data-style',
           `transform: translateX(${index.value > prevIndex ? '-25%' : '100%'});`
         )
 
-        nowTitle = index.value === 0 ? '' : views[index.value - 1][1]
+        nowTitle = pageList[pageList.length - 1] ?? ''
 
         backSpanRef.value.classList.remove('add')
         backSpanRef.value.classList.remove('reduce')
 
-        backSpanRef.value.setAttribute(
-          'style',
-          `width: ${nowTitle.length * 1.07 + 1}rem;`
-        )
+        let stringWidth = 0
 
         if (index.value > prevIndex) {
           pageList.push(prevTitle)
-
+          stringWidth = getStringWidth(prevTitle, {
+            fontSize: '1rem',
+            fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
+          })
           backSpanRef.value.classList.add('add')
           backSpanRef.value.innerHTML = `
               <span>${nowTitle}</span>
-              <span>${leftTitle}</span>
+              <span>${prevTitle}</span>
             `
         } else {
-          pageList.pop()
-
+          const prevTitle = pageList.pop() ?? ''
+          const nowTitle = pageList[pageList.length - 1] ?? ''
+          stringWidth = getStringWidth(nowTitle, {
+            fontSize: '1rem',
+            fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
+          })
           backSpanRef.value.classList.add('reduce')
           backSpanRef.value.innerHTML = `
               <span>${nowTitle}</span>
-              <span>${leftTitle}</span>
+              <span>${prevTitle}</span>
             `
         }
+
+        backSpanRef.value.setAttribute(
+          'style',
+          `width: calc(${stringWidth}px + 1.2rem);`
+        )
+
         if (pageList.length === 0) {
           headerRef.value?.classList.add('hide')
         } else {
@@ -155,14 +161,33 @@ export default define('l-index', {
       lIndexRef.value?.classList.add(type)
     }
 
+    const pageIndexChangeList: number[] = []
+
     const handle = {
       prev() {
         if (index.value === 0) return
-        index.value--
+        index.value -= pageIndexChangeList.pop() || 0
       },
-      next() {
+      next(num = 1, type: 'relative' | 'absolute' = 'relative') {
+        let change = 0
         if (index.value === views.length - 1) return
-        index.value++
+        if (type === 'absolute') {
+          change = num - index.value
+          index.value = num
+        } else if (type === 'relative') {
+          change = num
+          index.value += num
+          /*@__PURE__*/ console.error(
+            (() => {
+              if (index.value < 0) {
+                return `l-index: The index value is less than 0, the value is ${index.value}`
+              } else if (index.value >= views.length) {
+                return `l-index: The index value is greater than or equal to the length of the views, the value is ${index.value}`
+              }
+            })()
+          )
+        }
+        pageIndexChangeList.push(change)
       },
       scroll(scrollTop: number) {
         if (scrollTop < 16) {

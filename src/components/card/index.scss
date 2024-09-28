@@ -1,7 +1,9 @@
 .card {
   width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  border: 1px solid #00000000;
   padding: $margin;
-  margin: 0 $margin $margin;
+  margin: 0 auto $margin;
   border-radius: $radius;
   background-color: $bg-black;
   box-sizing: border-box;

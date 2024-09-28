@@ -1,77 +1,30 @@
 <c-page ref="c-page-ref" data-index="1" on-scroll="scroll" x-style="style">
-  <div slot="default" class="content">
-    <span>
-      <c-button on-click="next" data-type="default">
-        <span slot="default">确认</span>
-      </c-button>
-      <c-button on-click="next" data-type="default">
-        <span slot="default">确认</span>
-      </c-button>
-      <c-button on-click="next" data-type="default">
-        <span slot="default">确认</span>
-      </c-button>
-      <c-button on-click="next" data-type="default">
-        <span slot="default">确认</span>
-      </c-button>
-      <c-button on-click="next" data-type="default">
-        <span slot="default">确认</span>
-      </c-button>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-      <div>确认</div>
-    </span>
+  <div slot="default" class="root">
+    <c-card>
+      <div slot="default" class="card">
+        <div class="header-icon">
+          <span><c-icon name="mobile" size="3.6rem"></c-icon></span>
+          <span><c-icon name="tablet" size="3.6rem"></c-icon></span>
+        </div>
+        <div class="content">
+          <h4>选择您的设备</h4>
+          <p>
+            如果选择支持旋转的设备，建议选择常用的旋转方向。因为创建的图标并不能同时支持横向和纵向的对齐。
+          </p>
+          <p>
+            <a
+              href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon?tab=readme-ov-file#创建的图标在旋转后无法对齐"
+              target="_blank"
+            >
+              <!-- <c-icon name="github-fill" size="0.8rem"></c-icon> -->
+              为什么会这样?
+            </a>
+          </p>
+        </div>
+      </div>
+    </c-card>
+    <c-button on-click="next" data-type="default">
+      <span slot="default">确认</span>
+    </c-button>
   </div>
 </c-page>

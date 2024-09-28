@@ -1,17 +1,4 @@
-@media (max-width: 600px) {
-  /* 针对小型设备的样式 */
-}
-
-@media (min-width: 601px) and (max-width: 1024px) {
-  /* 针对中型设备的样式 */
-}
-
-@media (min-width: 1025px) {
-  /* 针对大型设备的样式 */
-}
-
-@media (min-width: 1440px) {
-  /* 针对超大型设备的样式 */
+@media (min-width: 504px) {
 }
 
 .c-page {
@@ -38,20 +25,22 @@
 
   & main {
     box-sizing: border-box;
-    padding: calc(2.8rem + $margin) 0 32px 0;
+    // padding: calc(2.8rem + $margin) 0 32px 0;
   }
 
   // 首级页面，标题居中，占多半高度，不展示返回按钮
-  // &.page-0 {
-  //   & main {
-  //   }
-  // }
+  &.page-0 {
+    & main {
+      padding: $margin 0 32px 0;
+    }
+  }
 
   // 一级页面，标题置顶，占很少高度，展示返回按钮
-  // &.page-1 {
-  //   & main {
-  //   }
-  // }
+  &.page-1 {
+    & main {
+      padding: calc(2.8rem + $margin) 0 32px 0;
+    }
+  }
 }
 
 @media (prefers-color-scheme: light) {

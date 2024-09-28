@@ -108,8 +108,8 @@ const define = (
     attributeChanged
     // ...rest
   }: {
-    template?: string
-    style?: string
+    template?: string | ((props: Record<string, unknown>) => string)
+    style?: string | ((props: Record<string, unknown>) => string)
     shadow?: boolean
     setup?: (
       props: Record<string, unknown>,
@@ -298,11 +298,15 @@ const define = (
 
       // 创建模板
       if (typeof template === 'string') shadow.innerHTML = template
+      else if (typeof template === 'function')
+        shadow.innerHTML = template(this.$props)
 
       // 创建 style 标签
       if (style) {
         const styleEle = document.createElement('style')
-        styleEle.textContent = style
+        if (typeof style === 'string') styleEle.textContent = style
+        else if (typeof style === 'function')
+          styleEle.textContent = style(this.$props)
         shadow.appendChild(styleEle)
       }
 

@@ -14,7 +14,7 @@
   border-radius: $radius;
   padding: 0.8rem 0rem;
   width: calc(100% - 32px);
-  max-width: 360px;
+  max-width: $component-max-width;
   box-sizing: border-box;
   background-color: $bg-blue;
   color: #fff;
