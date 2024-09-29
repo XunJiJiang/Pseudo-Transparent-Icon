@@ -64,7 +64,16 @@ export default define('v-sd-type', {
       scroll(scrollTop: number) {
         emit<SelectDeviceTypeEmit>('scroll', scrollTop)
       },
-      devices
+      devices,
+      setDevice(
+        index: number,
+        val: {
+          label: string
+          value: string
+        }
+      ) {
+        console.log(index, val)
+      }
     }
   },
   attributeChanged(name, _oldValue, newValue) {

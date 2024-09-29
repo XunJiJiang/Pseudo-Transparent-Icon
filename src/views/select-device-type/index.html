@@ -23,7 +23,11 @@
         </div>
       </div>
     </c-card>
-    <c-radio-group x-content="devices"></c-radio-group>
+    <c-radio-group
+      x-title="qwe"
+      x-content="devices"
+      on-change="setDevice"
+    ></c-radio-group>
     <c-button on-click="next" data-type="default">
       <span slot="default">确认</span>
     </c-button>

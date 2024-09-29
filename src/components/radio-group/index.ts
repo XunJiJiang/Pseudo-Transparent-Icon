@@ -1,5 +1,5 @@
 import css from './index.scss?raw'
-import { define, effect } from 'xj-web-core/index'
+import { define } from 'xj-web-core/index'
 
 type RadioGroupProps = {
   title?: string
@@ -10,18 +10,23 @@ type RadioGroupProps = {
 }
 
 type RadioGroupEmit = {
-  change: (value: string) => void
+  change: (
+    index: number,
+    value: {
+      label: string
+      value: string
+    }
+  ) => void
 }
 
 export default define('c-radio-group', {
   template: ({ title, content }: RadioGroupProps) => {
-    console.log(content)
     return `
       <c-card>
         <div slot="default" class="radio-group">
           ${title ? `<header>${title}</header>` : ''}
           <div class="radio-group-content">
-            ${content.map((item) => `<div class="radio-item">${item.label}</div>`).join('')}
+            ${content.map((item, i) => `<div class="radio-item" on-click="change, ${i}">${item.label}</div>`).join('')}
           </div>
         </div>
       </c-card>
@@ -41,12 +46,14 @@ export default define('c-radio-group', {
       required: true
     }
   },
-  setup({ title, content }: RadioGroupProps, { emit }) {
-    effect(() => {
-      console.log('content changed', content[0])
-    })
+  setup({ content }: RadioGroupProps, { emit }) {
+    // effect(() => {
+    //   console.log('content changed', content[0])
+    // })
     return {
-      change() {}
+      change(_e: Event, i: string) {
+        emit<RadioGroupEmit>('change', Number(i), content[Number(i)])
+      }
     }
   }
 })

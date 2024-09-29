@@ -254,6 +254,8 @@ const define = (
           const { default: def, required } = _props[key]
           if (_parentKey in parentData) {
             this.$props[key] = parentData[_parentKey]
+          } else if (typeof _parentKey === 'string') {
+            this.$props[key] = _parentKey
           } else if (!required && 'default' in _props[key]) {
             this.$props[key] = def
           } else {
@@ -397,12 +399,14 @@ const define = (
               return this.$methods[_str]?.bind(this)
             }
             if (_str in this.$data) return this.$data[_str]
-            else if (_str in this.$methods) return this.$methods[_str]
+            else if (_str in this.$methods)
+              return this.$methods[_str]?.bind(this)
             else return _str
           })
           if (!fn) {
+            // TODO: 需要修改：如何判断是否是子组件的元素
             return /*@__PURE__*/ console.error(
-              `${this.localName}: 未定义 ${_fnName} 方法。`
+              `${this.localName}: 未定义 ${_fnName} 方法。可能是因为请求绑定事件的元素 [${ele.localName}] 为当前组件的子组件内的元素，而子组件未启用 shadow。`
             )
           }
           target.addEventListener(event, (e: Event) => {
