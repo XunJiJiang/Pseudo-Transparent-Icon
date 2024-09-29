@@ -1,6 +1,17 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define } from 'xj-web-core/index'
+import { define, reactive } from 'xj-web-core/index'
+
+type SelectDeviceTypeProps = {
+  'data-style': string
+  style: string
+}
+
+type SelectDeviceTypeEmit = {
+  prev: () => void
+  next: () => void
+  scroll: (scrollTop: number) => void
+}
 
 export default define('v-sd-type', {
   template: html,
@@ -22,19 +33,38 @@ export default define('v-sd-type', {
       required: true
     }
   },
-  setup({ style }, { emit, expose }) {
+  setup({ style }: SelectDeviceTypeProps, { emit, expose }) {
+    const devices = reactive([
+      {
+        label: '设备1',
+        value: 'type1'
+      },
+      {
+        label: '设备2',
+        value: 'type2'
+      },
+      {
+        label: '设备3',
+        value: 'type3'
+      },
+      {
+        label: '设备4',
+        value: 'type4'
+      }
+    ])
     expose({})
     return {
       back() {
-        emit('prev')
+        emit<SelectDeviceTypeEmit>('prev')
       },
       next() {
-        emit('next')
+        emit<SelectDeviceTypeEmit>('next')
       },
       style: style,
       scroll(scrollTop: number) {
-        emit('scroll', scrollTop)
-      }
+        emit<SelectDeviceTypeEmit>('scroll', scrollTop)
+      },
+      devices
     }
   },
   attributeChanged(name, _oldValue, newValue) {

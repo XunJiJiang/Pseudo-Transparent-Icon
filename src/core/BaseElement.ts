@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { type Func } from '@type/function'
 
+// #region Description
 export type EventHandlers =
   | 'beforeinstallprompt'
   | 'beforexrselect'
@@ -240,30 +243,31 @@ const events = [
   'pagereveal',
   'scrollend'
 ] as EventHandlers[]
+// #endregion
 
 export default class BaseElement extends HTMLElement {
   static events = events
 
   /** 整合observedAttributes和从父组件获取的数据(由x-开头的属性所得) */
-  $props: Record<string, unknown> = {}
+  $props: Record<string, any> = {}
 
   /** 当前组件暴露给子组件的数据 */
-  $data: Record<string, unknown> = {}
+  $data: Record<string, any> = {}
 
   /** 当前组件暴露给子组件的方法 */
   $methods: Record<string, Func> = {}
 
   /** 当前组件暴露给父组件的属性 */
-  $exposeAttributes: Record<string, unknown> = {}
+  $exposeAttributes: Record<string, any> = {}
 
   /** 影子 DOM 根 */
   $root: ShadowRoot | BaseElement | null = null
 
   /** 模板中声明了 expose 的元素 */
-  $defineExposes: Record<string, Record<string, unknown> | null> = {}
+  $defineExposes: Record<string, Record<string, any> | null> = {}
 
   /** setup 函数中 使用 exposeTemplate 声明的元素 */
-  $exposes: Record<string, { value: Record<string, unknown> | null }> = {}
+  $exposes: Record<string, { value: Record<string, any> | null }> = {}
 
   /** 模板中声明了 ref 的元素 */
   $defineRefs: Record<string, Element | null> = {}

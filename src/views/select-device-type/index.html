@@ -9,7 +9,7 @@
         <div class="content">
           <h4>选择您的设备</h4>
           <p>
-            如果选择支持旋转的设备，建议选择常用的旋转方向。因为创建的图标并不能同时支持横向和纵向的对齐。
+            如果选择支持旋转的设备，建议选择最常用的旋转方向。因为创建的图标并不能同时支持横向和纵向的对齐。
           </p>
           <p>
             <a
@@ -23,6 +23,7 @@
         </div>
       </div>
     </c-card>
+    <c-radio-group x-content="devices"></c-radio-group>
     <c-button on-click="next" data-type="default">
       <span slot="default">确认</span>
     </c-button>

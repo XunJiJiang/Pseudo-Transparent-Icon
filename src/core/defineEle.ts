@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// 为了在自定义组件中使用类型推断, 需要使用any
 /*
  * WARN: 可能存在的问题:
  * 1. 在单个自定义组件内创建出超出一层的自定义组件时,
@@ -19,11 +21,21 @@ import { clearCreated, runCreated } from './hooks/lifecycle/created'
 import { clearBeforeMount, runBeforeMount } from './hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from './hooks/lifecycle/mounted'
 import { runUnmounted } from './hooks/lifecycle/unmounted'
+import { hasOwn } from './utils/shared'
+
+type DataType = Record<string | symbol, any>
+
+// export type DefineProps<T extends Record<string | symbol, any>> = T
+
+// export type DefineEmit<T extends Record<string | symbol, any>> = (
+//   key: keyof T,
+//   ...args: Parameters<T[keyof T]>
+// ) => ReturnType<T[keyof T]>
 
 interface EleCallback {
   (
     this: BaseElement,
-    data: Record<string, unknown>,
+    data: DataType,
     context: {
       methods: Record<string, Func>
     }
@@ -36,22 +48,22 @@ interface EleAttributeChangedCallback {
     name: string,
     oldValue: string,
     newValue: string,
-    data: Record<string, unknown>,
+    data: DataType,
     context: {
       methods: Record<string, Func>
     }
   ): void
 }
 
-type DefaultOptions<T = unknown> = {
-  [key: string]: {
-    default?: T extends Func ? Func : unknown
+type DefaultOptions<T extends string = string, K = any> = {
+  [key in T]: {
+    default?: K extends Func ? Func : any
     required?: boolean
   }
 }
 
-const checkPropsEmit = /*@__PURE__*/ <T>(
-  opts: DefaultOptions<T>,
+const checkPropsEmit = /*@__PURE__*/ <T extends string, K>(
+  opts: DefaultOptions<T, K>,
   ele: BaseElement
 ) => {
   for (const key in opts) {
@@ -108,21 +120,24 @@ const define = (
     attributeChanged
     // ...rest
   }: {
-    template?: string | ((props: Record<string, unknown>) => string)
-    style?: string | ((props: Record<string, unknown>) => string)
+    template: string | ((props: any) => string)
+    style?: string | ((props: any) => string)
     shadow?: boolean
     setup?: (
-      props: Record<string, unknown>,
+      props: any,
       context: {
-        expose: (methods: Record<string, unknown>) => void
-        emit: (key: string, ...args: unknown[]) => unknown
+        expose: (methods: DataType) => void
+        emit: <T extends Record<string, Func> = Record<string, Func>>(
+          key: keyof T & string,
+          ...args: Parameters<T[typeof key]>
+        ) => ReturnType<T[typeof key]>
       }
-    ) => Record<string, unknown> | void
+    ) => DataType | void
     props?: DefaultOptions
-    emit?: DefaultOptions<Func>
+    emit?: DefaultOptions<string, Func>
     // TODO: data的类型声明存在
-    data?: () => Record<string, unknown>
-    methods?: Record<string, (this: BaseElement, ...args: unknown[]) => void>
+    data?: () => DataType
+    methods?: Record<string, (this: BaseElement, ...args: any[]) => void>
     observedAttributes?: string[]
     connected?: EleCallback
     disconnected?: EleCallback
@@ -150,7 +165,7 @@ const define = (
 
       const shadow = this.$root
 
-      /*@__PURE__*/ checkPropsEmit<Func>(emit ?? {}, this)
+      /*@__PURE__*/ checkPropsEmit<string, Func>(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
       /*@__PURE__*/ checkObservedAttributes(_observedAttributes)
 
@@ -177,12 +192,15 @@ const define = (
 
       // TODO: 此处的key的类型声明存在问题
       // 包装父组件暴露的方法
-      const emitFn = (key: string, ...args: unknown[]): unknown => {
+      const emitFn = <T extends Record<string, Func> = Record<string, Func>>(
+        key: keyof T & string,
+        ...args: Parameters<T[typeof key]>
+      ): ReturnType<T[typeof key]> => {
         if (parentComponent && emit) {
           const parentMethods = parentComponent.$methods
-          const _emit = emit
-          const _parentKey = _emitKey[key]
-          if (key in _emit) {
+          const _emit = emit as DefaultOptions<keyof T & string, Func>
+          const _parentKey = (_emitKey as Record<typeof key, string>)[key]
+          if (hasOwn(_emit, key)) {
             // 父组件暴露了该方法, 调用父组件的方法
             if (_parentKey in parentMethods) {
               const fn = parentMethods[_parentKey]
@@ -194,12 +212,12 @@ const define = (
               typeof _emit[key].default === 'function'
             ) {
               const fn = _emit[key].default
-              return (...args: Parameters<typeof fn>) => {
+              return ((...args: Parameters<typeof fn>) => {
                 const { restore } = setComponentIns(this)
                 const _return = fn(...args)
                 restore()
                 return _return
-              }
+              })()
             }
           }
           /*@__PURE__*/ console.error(
@@ -224,6 +242,7 @@ const define = (
             })()
           )
         }
+        return undefined as ReturnType<T[typeof key]>
       }
 
       // 从父组件的暴露中获取props定义的属性
@@ -278,7 +297,7 @@ const define = (
       // 将$methods中的方法封装一层, 使其在调用内部创建的自定义组件可以获取正确的父组件实例
       for (const key in this.$methods) {
         const fn = this.$methods[key].bind(this)
-        this.$methods[key] = (...args: unknown[]) => {
+        this.$methods[key] = (...args: any[]) => {
           const { restore } = setComponentIns(this)
           const _return = fn(...args)
           restore()
@@ -361,6 +380,8 @@ const define = (
           return acc
         },
         // TODO: 这里的类型声明有问题: HTMLElement[]
+        // 这里原来是HTMLElement[], 改成Element[], 不知道还有没有问题
+        //                                                   ↓
         {} as Record<(typeof BaseElement.events)[number], Element[]>
       )
 

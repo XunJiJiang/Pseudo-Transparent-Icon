@@ -1,3 +1,5 @@
+// TODO: 当前[next函数]只能增加，不能减少，计划修改为可以增加和减少。目前没有用到，暂时不修改
+
 import html from './index.html?raw'
 import css from './index.scss?raw'
 import { define, effect, onMounted, ref, refTemplate } from 'xj-web-core/index'
@@ -168,6 +170,7 @@ export default define('l-index', {
         if (index.value === 0) return
         index.value -= pageIndexChangeList.pop() || 0
       },
+      // TODO: [next函数] 此处
       next(num = 1, type: 'relative' | 'absolute' = 'relative') {
         let change = 0
         if (index.value === views.length - 1) return
@@ -177,15 +180,9 @@ export default define('l-index', {
         } else if (type === 'relative') {
           change = num
           index.value += num
-          /*@__PURE__*/ console.error(
-            (() => {
-              if (index.value < 0) {
-                return `l-index: The index value is less than 0, the value is ${index.value}`
-              } else if (index.value >= views.length) {
-                return `l-index: The index value is greater than or equal to the length of the views, the value is ${index.value}`
-              }
-            })()
-          )
+        }
+        if (index.value > views.length - 1 || index.value < 0) {
+          /*@__PURE__*/ console.error('l-index(页面管理): index out of range')
         }
         pageIndexChangeList.push(change)
       },

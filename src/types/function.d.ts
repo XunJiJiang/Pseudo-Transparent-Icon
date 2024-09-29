@@ -1,1 +1,2 @@
-export type Func = (...args: unknown[]) => unknown
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export type Func = (...args: any[]) => any

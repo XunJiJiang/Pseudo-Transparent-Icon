@@ -2,6 +2,15 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import { define } from 'xj-web-core/index'
 
+type HomeProps = {
+  style: string
+  'data-style': string
+}
+
+type HomeEmit = {
+  next: (index?: number, style?: string) => void
+}
+
 export default define('v-home', {
   template: html,
   style: css,
@@ -16,14 +25,14 @@ export default define('v-home', {
       required: true
     }
   },
-  setup({ style }, { emit }) {
+  setup({ style }: HomeProps, { emit }) {
     // const homeRef = refTemplate('home-ref')
     return {
       handleClick() {
-        emit('next')
+        emit<HomeEmit>('next')
       },
       handleClick2() {
-        emit('next', 4, 'absolute')
+        emit<HomeEmit>('next', 4, 'absolute')
       },
       style: style
     }
