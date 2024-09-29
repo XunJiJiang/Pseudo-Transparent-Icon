@@ -391,17 +391,18 @@ const define = (
           const target = ele
           const _fnName = target.getAttribute(`on-${event}`)
           if (!_fnName) return
-          const [fnName, ...args] = _fnName.split(',').map((str) => {
+          const [fn, ...args] = _fnName.split(',').map((str, index) => {
             const _str = str.trim()
+            if (index === 0) {
+              return this.$methods[_str]?.bind(this)
+            }
             if (_str in this.$data) return this.$data[_str]
             else if (_str in this.$methods) return this.$methods[_str]
-            return _str
+            else return _str
           })
-          const fn =
-            this.$methods[fnName as keyof typeof this.$methods]?.bind(this)
           if (!fn) {
             return /*@__PURE__*/ console.error(
-              `${this.localName}: 未定义 ${fnName} 方法。`
+              `${this.localName}: 未定义 ${_fnName} 方法。`
             )
           }
           target.addEventListener(event, (e: Event) => {
