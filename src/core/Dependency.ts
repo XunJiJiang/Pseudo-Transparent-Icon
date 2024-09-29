@@ -35,6 +35,31 @@ export const effect = (effCallback: EffectCallback) => {
 
 const SYMBOL_EFFECT = Symbol('effect')
 
+/*concat()
+slice()
+map()
+filter()
+reduce()
+find()
+findIndex()
+every()
+some()
+includes()
+join() */
+
+// 函数上非纯函数的属性
+const notPureArrFuncKey = [
+  'push',
+  'pop',
+  'shift',
+  'unshift',
+  'splice',
+  'sort',
+  'reverse',
+  'copyWithin',
+  'fill'
+]
+
 class Dependency<T extends object> {
   private _deps = new Map<string | symbol, Set<EffectCallback>>()
   private _depCleanups = new Map<string | symbol, Set<() => void>>()
@@ -65,15 +90,7 @@ class Dependency<T extends object> {
         if (
           typeof _value === 'function' &&
           isArray(target) &&
-          [
-            'push',
-            'pop',
-            'shift',
-            'unshift',
-            'splice',
-            'sort',
-            'reverse'
-          ].includes(key as string)
+          notPureArrFuncKey.includes(key as string)
         ) {
           return function (...args: Parameters<typeof _value>) {
             // 调用原始方法

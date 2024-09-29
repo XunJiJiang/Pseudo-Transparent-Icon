@@ -284,7 +284,7 @@ const define = (
       // Lifecycle: beforeCreate 调用时机
       runBeforeCreate()
 
-      // 将setup中的数据分别放入data和$methods中
+      // 将setup中的数据分别放入$data和$methods中
       for (const key in setupData) {
         const val = setupData[key]
         if (typeof val === 'function') {
@@ -389,8 +389,14 @@ const define = (
       for (const event in elements) {
         elements[event as EventHandlers].forEach((ele) => {
           const target = ele
-          const fnName = target.getAttribute(`on-${event}`)
-          if (!fnName) return
+          const _fnName = target.getAttribute(`on-${event}`)
+          if (!_fnName) return
+          const [fnName, ...args] = _fnName.split(',').map((str) => {
+            const _str = str.trim()
+            if (_str in this.$data) return this.$data[_str]
+            else if (_str in this.$methods) return this.$methods[_str]
+            return _str
+          })
           const fn =
             this.$methods[fnName as keyof typeof this.$methods]?.bind(this)
           if (!fn) {
@@ -399,7 +405,7 @@ const define = (
             )
           }
           target.addEventListener(event, (e: Event) => {
-            fn(e)
+            fn(e, ...args)
           })
         })
       }
