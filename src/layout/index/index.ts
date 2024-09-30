@@ -14,6 +14,8 @@ const setBodyBgColor = (type: BgColorType) => {
   document.body.classList.add(type)
 }
 
+// const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
+
 export default define('l-index', {
   template: html,
   style: css,

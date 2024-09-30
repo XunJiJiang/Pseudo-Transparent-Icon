@@ -2,7 +2,12 @@
 }
 
 .root {
+  display: flex;
+  flex-direction: column;
   width: calc(100% - $scrollbar-width);
+  @supports (-webkit-touch-callout: none) {
+    width: 100%;
+  }
 
   & .card {
     padding-top: 3px;
