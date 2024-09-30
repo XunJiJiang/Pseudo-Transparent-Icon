@@ -1,18 +1,20 @@
 .root {
   & .card {
-    padding-top: $margin;
+    padding-top: $padding;
     & .header-icon {
       // width: 3.9rem;
+      height: 2.6rem;
       margin: 0 auto $margin;
+      line-height: 3.6rem;
 
       & span {
         font-size: 2rem;
-        line-height: 1.4rem;
+        // line-height: 1.4rem;
       }
     }
     & .content {
       & h4 {
-        margin: 0 0 $margin;
+        margin: 0 0 $padding;
         font-size: 1.2rem;
         line-height: 1.2rem;
 

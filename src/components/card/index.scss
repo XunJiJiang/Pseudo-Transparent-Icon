@@ -1,8 +1,48 @@
+.header {
+  width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  border: 1px solid #00000000;
+  padding: 0.1rem $padding;
+  margin: 0 auto;
+  font-size: 0.8rem;
+  text-align: left;
+  color: $fg-gray-dark;
+  box-sizing: border-box;
+  font-family: $font-family;
+
+  @media (prefers-color-scheme: light) {
+    color: $fg-gray-white;
+  }
+}
+
+.footer {
+  width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  border: 1px solid #00000000;
+  padding: 0.1rem $padding;
+  margin: 0 auto $margin;
+  font-size: 0.8rem;
+  text-align: left;
+  color: $fg-gray-dark;
+  box-sizing: border-box;
+  font-family: $font-family;
+
+  @media (prefers-color-scheme: light) {
+    color: $fg-gray-white;
+  }
+}
+
 .card {
   width: calc(100% - $margin * 2);
   max-width: $component-max-width;
   border: 1px solid #00000000;
-  padding: $margin;
+  padding: $padding;
+  overflow: hidden;
+
+  &.no-padding {
+    padding: 0;
+  }
+
   margin: 0 auto $margin;
   border-radius: $radius;
   background-color: $bg-black;
@@ -10,6 +50,10 @@
 
   @media (prefers-color-scheme: light) {
     background-color: $bg-white;
+  }
+
+  &.has-footer {
+    margin-bottom: 0;
   }
 
   & .default {

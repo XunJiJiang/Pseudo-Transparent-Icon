@@ -23,8 +23,8 @@ export default define('l-index', {
     const backSpanRef = refTemplate('back-span-ref')
     const titleSpanRef = refTemplate('title-span-ref')
     const views = [
-      [refTemplate('v-sd-type-ref'), '选择设备类型'],
       [refTemplate('v-home-ref'), '首页'],
+      [refTemplate('v-sd-type-ref'), '选择设备类型'],
       [refTemplate('v-sd-type-ref2'), '选择设备类型2'],
       [refTemplate('v-sd-type-ref3'), '选择设备类型3'],
       [refTemplate('v-sd-type-ref4'), '选择设备类型4']

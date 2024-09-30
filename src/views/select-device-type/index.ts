@@ -36,20 +36,56 @@ export default define('v-sd-type', {
   setup({ style }: SelectDeviceTypeProps, { emit, expose }) {
     const devices = reactive([
       {
-        label: '设备1',
-        value: 'type1'
+        label: 'iphone 12 - 15',
+        value: 'iphone-12-15'
       },
       {
-        label: '设备2',
-        value: 'type2'
+        label: 'iphone 12 - 15 plus',
+        value: 'iphone-12-15-plus'
       },
       {
-        label: '设备3',
-        value: 'type3'
+        label: 'iphone 12 - 15 pro',
+        value: 'iphone-12-15-pro'
       },
       {
-        label: '设备4',
-        value: 'type4'
+        label: 'iphone 12 - 15 pro max',
+        value: 'iphone-12-15-pro-max'
+      },
+      {
+        label: 'iphone 16',
+        value: 'iphone-16'
+      },
+      {
+        label: 'iphone 16 plus',
+        value: 'iphone-16-plus'
+      },
+      {
+        label: 'iphone 16 pro',
+        value: 'iphone-16-pro'
+      },
+      {
+        label: 'iphone 16 pro max',
+        value: 'iphone-16-pro-max'
+      },
+      {
+        label: 'ipad pro 12.9',
+        value: 'ipad-pro-12.9'
+      },
+      {
+        label: 'ipad pro 11',
+        value: 'ipad-pro-11'
+      },
+      {
+        label: 'ipad air',
+        value: 'ipad-air'
+      },
+      {
+        label: 'ipad',
+        value: 'ipad'
+      },
+      {
+        label: 'ipad mini',
+        value: 'ipad-mini'
       }
     ])
     expose({})

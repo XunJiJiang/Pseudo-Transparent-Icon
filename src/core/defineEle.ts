@@ -223,7 +223,10 @@ const define = (
           /*@__PURE__*/ console.error(
             (() => {
               if (!(_parentKey in parentMethods) && _emit[key]?.required) {
-                console.log(parentMethods)
+                const pk = _emitKey[key]
+                if (pk) {
+                  return `${this.localName}: ${parentComponent.localName} 没有定义 ${pk} 方法。`
+                }
                 return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。`
               }
               if (!(key in _emit)) {

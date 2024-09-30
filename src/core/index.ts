@@ -25,3 +25,5 @@ export { default as define } from './defineEle'
 export { getInstance } from './fixComponentIns'
 
 export { default as AutoAsyncTask } from './utils/AutoAsyncTask'
+
+export { default as useId } from './hooks/useId'

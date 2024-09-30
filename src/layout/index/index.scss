@@ -13,7 +13,7 @@
   min-width: 280px;
   text-align: center;
   overflow: hidden;
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: $font-family;
   transition:
     height 0.5s $cubic-bezier,
     top 0.5s $cubic-bezier,
@@ -103,7 +103,7 @@
       top: 50%;
       transform: translate(0, -50%);
       left: 1.6rem;
-      color: $fg-blue;
+      // color: $fg-blue;
       @content;
     }
 
@@ -152,7 +152,7 @@
       transition: all 0.5s $cubic-bezier;
       margin: 0 0 0 5px;
       padding: 0;
-      height: 1rem;
+      height: 1.5rem;
       left: 0;
       top: 50%;
       transform: translate(0, -50%);
@@ -162,14 +162,18 @@
 
         & .back-span {
           display: inline-block;
-          transition: all 0.5s $cubic-bezier;
+          transition:
+            color 0.1 ease-in-out,
+            all 0.5s $cubic-bezier;
           height: 1rem;
           // width: 4rem;
           font-weight: 700;
 
           &.add {
             & span {
-              transition: all 0.5s $cubic-bezier;
+              transition:
+                color 0.1 ease-in-out,
+                all 0.5s $cubic-bezier;
               display: inline-block;
               position: absolute;
               white-space: nowrap;
@@ -185,7 +189,9 @@
 
           &.reduce {
             & span {
-              transition: all 0.5s $cubic-bezier;
+              transition:
+                color 0.1 ease-in-out,
+                all 0.5s $cubic-bezier;
               display: inline-block;
               position: absolute;
               white-space: nowrap;

@@ -13,12 +13,12 @@
 .c-button[data-type='default'] {
   border-radius: $radius;
   padding: 0.8rem 0rem;
-  width: calc(100% - 32px);
+  width: calc(100% - $margin * 2);
   max-width: $component-max-width;
   box-sizing: border-box;
   background-color: $bg-blue;
   color: #fff;
-  margin: 0 auto $margin;
+  margin: 0 $margin $margin;
 
   &:hover {
     background-color: scale-color($bg-blue, $lightness: 10%);
@@ -32,6 +32,10 @@
     &:hover {
       background-color: scale-color($bg-blue, $lightness: -10%);
     }
+
+    &:hover:not(:active) {
+      background-color: $bg-blue;
+    }
   }
 
   @media (prefers-color-scheme: light) {
@@ -41,7 +45,7 @@
 .c-button[data-type='back'] {
   border-radius: 5px;
   padding: 0.3rem 0.5rem 0.3rem 0.3rem;
-  background-color: #ffffff00;
+  background-color: transparent;
   color: $fg-blue;
   transition:
     background-color 0.3s,
@@ -60,6 +64,11 @@
     &:hover {
       color: rgba($fg-blue, 0.6);
       background-color: #ffffff00;
+    }
+
+    &:hover:not(:active) {
+      color: $fg-blue;
+      background-color: transparent;
     }
   }
 
