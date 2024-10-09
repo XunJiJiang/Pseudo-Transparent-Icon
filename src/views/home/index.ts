@@ -31,9 +31,6 @@ export default define('v-home', {
       handleClick() {
         emit<HomeEmit>('next')
       },
-      handleClick2() {
-        emit<HomeEmit>('next', 4, 'absolute')
-      },
       style: style
     }
   },

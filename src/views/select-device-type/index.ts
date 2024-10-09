@@ -94,7 +94,7 @@ export default define('v-sd-type', {
         emit<SelectDeviceTypeEmit>('prev')
       },
       next() {
-        emit<SelectDeviceTypeEmit>('next', -1)
+        emit<SelectDeviceTypeEmit>('next')
       },
       style: style,
       scroll(scrollTop: number) {

@@ -207,17 +207,14 @@ export default define('l-index', {
       next: throttling(
         (num = 1, type: 'relative' | 'absolute' = 'relative') => {
           /*@__PURE__*/ nextCheck(num, type)
-          let change = 0
           isPrev = false
           if (type === 'absolute') {
-            change = num - index.value
+            pageIndexChangeList.push(num - index.value)
             index.value = num
           } else if (type === 'relative') {
-            change = num
+            pageIndexChangeList.push(num)
             index.value += num
           }
-          pageIndexChangeList.push(change)
-          console.log('pageIndexChangeList', pageIndexChangeList)
         },
         500,
         {

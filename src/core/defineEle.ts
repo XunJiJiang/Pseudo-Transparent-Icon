@@ -198,52 +198,61 @@ const define = (
         key: keyof T & string,
         ...args: Parameters<T[typeof key]>
       ): ReturnType<T[typeof key]> => {
-        if (parentComponent && emit) {
+        if (
+          parentComponent &&
+          emit &&
+          hasOwn(parentComponent.$methods, _emitKey[key]) &&
+          hasOwn(emit, key)
+        ) {
           const parentMethods = parentComponent.$methods
           const _emit = emit as DefaultOptions<keyof T & string, Func>
-          const _parentKey = (_emitKey as Record<typeof key, string>)[key]
-          if (hasOwn(_emit, key)) {
-            // 父组件暴露了该方法, 调用父组件的方法
-            if (_parentKey in parentMethods) {
-              const fn = parentMethods[_parentKey]
-              return fn(...args)
-            }
-            // 非必须的方法, 且有默认值
-            else if (
-              !_emit[key].required &&
-              typeof _emit[key].default === 'function'
-            ) {
-              const fn = _emit[key].default
-              return ((...args: Parameters<typeof fn>) => {
-                const { restore } = setComponentIns(this)
-                const _return = fn(...args)
-                restore()
-                return _return
-              })()
-            }
+          const _parentKey = _emitKey[key] as string | typeof SYMBOL_NONE
+
+          // 父组件暴露了该方法, 调用父组件的方法
+          if (hasOwn(parentMethods, _parentKey)) {
+            const fn = parentMethods[_parentKey]
+            return fn(...args)
           }
+          // 非必须的方法, 且有默认值
+          else if (
+            !_emit[key].required &&
+            typeof _emit[key].default === 'function' &&
+            _parentKey !== SYMBOL_NONE
+          ) {
+            const fn = _emit[key].default
+            const { restore } = setComponentIns(this)
+            const _return = fn(...args)
+            restore()
+            return _return
+          }
+
           /*@__PURE__*/ console.error(
             (() => {
-              if (!(_parentKey in parentMethods) && _emit[key]?.required) {
-                const pk = _emitKey[key]
-                if (pk !== SYMBOL_NONE) {
-                  return `${this.localName}: ${parentComponent.localName} 没有定义 ${pk} 方法。`
+              if (_emit[key].required) {
+                if (_parentKey !== SYMBOL_NONE) {
+                  return `${this.localName}: ${parentComponent.localName} 没有定义 ${_parentKey} 方法。`
                 }
                 return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。事件绑定的值不能为空。`
-              }
-              if (!(key in _emit)) {
-                return `${this.localName}: 未定义 emit: ${key} 方法。`
               }
               return `${this.localName}: ${parentComponent.localName} ${key} 不是一个方法。`
             })()
           )
+
+          return undefined as ReturnType<T[typeof key]>
         } else {
-          /*@__PURE__*/ console.warn(
+          /*@__PURE__*/ console.error(
             (() => {
               if (!parentComponent) {
                 return `${this.localName}: 未找到父组件实例。`
+              } else if (!emit) {
+                return `${this.localName}: 未定义 emit。`
+              } else if (!hasOwn(parentComponent.$methods, _emitKey[key])) {
+                if (_emitKey[key] == SYMBOL_NONE) {
+                  return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。事件绑定的值不能为空。`
+                }
+                return `${this.localName}: ${parentComponent.localName} 未定义 ${_emitKey[key]} 方法。`
               }
-              return `${this.localName}: 未定义 emit: ${key} 方法。`
+              return `${this.localName}: emit 未定义 ${key} 方法。`
             })()
           )
         }
