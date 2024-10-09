@@ -27,8 +27,10 @@
     </span>
   </header>
   <v-home ref="v-home-ref" on-next="next"></v-home>
-  <v-sd-type ref="v-sd-type-ref" on-next="next" on-scroll="scroll"></v-sd-type>
-  <v-sd-type ref="v-sd-type-ref2" on-next="next" on-scroll="scroll"></v-sd-type>
-  <v-sd-type ref="v-sd-type-ref3" on-next="next" on-scroll="scroll"></v-sd-type>
-  <v-sd-type ref="v-sd-type-ref4" on-next="next" on-scroll="scroll"></v-sd-type>
+  <v-sd-type
+    ref="v-sd-type-ref"
+    on-next="next"
+    on-scroll="scroll"
+    on-change="deviceChange"
+  ></v-sd-type>
 </div>

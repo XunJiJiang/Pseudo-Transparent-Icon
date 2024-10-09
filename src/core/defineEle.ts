@@ -247,10 +247,14 @@ const define = (
               } else if (!emit) {
                 return `${this.localName}: 未定义 emit。`
               } else if (!hasOwn(parentComponent.$methods, _emitKey[key])) {
-                if (_emitKey[key] == SYMBOL_NONE) {
+                if (_emitKey[key] === SYMBOL_NONE) {
                   return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。事件绑定的值不能为空。`
                 }
-                return `${this.localName}: ${parentComponent.localName} 未定义 ${_emitKey[key]} 方法。`
+                if (typeof _emitKey[key] === 'undefined') {
+                  return `${parentComponent.localName}: ${this.localName} 未定义 on-${key} 属性。`
+                } else {
+                  return `${this.localName}: ${parentComponent.localName} 未定义 ${_emitKey[key]} 方法。`
+                }
               }
               return `${this.localName}: emit 未定义 ${key} 方法。`
             })()

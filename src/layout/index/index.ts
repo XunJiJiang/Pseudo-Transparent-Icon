@@ -26,10 +26,7 @@ export default define('l-index', {
     const titleSpanRef = refTemplate('title-span-ref')
     const views = [
       [refTemplate('v-home-ref'), '首页'],
-      [refTemplate('v-sd-type-ref'), '选择设备类型'],
-      [refTemplate('v-sd-type-ref2'), '选择设备类型2'],
-      [refTemplate('v-sd-type-ref3'), '选择设备类型3'],
-      [refTemplate('v-sd-type-ref4'), '选择设备类型4']
+      [refTemplate('v-sd-type-ref'), '选择设备类型']
     ] as [
       {
         value: HTMLElement | null
@@ -188,7 +185,7 @@ export default define('l-index', {
       } else {
         return
       }
-      throw err
+      throw new Error(err)
     }
 
     const handle = {
@@ -221,6 +218,15 @@ export default define('l-index', {
           type: 'once'
         }
       ),
+      deviceChange(
+        index: number,
+        value: {
+          label: string
+          value: string
+        }
+      ) {
+        console.log(index, value)
+      },
       scroll(scrollTop: number) {
         if (scrollTop < 16) {
           setBodyBgColor('pure')

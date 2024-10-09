@@ -11,6 +11,13 @@ type SelectDeviceTypeEmit = {
   prev: () => void
   next: () => void
   scroll: (scrollTop: number) => void
+  change: (
+    index: number,
+    value: {
+      label: string
+      value: string
+    }
+  ) => void
 }
 
 export default define('v-sd-type', {
@@ -30,6 +37,9 @@ export default define('v-sd-type', {
       required: true
     },
     scroll: {
+      required: true
+    },
+    change: {
       required: true
     }
   },
@@ -108,7 +118,7 @@ export default define('v-sd-type', {
           value: string
         }
       ) {
-        console.log(index, val)
+        emit<SelectDeviceTypeEmit>('change', index, val)
       }
     }
   },
