@@ -4,7 +4,7 @@ import { define } from 'xj-web-core/index'
 
 type HomeProps = {
   style: string
-  'data-style': string
+  'data-status': string
 }
 
 type HomeEmit = {
@@ -14,7 +14,7 @@ type HomeEmit = {
 export default define('v-home', {
   template: html,
   style: css,
-  observedAttributes: ['data-style'],
+  observedAttributes: ['data-status'],
   props: {
     style: {
       default: ''
@@ -38,7 +38,7 @@ export default define('v-home', {
     }
   },
   attributeChanged(name, _oldValue, newValue) {
-    if (name === 'data-style')
-      this.$defineRefs['c-page-ref']?.setAttribute('data-style', newValue)
+    if (name === 'data-status')
+      this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
   }
 })

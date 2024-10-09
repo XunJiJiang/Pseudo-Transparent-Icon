@@ -26,6 +26,32 @@
     background-color: $background-color-light;
   }
 
+  animation: 0.5s $cubic-bezier forwards;
+
+  &.init-show {
+    transform: translateX(0);
+  }
+
+  &.init-hide {
+    transform: translateX(100%);
+  }
+
+  &.enter-from-left {
+    animation-name: enter-from-left;
+  }
+
+  &.enter-from-right {
+    animation-name: enter-from-right;
+  }
+
+  &.leave-to-left {
+    animation-name: leave-to-left;
+  }
+
+  &.leave-to-right {
+    animation-name: leave-to-right;
+  }
+
   & main {
     box-sizing: border-box;
     // padding: calc(2.8rem + $margin) 0 32px 0;
@@ -43,6 +69,59 @@
     & main {
       padding: calc(2.8rem + $margin) 0 32px 0;
     }
+  }
+}
+
+@keyframes enter-from-left {
+  0% {
+    transform: translateX(-25%);
+    z-index: 0;
+  }
+  100% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+}
+
+@keyframes enter-from-right {
+  0% {
+    transform: translateX(100%);
+    z-index: 2;
+  }
+  100% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+}
+
+@keyframes leave-to-left {
+  0% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+  99% {
+    transform: translateX(-25%);
+    z-index: 0;
+  }
+  100% {
+    transform: translateX(-25%);
+    // 在动画结束后，将离开的页面隐藏
+    z-index: -1;
+  }
+}
+
+@keyframes leave-to-right {
+  0% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+  99% {
+    transform: translateX(100%);
+    z-index: 2;
+  }
+  100% {
+    transform: translateX(100%);
+    z-index: -1;
   }
 }
 

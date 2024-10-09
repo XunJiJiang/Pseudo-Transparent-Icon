@@ -51,8 +51,8 @@ export default define('l-index', {
     onMounted(() => {
       views.forEach((view, i) => {
         view[0].value?.setAttribute(
-          'data-style',
-          i === index.value ? '' : `transform: translateX(100%);`
+          'data-status',
+          i === index.value ? 'init-show' : `init-hide`
         )
       })
 
@@ -65,41 +65,42 @@ export default define('l-index', {
       }
     })
 
-    let prevIndex = 0
+    let prevIndex = -1
+
+    // 当前执行的是prev函数还是next函数
+    let isPrev: null | boolean = null
 
     effect(() => {
       if (!backSpanRef.value || !titleSpanRef.value) return
       handle.scroll(0)
 
       const nowIndex = index.value
-      views[nowIndex][0].value?.setAttribute(
-        'data-style',
-        `transform: translateX(0);`
-      )
+      if (prevIndex !== -1 && isPrev !== null)
+        views[nowIndex][0].value?.setAttribute(
+          'data-status',
+          `${!isPrev ? 'enter-from-right' : 'enter-from-left'}`
+        )
 
       let nowTitle = views[index.value][1]
-      const prevTitle = views[prevIndex][1]
+      const prevTitle = prevIndex >= 0 ? views[prevIndex][1] : views[0][1]
 
       titleSpanRef.value.classList.remove('add')
       titleSpanRef.value.classList.remove('reduce')
 
-      if (prevIndex > nowIndex) {
+      if (isPrev && isPrev !== null) {
         // reduce
+        titleSpanRef.value.innerHTML = `
+          <span>${nowTitle}</span>
+          <span>${prevTitle}</span>
+        `
         titleSpanRef.value.classList.add('reduce')
-
-        titleSpanRef.value.innerHTML = `
-          <span>${nowTitle}</span>
-          <span>${prevTitle}</span>
-        `
-      } else if (prevIndex < nowIndex) {
+      } else if (isPrev !== null) {
         // add
-
-        titleSpanRef.value.classList.add('add')
-
         titleSpanRef.value.innerHTML = `
           <span>${prevTitle}</span>
           <span>${nowTitle}</span>
         `
+        titleSpanRef.value.classList.add('add')
       }
 
       return () => {
@@ -109,10 +110,11 @@ export default define('l-index', {
 
         const prevTitle = nowTitle
 
-        views[prevIndex][0].value?.setAttribute(
-          'data-style',
-          `transform: translateX(${index.value > prevIndex ? '-25%' : '100%'});`
-        )
+        if (isPrev !== null)
+          views[prevIndex][0].value?.setAttribute(
+            'data-status',
+            `${!isPrev ? 'leave-to-left' : 'leave-to-right'}`
+          )
 
         nowTitle = pageList[pageList.length - 1] ?? ''
 
@@ -121,7 +123,7 @@ export default define('l-index', {
 
         let stringWidth = 0
 
-        if (index.value > prevIndex) {
+        if (!isPrev && isPrev !== null) {
           pageList.push(prevTitle)
           stringWidth = getStringWidth(prevTitle, {
             fontSize: '1rem',
@@ -132,7 +134,7 @@ export default define('l-index', {
               <span>${nowTitle}</span>
               <span>${prevTitle}</span>
             `
-        } else {
+        } else if (isPrev !== null) {
           const prevTitle = pageList.pop() ?? ''
           const nowTitle = pageList[pageList.length - 1] ?? ''
           stringWidth = getStringWidth(nowTitle, {
@@ -165,29 +167,62 @@ export default define('l-index', {
       lIndexRef.value?.classList.add(type)
     }
 
+    /** 记录每次页面变化下标的差 */
     const pageIndexChangeList: number[] = []
 
+    const nextCheck = /*@__PURE__*/ (
+      num: number,
+      type: 'relative' | 'absolute'
+    ) => {
+      let err = ''
+      if (pageIndexChangeList.reduce((a, b) => a + b, 0) + num === 0) {
+        err =
+          'l-index(页面管理): 规定第一个页面为首页，不能通过next函数跳转到首页'
+      } else if (type === 'absolute' && (num < 0 || num >= views.length)) {
+        err = 'l-index(页面管理): 下标越界'
+      } else if (
+        type === 'relative' &&
+        (index.value + num < 0 || index.value + num >= views.length)
+      ) {
+        err = 'l-index(页面管理): 下标越界'
+      } else {
+        return
+      }
+      throw err
+    }
+
     const handle = {
-      prev() {
-        if (index.value === 0) return
-        index.value -= pageIndexChangeList.pop() || 0
-      },
+      prev: throttling(
+        () => {
+          if (index.value === 0) return
+          isPrev = true
+          index.value -= pageIndexChangeList.pop() || 0
+        },
+        500,
+        {
+          type: 'once'
+        }
+      ),
       // TODO: [next函数] 此处
-      next(num = 1, type: 'relative' | 'absolute' = 'relative') {
-        let change = 0
-        if (index.value === views.length - 1) return
-        if (type === 'absolute') {
-          change = num - index.value
-          index.value = num
-        } else if (type === 'relative') {
-          change = num
-          index.value += num
+      next: throttling(
+        (num = 1, type: 'relative' | 'absolute' = 'relative') => {
+          /*@__PURE__*/ nextCheck(num, type)
+          let change = 0
+          isPrev = false
+          if (type === 'absolute') {
+            change = num - index.value
+            index.value = num
+          } else if (type === 'relative') {
+            change = num
+            index.value += num
+          }
+          pageIndexChangeList.push(change)
+        },
+        500,
+        {
+          type: 'once'
         }
-        if (index.value > views.length - 1 || index.value < 0) {
-          /*@__PURE__*/ console.error('l-index(页面管理): index out of range')
-        }
-        pageIndexChangeList.push(change)
-      },
+      ),
       scroll(scrollTop: number) {
         if (scrollTop < 16) {
           setBodyBgColor('pure')

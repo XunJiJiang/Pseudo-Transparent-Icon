@@ -8,3 +8,6 @@ export const hasOwn = (
   val: object,
   key: string | symbol
 ): key is keyof typeof val => Object.prototype.hasOwnProperty.call(val, key)
+
+export const isHTMLElement = (el: unknown): el is HTMLElement =>
+  el instanceof HTMLElement

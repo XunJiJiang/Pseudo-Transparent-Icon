@@ -27,3 +27,5 @@ export { getInstance } from './fixComponentIns'
 export { default as AutoAsyncTask } from './utils/AutoAsyncTask'
 
 export { default as useId } from './hooks/useId'
+
+export { isHTMLElement } from './utils/shared'

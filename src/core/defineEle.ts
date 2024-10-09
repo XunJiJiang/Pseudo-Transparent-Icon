@@ -120,7 +120,7 @@ const define = (
     attributeChanged
     // ...rest
   }: {
-    template: string | ((props: any) => string)
+    template?: string | ((props: any) => string)
     style?: string | ((props: any) => string)
     shadow?: boolean
     setup?: (

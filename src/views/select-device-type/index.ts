@@ -3,7 +3,7 @@ import css from './index.scss?raw'
 import { define, reactive } from 'xj-web-core/index'
 
 type SelectDeviceTypeProps = {
-  'data-style': string
+  'data-status': string
   style: string
 }
 
@@ -16,7 +16,7 @@ type SelectDeviceTypeEmit = {
 export default define('v-sd-type', {
   template: html,
   style: css,
-  observedAttributes: ['data-style'],
+  observedAttributes: ['data-status'],
   props: {
     style: {
       default: ''
@@ -94,7 +94,7 @@ export default define('v-sd-type', {
         emit<SelectDeviceTypeEmit>('prev')
       },
       next() {
-        emit<SelectDeviceTypeEmit>('next')
+        emit<SelectDeviceTypeEmit>('next', -1)
       },
       style: style,
       scroll(scrollTop: number) {
@@ -113,7 +113,11 @@ export default define('v-sd-type', {
     }
   },
   attributeChanged(name, _oldValue, newValue) {
-    if (name === 'data-style')
-      this.$defineRefs['c-page-ref']?.setAttribute('data-style', newValue)
+    if (name === 'data-status') {
+      this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
+      if (newValue.includes('enter')) {
+        this.$defineExposes['c-button-group-expose']?.clear()
+      }
+    }
   }
 })

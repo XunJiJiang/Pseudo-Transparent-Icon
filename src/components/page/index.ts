@@ -6,7 +6,7 @@ import { define, onMounted, refTemplate } from 'xj-web-core/index'
 type PageProps = {
   style: string
   'data-index': string
-  'data-style': string
+  'data-status': string
 }
 
 type PageEmit = {
@@ -16,7 +16,7 @@ type PageEmit = {
 export default define('c-page', {
   template: html,
   style: css,
-  observedAttributes: ['data-index', 'data-style'],
+  observedAttributes: ['data-index', 'data-status'],
   props: {
     style: {
       default: ''
@@ -39,12 +39,29 @@ export default define('c-page', {
       pageRootRef.value?.addEventListener('scroll', scroll)
     })
   },
-  attributeChanged(name, _oldValue, newValue) {
-    if (name === 'data-style') {
-      this.$defineRefs['c-page-ref']?.setAttribute('style', newValue)
-      if (newValue.includes('transform: translateX(0)')) {
+  attributeChanged(name, _oldValue, newValue, props) {
+    if (name === 'data-status') {
+      if (!CLASS_LIST.includes(newValue)) {
+        throw /*@__PURE__*/ new Error('data-status 属性值不合法')
+      }
+      this.$defineRefs['c-page-ref']?.setAttribute(
+        'class',
+        `c-page ${newValue} page-${props['data-index'] || '1'}`
+      )
+      if (newValue.includes('enter')) {
         this.$defineRefs['c-page-ref']?.scrollTo(0, 0)
       }
     }
   }
 })
+
+/** 用于绑定一次性动画的class */
+const CLASS_LIST = [
+  'enter-from-left',
+  'enter-from-right',
+  'leave-to-left',
+  'leave-to-right',
+  // 初始位置
+  'init-show',
+  'init-hide'
+]

@@ -133,12 +133,24 @@ export default define('c-button-group', {
       default: 'independent'
     }
   },
-  setup({ content, type }: ButtonGroupProps, { emit }) {
+  setup({ content, type }: ButtonGroupProps, { emit, expose }) {
     const id = useId()
     const butRefs = content.map((_, i) =>
       refTemplate('button-group::' + i + id)
     )
     let prevIndex = -1
+    expose({
+      /** 当前仅清理选中的样式(既那个对勾) */
+      clear:
+        type !== 'independent'
+          ? function () {
+              butRefs.forEach((butRef) => {
+                butRef.value?.classList.remove('checked')
+              })
+              prevIndex = -1
+            }
+          : () => {}
+    })
     return {
       change(_e: Event, i: string) {
         const butRef = butRefs[Number(i)]

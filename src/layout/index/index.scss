@@ -68,6 +68,7 @@
     border-bottom-style: solid;
     border-bottom-color: #00000000;
     animation: show 0.5s $cubic-bezier forwards;
+    z-index: 3;
 
     @media (prefers-color-scheme: light) {
       background-color: $background-color-light;
@@ -169,8 +170,8 @@
         & .back-span {
           display: inline-block;
           transition:
-            color 0.1 ease-in-out,
-            all 0.5s $cubic-bezier;
+            all 0.5s $cubic-bezier,
+            color 0.1s ease-in-out;
           height: 1rem;
           // width: 4rem;
           font-weight: 700;
@@ -178,8 +179,8 @@
           &.add {
             & span {
               transition:
-                color 0.1 ease-in-out,
-                all 0.5s $cubic-bezier;
+                all 0.5s $cubic-bezier,
+                color 0.1s ease-in-out;
               display: inline-block;
               position: absolute;
               white-space: nowrap;
