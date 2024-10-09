@@ -4,7 +4,7 @@ import {
   define,
   effect /* refTemplate */
 } from 'xj-web-core/index'
-import '@/assets/icon/iconfont.css'
+import '@/assets/icon/iconfont.scss'
 
 export default define('c-icon', {
   style: css,
