@@ -217,6 +217,7 @@ export default define('l-index', {
             index.value += num
           }
           pageIndexChangeList.push(change)
+          console.log('pageIndexChangeList', pageIndexChangeList)
         },
         500,
         {

@@ -16,34 +16,34 @@ const throttling = (callback: Func, ms = 300, opt?: Partial<Opt>) => {
   let timer: NodeJS.Timeout | null = null
   if (opt.type === 'immediate') {
     /** 是否需要在计时结束后运行一次 */
-    let needRun = false
-    const ret = () => {
+    let needRun: null | Parameters<typeof callback> = null
+    const ret = (...args: Parameters<typeof callback>) => {
       if (!timer) {
-        callback()
-        needRun = false
+        callback(...args)
+        needRun = null
         timer = setTimeout(() => {
           timer = null
           if (needRun) {
-            ret()
+            ret(...needRun)
           }
         }, ms)
       } else {
-        needRun = true
+        needRun = args
       }
     }
     return ret
   } else if (opt.type === 'delay') {
-    return () => {
+    return (...args: Parameters<typeof callback>) => {
       if (timer) return
       timer = setTimeout(() => {
-        callback()
+        callback(...args)
         timer = null
       }, ms)
     }
   } else if (opt.type === 'once') {
-    return () => {
+    return (...args: Parameters<typeof callback>) => {
       if (timer) return
-      callback()
+      callback(...args)
       timer = setTimeout(() => {
         timer = null
       }, ms)
