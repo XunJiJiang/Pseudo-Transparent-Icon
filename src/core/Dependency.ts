@@ -80,7 +80,11 @@ class Dependency<T extends object> {
         const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
-        if (typeof _value === 'object' && !this._isProxy.includes(key)) {
+        if (
+          typeof _value === 'object' &&
+          _value !== null &&
+          !this._isProxy.includes(key)
+        ) {
           const newDep = new Dependency(_value, this._currentComponent)
           Reflect.set(target, key, newDep.value, receiver)
           _ret = newDep.value

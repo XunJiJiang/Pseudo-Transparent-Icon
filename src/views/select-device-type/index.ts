@@ -1,6 +1,6 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define, reactive } from 'xj-web-core/index'
+import { define, effect, reactive, ref } from 'xj-web-core/index'
 
 type SelectDeviceTypeProps = {
   'data-status': string
@@ -98,6 +98,18 @@ export default define('v-sd-type', {
         value: 'ipad-mini'
       }
     ])
+    const nowDevice = ref<{
+      index: number
+      val: {
+        label: string
+        value: string
+      }
+    } | null>(null)
+    effect(() => {
+      if (!nowDevice.value) return
+      const { index, val } = nowDevice.value
+      emit<SelectDeviceTypeEmit>('change', index, val)
+    })
     expose({})
     return {
       back() {
@@ -118,15 +130,20 @@ export default define('v-sd-type', {
           value: string
         }
       ) {
-        emit<SelectDeviceTypeEmit>('change', index, val)
-      }
+        nowDevice.value = {
+          index,
+          val
+        }
+      },
+      nowDevice
     }
   },
-  attributeChanged(name, _oldValue, newValue) {
+  attributeChanged(name, _oldValue, newValue, data) {
     if (name === 'data-status') {
       this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
       if (newValue.includes('enter')) {
         this.$defineExposes['c-button-group-expose']?.clear()
+        data.nowDevice.value = null
       }
     }
   }
