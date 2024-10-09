@@ -20,20 +20,26 @@
   color: #fff;
   margin: 0 $margin $margin;
 
-  &:hover {
+  &.disabled {
+    background-color: scale-color($bg-blue, $lightness: 25%);
+    color: scale-color(#fff, $lightness: -10%);
+    cursor: not-allowed;
+  }
+
+  &:not(.disabled):hover {
     background-color: scale-color($bg-blue, $lightness: 10%);
   }
 
-  &:active {
+  &:not(.disabled):active {
     background-color: scale-color($bg-blue, $lightness: -5%);
   }
 
   @supports (-webkit-touch-callout: none) {
-    &:hover {
+    &:not(.disabled):hover {
       background-color: scale-color($bg-blue, $lightness: -10%);
     }
 
-    &:hover:not(:active) {
+    &:not(.disabled):hover:not(:active) {
       background-color: $bg-blue;
     }
   }
@@ -51,22 +57,27 @@
     background-color 0.3s,
     color 0.1s;
 
-  &:hover {
+  &.disabled {
+    color: scale-color($fg-blue, $lightness: -50%, $saturation: -50%);
+    cursor: not-allowed;
+  }
+
+  &:not(.disabled):hover {
     background-color: #ffffff33;
   }
 
-  &:active {
+  &:not(.disabled):active {
     color: scale($fg-blue, 20%);
   }
 
   // 用于选中safari
   @supports (-webkit-touch-callout: none) {
-    &:hover {
+    &:not(.disabled):hover {
       color: rgba($fg-blue, 0.6);
       background-color: #ffffff00;
     }
 
-    &:hover:not(:active) {
+    &:not(.disabled):hover:not(:active) {
       color: $fg-blue;
       background-color: transparent;
     }
@@ -75,7 +86,12 @@
   @media (prefers-color-scheme: light) {
     background-color: #00000000;
 
-    &:hover {
+    &.disabled {
+      background-color: scale-color(#00000000, $lightness: 25%);
+      color: scale-color($fg-blue, $lightness: 50%);
+    }
+
+    &:not(.disabled):hover {
       background-color: #00000016;
     }
   }

@@ -1,6 +1,16 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define, getInstance, onMounted } from 'xj-web-core/index'
+import {
+  define,
+  getInstance,
+  onMounted,
+  ref,
+  refTemplate
+} from 'xj-web-core/index'
+
+export type CButtonExpose = {
+  setStatus: (status: 'disabled' | 'normal') => void
+}
 
 export default define('c-button', {
   template: html,
@@ -11,7 +21,8 @@ export default define('c-button', {
     }
   },
   observedAttributes: ['style', 'data-type'],
-  setup({ style, ...props }, { emit }) {
+  setup({ style, ...props }, { emit, expose }) {
+    const buttonRef = refTemplate('c-button-ref')
     onMounted(() => {
       const { $defineRefs } = getInstance()
       const button = $defineRefs['c-button-ref']
@@ -38,8 +49,24 @@ export default define('c-button', {
       }
     })
 
+    const status = ref('normal')
+
+    expose({
+      setStatus(_status: 'disabled' | 'normal') {
+        const button = buttonRef.value
+        if (!button) return
+        status.value = _status
+        if (_status === 'disabled') {
+          button.classList.add('disabled')
+        } else {
+          button.classList.remove('disabled')
+        }
+      }
+    })
+
     return {
       handleClick(e: Event) {
+        if (status.value === 'disabled') return
         emit('click', e)
       }
     }

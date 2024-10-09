@@ -382,7 +382,7 @@ const define = (
       })
       const exposeTemplates = /*@__PURE__*/ Object.entries(this.$exposes)
       /*@__PURE__*/ exposeTemplates.forEach(([key, value]) => {
-        if (!value) return
+        if (value) return
         console.error(
           `${this.localName}: 尝试使用exposeTemplate获取${key}, 但没有在任何自定义组将上定义[expose=${key}]。`
         )

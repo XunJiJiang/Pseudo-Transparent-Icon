@@ -155,6 +155,7 @@
     }
 
     & .back {
+      display: inline-block;
       position: absolute;
       transition: all 0.5s $cubic-bezier;
       margin: 0 0 0 5px;
@@ -178,6 +179,7 @@
 
           &.add {
             & span {
+              height: 1.5rem;
               transition:
                 all 0.5s $cubic-bezier,
                 color 0.1s ease-in-out;
@@ -191,11 +193,16 @@
               &:last-child {
                 animation: back-add-2 0.5s $cubic-bezier forwards;
               }
+
+              @supports (-webkit-touch-callout: none) {
+                height: 1.4rem;
+              }
             }
           }
 
           &.reduce {
             & span {
+              height: 1.5rem;
               transition:
                 color 0.1 ease-in-out,
                 all 0.5s $cubic-bezier;
@@ -209,6 +216,10 @@
 
               &:last-child {
                 animation: back-reduce-2 0.5s $cubic-bezier forwards;
+              }
+
+              @supports (-webkit-touch-callout: none) {
+                height: 1.4rem;
               }
             }
           }
@@ -288,6 +299,7 @@
         transition: all 0.5s $cubic-bezier;
         &.add {
           & span {
+            height: 1.5rem;
             transition: all 0.5s $cubic-bezier;
             display: inline-block;
             position: absolute;
@@ -304,6 +316,7 @@
 
         &.reduce {
           & span {
+            height: 1.5rem;
             transition: all 0.5s $cubic-bezier;
             display: inline-block;
             position: absolute;

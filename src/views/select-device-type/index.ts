@@ -1,6 +1,13 @@
+import { type CButtonExpose } from '@components/button'
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define, effect, reactive, ref } from 'xj-web-core/index'
+import {
+  define,
+  effect,
+  reactive,
+  ref,
+  exposeTemplate
+} from 'xj-web-core/index'
 
 type SelectDeviceTypeProps = {
   'data-status': string
@@ -43,7 +50,7 @@ export default define('v-sd-type', {
       required: true
     }
   },
-  setup({ style }: SelectDeviceTypeProps, { emit, expose }) {
+  setup({ style }: SelectDeviceTypeProps, { emit }) {
     const devices = reactive([
       {
         label: 'iphone 12 - 15',
@@ -98,6 +105,7 @@ export default define('v-sd-type', {
         value: 'ipad-mini'
       }
     ])
+    const butExpose = exposeTemplate<CButtonExpose>('c-button-expose')
     const nowDevice = ref<{
       index: number
       val: {
@@ -106,11 +114,14 @@ export default define('v-sd-type', {
       }
     } | null>(null)
     effect(() => {
-      if (!nowDevice.value) return
+      if (!nowDevice.value) {
+        butExpose.value?.setStatus('disabled')
+        return
+      }
+      butExpose.value?.setStatus('normal')
       const { index, val } = nowDevice.value
       emit<SelectDeviceTypeEmit>('change', index, val)
     })
-    expose({})
     return {
       back() {
         emit<SelectDeviceTypeEmit>('prev')
