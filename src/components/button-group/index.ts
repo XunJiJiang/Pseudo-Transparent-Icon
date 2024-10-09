@@ -94,6 +94,7 @@ export default define('c-button-group', {
     return `
       <c-card
         x-no-padding="true"
+        x-footer="如果你能看到这个那就是我忘了删了。"
         ${title ? `x-title="${title}"` : ''}
       >
         <div slot="default" class="button-group">
