@@ -99,6 +99,8 @@ const addCustomElement = (name: string) => {
   customElementNameSet.add(name)
 }
 
+const SYMBOL_NONE = Symbol('none')
+
 /** 是否是自定义web组件 */
 const isCustomElement = (name: string) => customElementNameSet.has(name)
 
@@ -171,14 +173,14 @@ const define = (
 
       // 获取on-、x-开头的和observedAttributes定义属性的键值
       const attrs = Array.from(this.attributes)
-      const _propsKey = {} as Record<string, string>
-      const _emitKey = {} as Record<string, string>
+      const _propsKey = {} as Record<string, string | typeof SYMBOL_NONE>
+      const _emitKey = {} as Record<string, string | typeof SYMBOL_NONE>
       for (const attr of attrs) {
         const { name, value } = attr
         if (/^(on-)/.test(name)) {
-          _emitKey[name.slice(3)] = value
+          _emitKey[name.slice(3)] = value !== '' ? value : SYMBOL_NONE
         } else if (/^(x-)/.test(name)) {
-          _propsKey[name.slice(2)] = value
+          _propsKey[name.slice(2)] = value !== '' ? value : SYMBOL_NONE
         } else if (_observedAttributes.includes(name)) {
           this.$props[name] = value
         } else if (reservedKeys.includes(name)) {
@@ -224,10 +226,10 @@ const define = (
             (() => {
               if (!(_parentKey in parentMethods) && _emit[key]?.required) {
                 const pk = _emitKey[key]
-                if (pk) {
+                if (pk !== SYMBOL_NONE) {
                   return `${this.localName}: ${parentComponent.localName} 没有定义 ${pk} 方法。`
                 }
-                return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。`
+                return `${this.localName}: ${parentComponent.localName} 未赋予当前组件 ${key} 方法。事件绑定的值不能为空。`
               }
               if (!(key in _emit)) {
                 return `${this.localName}: 未定义 emit: ${key} 方法。`
@@ -255,7 +257,8 @@ const define = (
         for (const key in _props) {
           const _parentKey = _propsKey[key]
           const { default: def, required } = _props[key]
-          if (_parentKey in parentData) {
+          if (_parentKey === SYMBOL_NONE) this.$props[key] = true
+          else if (_parentKey in parentData) {
             this.$props[key] = parentData[_parentKey]
           } else if (typeof _parentKey === 'string') {
             this.$props[key] = _parentKey
