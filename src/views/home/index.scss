@@ -1,0 +1,70 @@
+@media (prefers-color-scheme: light) {
+}
+
+.root {
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - $scrollbar-width);
+  @supports (-webkit-touch-callout: none) {
+    width: 100%;
+  }
+
+  & .card {
+    padding-top: 3px;
+    & .header-icon {
+      // 内含四个icon，正方形排列gird, 紧凑居中,总体呈正方形,不占满父元素
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      justify-items: center;
+      align-items: center;
+      gap: 0.7rem;
+      width: 3.9rem;
+      margin: 0 auto $margin;
+      animation: rotate 16s linear infinite;
+
+      & span {
+        font-size: 2rem;
+        line-height: 1.4rem;
+      }
+    }
+    & .content {
+      & h1 {
+        margin: 0 0 $margin;
+        font-size: 1.2rem;
+        line-height: 1.2rem;
+
+        color: $fg-white;
+
+        @media (prefers-color-scheme: light) {
+          color: $fg-black;
+        }
+      }
+      & p {
+        margin: 0;
+        font-size: 0.8rem;
+        line-height: 1rem;
+        & a {
+          color: $fg-blue;
+
+          &:hover {
+            color: $fg-white;
+
+            @media (prefers-color-scheme: light) {
+              color: $fg-black;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

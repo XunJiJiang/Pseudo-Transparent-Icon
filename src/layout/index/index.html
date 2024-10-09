@@ -1,0 +1,36 @@
+<div id="l-index" ref="l-index-ref">
+  <header ref="header-ref" class="hide">
+    <span ref="back-root-ref" class="back">
+      <c-button
+        ref="back-but-ref"
+        on-click="back"
+        data-type="back"
+        style="position: absolute; top: 50%; transform: translate(0, -50%)"
+      >
+        <span class="but-slot-def" slot="default">
+          <c-icon
+            name="left"
+            size="1rem"
+            style="
+              position: absolute;
+              top: 50%;
+              transform: translate(0, -50%);
+              line-height: 1.5rem;
+            "
+          ></c-icon>
+          <span ref="back-span-ref" class="back-span"></span>
+        </span>
+      </c-button>
+    </span>
+    <span ref="title-root-ref" class="title">
+      <span ref="title-span-ref" class="title-span"></span>
+    </span>
+  </header>
+  <v-home ref="v-home-ref" on-next="next"></v-home>
+  <v-sd-type
+    ref="v-sd-type-ref"
+    on-next="next"
+    on-scroll="scroll"
+    on-change="deviceChange"
+  ></v-sd-type>
+</div>

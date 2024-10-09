@@ -1,0 +1,98 @@
+.c-button {
+  position: relative;
+  border: 1px solid #00000000;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    color 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.c-button[data-type='default'] {
+  border-radius: $radius;
+  padding: 0.8rem 0rem;
+  width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  box-sizing: border-box;
+  background-color: $bg-blue;
+  color: #fff;
+  margin: 0 $margin $margin;
+
+  &.disabled {
+    background-color: scale-color($bg-blue, $lightness: 25%);
+    color: scale-color(#fff, $lightness: -10%);
+    cursor: not-allowed;
+  }
+
+  &:not(.disabled):hover {
+    background-color: scale-color($bg-blue, $lightness: 10%);
+  }
+
+  &:not(.disabled):active {
+    background-color: scale-color($bg-blue, $lightness: -5%);
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    &:not(.disabled):hover {
+      background-color: scale-color($bg-blue, $lightness: -10%);
+    }
+
+    &:not(.disabled):hover:not(:active) {
+      background-color: $bg-blue;
+    }
+  }
+
+  @media (prefers-color-scheme: light) {
+  }
+}
+
+.c-button[data-type='back'] {
+  border-radius: 5px;
+  padding: 0.3rem 0.5rem 0.3rem 0.3rem;
+  background-color: transparent;
+  color: $fg-blue;
+  transition:
+    background-color 0.3s,
+    color 0.1s;
+
+  &.disabled {
+    color: scale-color($fg-blue, $lightness: -50%, $saturation: -50%);
+    cursor: not-allowed;
+  }
+
+  &:not(.disabled):hover {
+    background-color: #ffffff33;
+  }
+
+  &:not(.disabled):active {
+    color: scale($fg-blue, 20%);
+  }
+
+  // 用于选中safari
+  @supports (-webkit-touch-callout: none) {
+    &:not(.disabled):hover {
+      color: rgba($fg-blue, 0.6);
+      background-color: #ffffff00;
+    }
+
+    &:not(.disabled):hover:not(:active) {
+      color: $fg-blue;
+      background-color: transparent;
+    }
+  }
+
+  @media (prefers-color-scheme: light) {
+    background-color: #00000000;
+
+    &.disabled {
+      background-color: scale-color(#00000000, $lightness: 25%);
+      color: scale-color($fg-blue, $lightness: 50%);
+    }
+
+    &:not(.disabled):hover {
+      background-color: #00000016;
+    }
+  }
+}

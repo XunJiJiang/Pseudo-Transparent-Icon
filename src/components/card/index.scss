@@ -1,0 +1,105 @@
+.header {
+  width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  border: 1px solid #00000000;
+  padding: 0.1rem $padding;
+  margin: 0 auto;
+  font-size: 0.8rem;
+  text-align: left;
+  color: $fg-gray-dark;
+  box-sizing: border-box;
+  font-family: $font-family;
+
+  @media (prefers-color-scheme: light) {
+    color: $fg-gray-white;
+  }
+}
+
+.footer {
+  width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  border: 1px solid #00000000;
+  padding: 0.1rem $padding;
+  margin: 0 auto $margin;
+  font-size: 0.8rem;
+  text-align: left;
+  color: $fg-gray-dark;
+  box-sizing: border-box;
+  font-family: $font-family;
+
+  @media (prefers-color-scheme: light) {
+    color: $fg-gray-white;
+  }
+}
+
+.card {
+  width: calc(100% - $margin * 2);
+  max-width: $component-max-width;
+  border: 1px solid #00000000;
+  padding: $padding;
+  overflow: hidden;
+
+  &.no-padding {
+    padding: 0;
+  }
+
+  margin: 0 auto $margin;
+  border-radius: $radius;
+  background-color: $bg-black;
+  box-sizing: border-box;
+
+  @media (prefers-color-scheme: light) {
+    background-color: $bg-white;
+  }
+
+  &.has-footer {
+    margin-bottom: 0;
+  }
+
+  & .default {
+    padding-top: 3px;
+    & .header-icon {
+      // 内含四个icon，正方形排列gird, 紧凑居中,总体呈正方形,不占满父元素
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      justify-items: center;
+      align-items: center;
+      gap: 0.5rem;
+      width: 4rem;
+      margin: 0 auto $margin;
+      animation: rotate 16s linear infinite;
+
+      & span {
+        line-height: 1.4rem;
+      }
+    }
+    & .content {
+      & p {
+        margin: 0;
+        & a {
+          color: $fg-blue;
+          font-size: 0.8rem;
+          line-height: 0.8rem;
+
+          &:hover {
+            color: $fg-white;
+
+            @media (prefers-color-scheme: light) {
+              color: $fg-black;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

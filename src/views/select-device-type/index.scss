@@ -1,0 +1,48 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  & .card {
+    padding-top: $padding;
+    & .header-icon {
+      // width: 3.9rem;
+      height: 2.6rem;
+      margin: 0 auto $margin;
+      line-height: 3.6rem;
+
+      & span {
+        font-size: 2rem;
+        // line-height: 1.4rem;
+      }
+    }
+    & .content {
+      & h4 {
+        margin: 0 0 $padding;
+        font-size: 1.2rem;
+        line-height: 1.2rem;
+
+        color: $fg-white;
+
+        @media (prefers-color-scheme: light) {
+          color: $fg-black;
+        }
+      }
+      & p {
+        margin: 0;
+        font-size: 0.8rem;
+        line-height: 1rem;
+
+        & a {
+          color: $fg-blue;
+
+          &:hover {
+            color: $fg-white;
+
+            @media (prefers-color-scheme: light) {
+              color: $fg-black;
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,6 +23,7 @@
     /* alias */
     "baseUrl": "./src",
     "paths": {
+      "xj-web-core/*": ["core/*"],
       "@/*": ["*"],
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"],

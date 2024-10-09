@@ -1,0 +1,129 @@
+// @media (min-width: 504px) {
+// }
+
+.c-page {
+  position: absolute;
+  transform: translateX(0);
+  transition:
+    transform 0.5s $cubic-bezier,
+    opacity 0.5s $cubic-bezier;
+  width: calc(100% + $scrollbar-width);
+  @supports (-webkit-touch-callout: none) {
+    width: 100%;
+  }
+  height: 100%;
+  height: -webkit-fill-available;
+  box-sizing: border-box;
+  overflow-y: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  justify-content: center;
+  align-items: center;
+
+  background-color: $background-color-dark;
+
+  @media (prefers-color-scheme: light) {
+    background-color: $background-color-light;
+  }
+
+  animation: 0.5s $cubic-bezier forwards;
+
+  &.init-show {
+    transform: translateX(0);
+  }
+
+  &.init-hide {
+    transform: translateX(100%);
+  }
+
+  &.enter-from-left {
+    animation-name: enter-from-left;
+  }
+
+  &.enter-from-right {
+    animation-name: enter-from-right;
+  }
+
+  &.leave-to-left {
+    animation-name: leave-to-left;
+  }
+
+  &.leave-to-right {
+    animation-name: leave-to-right;
+  }
+
+  & main {
+    box-sizing: border-box;
+    // padding: calc(2.8rem + $margin) 0 32px 0;
+  }
+
+  // 首级页面，标题居中，占多半高度，不展示返回按钮
+  &.page-0 {
+    & main {
+      padding: $margin 0 32px 0;
+    }
+  }
+
+  // 一级页面，标题置顶，占很少高度，展示返回按钮
+  &.page-1 {
+    & main {
+      padding: calc(2.8rem + $margin) 0 32px 0;
+    }
+  }
+}
+
+@keyframes enter-from-left {
+  0% {
+    transform: translateX(-25%);
+    z-index: 0;
+  }
+  100% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+}
+
+@keyframes enter-from-right {
+  0% {
+    transform: translateX(100%);
+    z-index: 2;
+  }
+  100% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+}
+
+@keyframes leave-to-left {
+  0% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+  99% {
+    transform: translateX(-25%);
+    z-index: 0;
+  }
+  100% {
+    transform: translateX(-25%);
+    // 在动画结束后，将离开的页面隐藏
+    z-index: -1;
+  }
+}
+
+@keyframes leave-to-right {
+  0% {
+    transform: translateX(0);
+    z-index: 1;
+  }
+  99% {
+    transform: translateX(100%);
+    z-index: 2;
+  }
+  100% {
+    transform: translateX(100%);
+    z-index: -1;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+}

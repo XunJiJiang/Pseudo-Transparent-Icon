@@ -1,0 +1,63 @@
+.button-group {
+  & .button-group-content {
+    & .button-item {
+      display: block;
+      position: relative;
+      width: 100%;
+      padding: calc($padding - 0.1rem) $padding;
+      font-size: 1rem;
+      background-color: transparent;
+      color: $fg-white;
+      box-sizing: border-box;
+      text-align: left;
+      font-size: 0.9rem;
+      cursor: pointer;
+
+      // border-bottom: 1px solid $fg-gray-dark;
+
+      @media (prefers-color-scheme: light) {
+        color: $fg-black;
+      }
+
+      @include no-margin-divider {
+        background-color: $bg-gray-dark-hover;
+
+        @media (prefers-color-scheme: light) {
+          background-color: $bg-gray-white-hover;
+        }
+      }
+
+      &:hover,
+      &:active {
+        background-color: $bg-gray-dark-hover;
+
+        @media (prefers-color-scheme: light) {
+          background-color: $bg-gray-white-hover;
+        }
+      }
+
+      @supports (-webkit-touch-callout: none) {
+        &:hover:not(:active) {
+          background-color: transparent;
+        }
+      }
+
+      // & .button-item-label {
+      // }
+
+      & .button-item-icon {
+        color: $fg-blue;
+        position: absolute;
+        right: $padding;
+        display: none;
+      }
+
+      &.checked {
+        & .button-item-icon {
+          color: $fg-blue;
+          display: initial;
+        }
+      }
+    }
+  }
+}
