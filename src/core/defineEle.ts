@@ -153,7 +153,7 @@ const define = (
     constructor() {
       super()
       // 设置当前组件实例, 并返回父组件实例
-      const { old: parentComponent, restore } = setComponentIns(this)
+      const { restore } = setComponentIns(this)
       this.$data = reactive(data?.() || {})
       this.$methods = methods || {}
 
@@ -165,11 +165,25 @@ const define = (
         this.$root = this
       }
 
-      const shadow = this.$root
-
       /*@__PURE__*/ checkPropsEmit<string, Func>(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
       /*@__PURE__*/ checkObservedAttributes(_observedAttributes)
+
+      // 恢复父组件实例
+      restore()
+    }
+
+    static get observedAttributes() {
+      return observedAttributes || []
+    }
+
+    connectedCallback() {
+      const { old: parentComponent, restore } = setComponentIns(this)
+
+      const shadow = this.$root
+
+      if (!shadow) return
+      const _observedAttributes = observedAttributes || []
 
       // 获取on-、x-开头的和observedAttributes定义属性的键值
       const attrs = Array.from(this.attributes)
@@ -434,16 +448,6 @@ const define = (
         })
       }
 
-      // 恢复父组件实例
-      restore()
-    }
-
-    static get observedAttributes() {
-      return observedAttributes || []
-    }
-
-    connectedCallback() {
-      const { restore } = setComponentIns(this)
       // WARN: 由于暂时没有多文档支持, 所以暂时不需要考虑多文档的情况
       // 在多文档的情况下, 此函数会被调用多次，而当前clearBeforeMount、clearMounted仅支持单次调用
       clearBeforeMount(this)
