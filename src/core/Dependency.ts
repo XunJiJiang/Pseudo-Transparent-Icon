@@ -35,19 +35,7 @@ export const effect = (effCallback: EffectCallback) => {
 
 const SYMBOL_EFFECT = Symbol('effect')
 
-/*concat()
-slice()
-map()
-filter()
-reduce()
-find()
-findIndex()
-every()
-some()
-includes()
-join() */
-
-// 函数上非纯函数的属性
+/** 函数上非纯函数的属性 */
 const notPureArrFuncKey = [
   'push',
   'pop',
@@ -60,6 +48,15 @@ const notPureArrFuncKey = [
   'fill'
 ]
 
+// 只要一个distribute尝试把运行某个effect加入AutoAsyncTask, 就将这个effect和此次对应的_depCleanups对应
+// 当EffectCallback真正运行时，会将其返回值加入全部记录的_depCleanups
+// 这样，不管是哪个dep触发了distribute，都会将当前effect的清理函数加入全部记录的_depCleanups
+// effect的清理函数唯一，且在任意dep触发cleanup时运行
+const effectDepMap = new Map<EffectCallback, Set<Set<() => void>>>()
+
+// 记录单个清理函数和对应的_depCleanups
+const depCleanupMap = new Map<() => void, Set<Set<() => void>>>()
+
 class Dependency<T extends object> {
   private _deps = new Map<string | symbol, Set<EffectCallback>>()
   private _depCleanups = new Map<string | symbol, Set<() => void>>()
@@ -69,9 +66,10 @@ class Dependency<T extends object> {
 
   private _isProxy: Array<string | symbol> = []
 
-  constructor(value: T, currentComponent: BaseElement | null) {
+  constructor(value: T, currentComponent: BaseElement | null, baseKey = '') {
     this._value = value
     this._currentComponent = currentComponent
+    this.baseKey = baseKey
 
     this._proxy = new Proxy(this._value, {
       get: (target, key, receiver) => {
@@ -83,12 +81,16 @@ class Dependency<T extends object> {
         if (
           typeof _value === 'object' &&
           _value !== null &&
-          !this._isProxy.includes(key)
+          !this._isProxy.includes(this.baseKey + String(key))
         ) {
-          const newDep = new Dependency(_value, this._currentComponent)
+          const newDep = new Dependency(
+            _value,
+            this._currentComponent,
+            this.baseKey + String(key)
+          )
           Reflect.set(target, key, newDep.value, receiver)
           _ret = newDep.value
-          this._isProxy.push(key)
+          this._isProxy.push(this.baseKey + String(key))
         }
 
         if (
@@ -106,25 +108,36 @@ class Dependency<T extends object> {
         }
 
         if (isArray(target)) collect()
-        else collect(key)
+        else collect(this.baseKey + String(key))
         return _ret
       },
       set: (target, key, value, receiver) => {
         if (isArray(target)) this.cleanup()
-        else this.cleanup(key)
+        else this.cleanup(this.baseKey + String(key))
         const _ret = Reflect.set(target, key, value, receiver)
         if (isArray(target)) this.distribute()
-        else this.distribute(key)
+        else this.distribute(this.baseKey + String(key))
         return _ret
       }
     })
   }
+
+  private baseKey = ''
 
   private collect(key: string | symbol = SYMBOL_EFFECT) {
     if (currentEffectFn) {
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)
       _dep!.add(currentEffectFn)
+      // 设置\获取当前effect的清理函数
+      const _depCleanup =
+        this._depCleanups.get(key) ??
+        this._depCleanups.set(key, new Set()).get(key)
+      const effectDepCleanups =
+        effectDepMap.get(currentEffectFn) ??
+        effectDepMap.set(currentEffectFn, new Set()).get(currentEffectFn)
+      // 为当前effect添加对应dep的清理函数集合
+      effectDepCleanups!.add(_depCleanup!)
       // TODO: 先收集依赖
       // 收集完成后立刻运行清理函数
       // 再异步发布任务
@@ -144,9 +157,12 @@ class Dependency<T extends object> {
     const _depCleanup =
       this._depCleanups.get(key) ??
       this._depCleanups.set(key, new Set()).get(key)
-    _depCleanup!.forEach((cleanup, _, set) => {
+    _depCleanup!.forEach((cleanup) => {
       AutoAsyncTask.addTask(cleanup, cleanup)
-      set.delete(cleanup)
+      // 删除全部_depCleanups对当前清理函数的记录
+      depCleanupMap.get(cleanup)?.forEach((depCleanup) => {
+        depCleanup.delete(cleanup)
+      })
     })
     restore()
   }
@@ -155,15 +171,19 @@ class Dependency<T extends object> {
     const { restore } = this._currentComponent
       ? setComponentIns(this._currentComponent)
       : { restore: () => {} }
-    const _depCleanup =
-      this._depCleanups.get(key) ??
-      this._depCleanups.set(key, new Set()).get(key)
     const _dep = this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)
     _dep!.forEach((dep) => {
+      const effectDepCleanups =
+        effectDepMap.get(dep) ?? effectDepMap.set(dep, new Set()).get(dep)
       AutoAsyncTask.addTask(() => {
         const _return = dep()
         if (_return) {
-          _depCleanup!.add(_return)
+          // 将effect的清理函数加入全部记录的_depCleanups
+          effectDepCleanups?.forEach((depCleanup) => {
+            depCleanup.add(_return)
+          })
+          // 将当前清理函数与全部记录的_depCleanups对应
+          depCleanupMap.set(_return, effectDepCleanups!)
         }
       }, dep)
     })

@@ -115,21 +115,6 @@ export default define('l-index', {
       )
     })
     onMounted(() => {
-      const homeEle = createElement(views[0][2][0], views[0][2][1])
-
-      lIndexRef.value?.appendChild(homeEle)
-
-      homeEle.setAttribute('data-status', 'init-show')
-
-      nowELe = homeEle
-
-      // views.forEach((view, i) => {
-      //   view[0].value?.setAttribute(
-      //     'data-status',
-      //     i === index.value ? 'init-show' : `init-hide`
-      //   )
-      // })
-
       resize()
 
       window.addEventListener('resize', resize)
@@ -185,23 +170,20 @@ export default define('l-index', {
       if (isPrev && isPrev !== null) {
         // reduce
         titleSpanRef.value.innerHTML = `
-          <span>${nowTitle}</span>
-          <span>${prevTitle}</span>
+        <span>${nowTitle}</span>
+        <span>${prevTitle}</span>
         `
         titleSpanRef.value.classList.add('reduce')
       } else if (isPrev !== null) {
         // add
         titleSpanRef.value.innerHTML = `
-          <span>${prevTitle}</span>
-          <span>${nowTitle}</span>
+        <span>${prevTitle}</span>
+        <span>${nowTitle}</span>
         `
         titleSpanRef.value.classList.add('add')
       }
 
-      console.log('nowTitle', nowTitle)
-
       return () => {
-        console.log('remove', nowTitle)
         if (!backSpanRef.value || !titleSpanRef.value) return
 
         prevIndex = nowIndex
