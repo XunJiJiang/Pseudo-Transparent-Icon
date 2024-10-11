@@ -29,3 +29,5 @@ export { default as AutoAsyncTask } from './utils/AutoAsyncTask'
 export { default as useId } from './hooks/useId'
 
 export { isHTMLElement } from './utils/shared'
+
+export { default as createElement } from './utils/createElement'

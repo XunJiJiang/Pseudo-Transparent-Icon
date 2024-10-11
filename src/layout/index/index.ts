@@ -2,7 +2,14 @@
 
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define, effect, onMounted, ref, refTemplate } from 'xj-web-core/index'
+import {
+  createElement,
+  define,
+  effect,
+  onMounted,
+  ref,
+  refTemplate
+} from 'xj-web-core/index'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
 
@@ -24,15 +31,77 @@ export default define('l-index', {
     const headerRef = refTemplate('header-ref')
     const backSpanRef = refTemplate('back-span-ref')
     const titleSpanRef = refTemplate('title-span-ref')
-    const views = [
-      [refTemplate('v-home-ref'), '首页'],
-      [refTemplate('v-sd-type-ref'), '选择设备类型']
-    ] as [
+    const views: [
       {
         value: HTMLElement | null
       },
-      string
-    ][]
+      string,
+      Parameters<typeof createElement>
+    ][] = [
+      [
+        refTemplate('v-home-ref'),
+        '首页',
+        [
+          'v-home',
+          {
+            ref: 'v-home-ref',
+            'on-next': 'next'
+          }
+        ]
+      ],
+      [
+        refTemplate('v-sd-type-ref'),
+        '选择设备类型',
+        [
+          'v-sd-type',
+          {
+            ref: 'v-sd-type-ref',
+            'on-next': 'next',
+            'on-scroll': 'scroll',
+            'on-change': 'deviceChange'
+          }
+        ]
+      ],
+      [
+        refTemplate('v-sd-type-ref2'),
+        '选择设备类型2',
+        [
+          'v-sd-type',
+          {
+            ref: 'v-sd-type-ref2',
+            'on-next': 'next',
+            'on-scroll': 'scroll',
+            'on-change': 'deviceChange'
+          }
+        ]
+      ],
+      [
+        refTemplate('v-sd-type-ref3'),
+        '选择设备类型3',
+        [
+          'v-sd-type',
+          {
+            ref: 'v-sd-type-ref3',
+            'on-next': 'next',
+            'on-scroll': 'scroll',
+            'on-change': 'deviceChange'
+          }
+        ]
+      ],
+      [
+        refTemplate('v-sd-type-ref4'),
+        '选择设备类型4',
+        [
+          'v-sd-type',
+          {
+            ref: 'v-sd-type-ref4',
+            'on-next': 'next',
+            'on-scroll': 'scroll',
+            'on-change': 'deviceChange'
+          }
+        ]
+      ]
+    ]
 
     /** 当前下标 */
     const index = ref(0)
@@ -46,13 +115,6 @@ export default define('l-index', {
       )
     })
     onMounted(() => {
-      views.forEach((view, i) => {
-        view[0].value?.setAttribute(
-          'data-status',
-          i === index.value ? 'init-show' : `init-hide`
-        )
-      })
-
       resize()
 
       window.addEventListener('resize', resize)
@@ -67,16 +129,37 @@ export default define('l-index', {
     // 当前执行的是prev函数还是next函数
     let isPrev: null | boolean = null
 
+    let nowELe: HTMLElement | null = null
+
     effect(() => {
       if (!backSpanRef.value || !titleSpanRef.value) return
-      handle.scroll(0)
 
       const nowIndex = index.value
-      if (prevIndex !== -1 && isPrev !== null)
-        views[nowIndex][0].value?.setAttribute(
+
+      handle.scroll(0)
+
+      const newEle = createElement(
+        views[index.value][2][0],
+        views[index.value][2][1]
+      )
+
+      const oldEle = nowELe
+      nowELe = newEle
+
+      lIndexRef.value?.appendChild(newEle)
+
+      if (prevIndex !== -1 && isPrev !== null) {
+        newEle.setAttribute(
           'data-status',
           `${!isPrev ? 'enter-from-right' : 'enter-from-left'}`
         )
+      } else {
+        newEle.setAttribute('data-status', 'init-show')
+      }
+
+      setTimeout(() => {
+        oldEle?.remove()
+      }, 500)
 
       let nowTitle = views[index.value][1]
       const prevTitle = prevIndex >= 0 ? views[prevIndex][1] : views[0][1]
@@ -87,15 +170,15 @@ export default define('l-index', {
       if (isPrev && isPrev !== null) {
         // reduce
         titleSpanRef.value.innerHTML = `
-          <span>${nowTitle}</span>
-          <span>${prevTitle}</span>
+        <span>${nowTitle}</span>
+        <span>${prevTitle}</span>
         `
         titleSpanRef.value.classList.add('reduce')
       } else if (isPrev !== null) {
         // add
         titleSpanRef.value.innerHTML = `
-          <span>${prevTitle}</span>
-          <span>${nowTitle}</span>
+        <span>${prevTitle}</span>
+        <span>${nowTitle}</span>
         `
         titleSpanRef.value.classList.add('add')
       }
@@ -107,11 +190,12 @@ export default define('l-index', {
 
         const prevTitle = nowTitle
 
-        if (isPrev !== null)
-          views[prevIndex][0].value?.setAttribute(
+        if (isPrev !== null) {
+          newEle.setAttribute(
             'data-status',
             `${!isPrev ? 'leave-to-left' : 'leave-to-right'}`
           )
+        }
 
         nowTitle = pageList[pageList.length - 1] ?? ''
 
