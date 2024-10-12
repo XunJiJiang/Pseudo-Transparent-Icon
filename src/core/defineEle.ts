@@ -94,11 +94,6 @@ const reservedKeys = ['ref', 'expose']
 /** 记录自定义web组件名 */
 const customElementNameSet = new Set<string>()
 
-/** 添加自定义web组件名 */
-const addCustomElement = (name: string) => {
-  customElementNameSet.add(name)
-}
-
 const SYMBOL_NONE = Symbol('none')
 
 /** 是否是自定义web组件 */
@@ -169,6 +164,10 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   const nodeRemove = ele.remove.bind(ele)
   const nodeAppend = ele.appendChild.bind(ele)
   const nodeRemoveChild = ele.removeChild.bind(ele)
+  const nodePrepend = ele.prepend.bind(ele)
+  const nodeInsertBefore = ele.insertBefore.bind(ele)
+  const nodeReplaceChild = ele.replaceChild.bind(ele)
+
   ele.remove = () => {
     beforeRemove(ele, root)
     nodeRemove()
@@ -180,6 +179,26 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   ele.removeChild = <T extends Node>(node: T): T => {
     beforeRemove(node, root)
     return nodeRemoveChild(node)
+  }
+  ele.prepend = (...nodes: (Node | string)[]) => {
+    nodes.forEach((node) => {
+      if (typeof node !== 'string') {
+        beforeAppend(node, root)
+      }
+    })
+    nodePrepend(...nodes)
+  }
+  ele.insertBefore = <T extends Node>(
+    newNode: T,
+    referenceNode: Node | null
+  ): T => {
+    beforeAppend(newNode, root)
+    return nodeInsertBefore(newNode, referenceNode)
+  }
+  ele.replaceChild = <T extends Node>(newNode: Node, oldNode: T): T => {
+    beforeRemove(oldNode, root)
+    beforeAppend(newNode, root)
+    return nodeReplaceChild(newNode, oldNode)
   }
 }
 
@@ -227,6 +246,11 @@ const define = (
   },
   options?: ElementDefinitionOptions
 ) => {
+  if (customElementNameSet.has(name.toLowerCase())) {
+    /*@__PURE__*/ console.error(`自定义组件 ${name} 重复定义。`)
+    return
+  }
+
   const _shadow = shadow
   class Ele extends BaseElement {
     constructor() {
@@ -564,10 +588,45 @@ const define = (
       })
       restore()
     }
+
+    remove() {
+      if (this.$parentComponent) beforeRemove(this, this.$parentComponent)
+      super.remove()
+    }
+
+    appendChild<T extends Node>(node: T): T {
+      beforeAppend(node, this)
+      return super.appendChild(node)
+    }
+
+    removeChild<T extends Node>(node: T): T {
+      beforeRemove(node, this)
+      return super.removeChild(node)
+    }
+
+    prepend(...nodes: (Node | string)[]) {
+      nodes.forEach((node) => {
+        if (typeof node !== 'string') {
+          beforeAppend(node, this)
+        }
+      })
+      return super.prepend(...nodes)
+    }
+
+    insertBefore<T extends Node>(newNode: T, referenceNode: Node | null): T {
+      beforeAppend(newNode, this)
+      return super.insertBefore(newNode, referenceNode)
+    }
+
+    replaceChild<T extends Node>(newNode: Node, oldNode: T): T {
+      beforeRemove(oldNode, this)
+      beforeAppend(newNode, this)
+      return super.replaceChild(newNode, oldNode)
+    }
   }
 
   return () => {
-    addCustomElement(name.toLowerCase())
+    customElementNameSet.add(name.toLowerCase())
     customElements.define(name, Ele, options)
   }
 }
