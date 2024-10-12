@@ -104,6 +104,85 @@ const SYMBOL_NONE = Symbol('none')
 /** 是否是自定义web组件 */
 const isCustomElement = (name: string) => customElementNameSet.has(name)
 
+const beforeRemove = (ele: Node, root: BaseElement) => {
+  if (ele instanceof Element) {
+    const nodeRefAttr = ele.attributes.getNamedItem('ref')
+    const nodeExposeAttr = ele.attributes.getNamedItem('expose')
+    if (nodeRefAttr) {
+      const refName = nodeRefAttr.value
+      if (ele === root.$defineRefs[refName]) delete root.$defineRefs[refName]
+      if (refName in root.$refs) {
+        if (root.$refs[refName].value === ele) root.$refs[refName].value = null
+      }
+    }
+
+    if (nodeExposeAttr) {
+      if (ele instanceof BaseElement) {
+        const exposeName = nodeExposeAttr.value
+        if (ele.$exposeAttributes === root.$defineExposes[exposeName])
+          delete root.$defineExposes[exposeName]
+        if (exposeName in root.$exposes) {
+          if (root.$exposes[exposeName].value === ele.$exposeAttributes)
+            root.$exposes[exposeName].value = null
+        }
+      }
+    }
+  }
+}
+
+const beforeAppend = (ele: Node, root: BaseElement) => {
+  if (ele instanceof Element) {
+    const nodeRefAttr = ele.attributes.getNamedItem('ref')
+    const nodeExposeAttr = ele.attributes.getNamedItem('expose')
+    if (nodeRefAttr) {
+      const refName = nodeRefAttr.value
+      if (root.$defineRefs[refName]) {
+        /*@__PURE__*/ console.warn(
+          `${root.localName}: ref 属性 ${refName} 已存在引用，创建同名引用会导致上一个引用被丢弃。`
+        )
+      }
+      root.$defineRefs[refName] = ele
+      if (refName in root.$refs) {
+        root.$refs[refName].value = ele
+      }
+    }
+
+    if (nodeExposeAttr) {
+      if (ele instanceof BaseElement) {
+        const exposeName = nodeExposeAttr.value
+        root.$defineExposes[exposeName] = ele.$exposeAttributes
+        if (exposeName in root.$exposes) {
+          root.$exposes[exposeName].value = ele.$exposeAttributes
+        }
+      } else {
+        /*@__PURE__*/ console.error(
+          `${root.localName}: expose 属性只能用于自定义组件, 此处错误的使用在 ${ele.localName} 上。`
+        )
+      }
+    }
+
+    replaceMethods(ele, root)
+  }
+}
+
+const replaceMethods = (ele: Element, root: BaseElement) => {
+  const nodeRemove = ele.remove.bind(ele)
+  const nodeAppend = ele.appendChild.bind(ele)
+  const nodeRemoveChild = ele.removeChild.bind(ele)
+  ele.remove = () => {
+    beforeRemove(ele, root)
+    nodeRemove()
+  }
+  ele.appendChild = <T extends Node>(node: T): T => {
+    beforeAppend(node, root)
+    return nodeAppend(node)
+  }
+  ele.removeChild = <T extends Node>(node: T): T => {
+    beforeRemove(node, root)
+    return nodeRemoveChild(node)
+  }
+}
+
 const define = (
   name: string,
   {
@@ -153,7 +232,8 @@ const define = (
     constructor() {
       super()
       // 设置当前组件实例, 并返回父组件实例
-      const { restore } = setComponentIns(this)
+      const { old: parentComponent, restore } = setComponentIns(this)
+      this.$parentComponent = parentComponent
       this.$data = reactive(data?.() || {})
       this.$methods = methods || {}
 
@@ -368,6 +448,7 @@ const define = (
       const refs = Array.from(shadow.querySelectorAll('[ref]'))
       refs.forEach((ele: Element) => {
         const refName = ele.getAttribute('ref')
+        replaceMethods(ele, this)
         if (!refName) return
         this.$defineRefs[refName] = ele
         if (refName in this.$refs) {
@@ -394,6 +475,7 @@ const define = (
           this.$exposes[exposeName].value = this.$defineExposes[exposeName]
         }
       })
+
       const exposeTemplates = /*@__PURE__*/ Object.entries(this.$exposes)
       /*@__PURE__*/ exposeTemplates.forEach(([key, value]) => {
         if (value) return
@@ -460,6 +542,7 @@ const define = (
     disconnectedCallback() {
       const { restore } = setComponentIns(this)
       clearMounted(this)
+
       // Lifecycle: unmounted 调用时机
       runUnmounted()
       disconnected?.call(this, this.$data, { methods: this.$methods })

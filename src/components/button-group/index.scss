@@ -14,17 +14,16 @@
       cursor: pointer;
 
       // border-bottom: 1px solid $fg-gray-dark;
-
-      @media (prefers-color-scheme: light) {
-        color: $fg-black;
-      }
-
       @include no-margin-divider {
         background-color: $bg-gray-dark-hover;
 
         @media (prefers-color-scheme: light) {
           background-color: $bg-gray-white-hover;
         }
+      }
+
+      @media (prefers-color-scheme: light) {
+        color: $fg-black;
       }
 
       &:hover,

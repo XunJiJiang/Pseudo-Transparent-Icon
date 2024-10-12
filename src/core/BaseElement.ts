@@ -275,6 +275,9 @@ export default class BaseElement extends HTMLElement {
   /** setup 函数中 使用 refTemplate 声明的元素 */
   $refs: Record<string, { value: Element | null }> = {}
 
+  /** 父组件 */
+  $parentComponent: BaseElement | null = null
+
   constructor() {
     super()
   }
