@@ -9,21 +9,21 @@ body:
       label: Checklist
       description: Have you checked if someone has reported this issue before?
       options:
-        - label: I have searched through the xj-web docs (There is no document now, just check it)
-          required: true
+        # - label: I have searched through the xj-web docs
+        #   required: true
         - label: I have searched through the existing issues of xj-web
           required: true
-        - label: I have searched the existing issues of plugins related to this issue
+        - label: I have searched the existing issues of packages related to this issue
           required: true
-        - label: I can replicate the bug with the minimal `repro.ts/js` provided below
+        - label: I can replicate the bug with the minimal `repro.ts` provided below
           required: true
-  # - type: input
-  #   id: system-version
-  #   validations:
-  #     required: true
-  #   attributes:
-  #     label: 'Operating system/version'
-  #     placeholder: 'macOS 11.5'
+  - type: input
+    id: system-version
+    validations:
+      required: true
+    attributes:
+      label: 'The operating system/version where the problem occurs'
+      placeholder: 'macOS 11.5'
   - type: textarea
     id: description
     validations:
