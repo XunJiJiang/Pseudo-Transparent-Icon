@@ -153,7 +153,6 @@ export default define('v-sd-type', {
     if (name === 'data-status') {
       this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
       if (newValue.includes('enter')) {
-        this.$defineExposes['c-button-group-expose']?.clear()
         data.nowDevice.value = null
       }
     }

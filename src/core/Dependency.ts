@@ -114,10 +114,9 @@ class Dependency<T extends object> {
       set: (target, key, value, receiver) => {
         if (isArray(target)) this.cleanup()
         else this.cleanup(this.baseKey + String(key))
-        const _ret = Reflect.set(target, key, value, receiver)
         if (isArray(target)) this.distribute()
         else this.distribute(this.baseKey + String(key))
-        return _ret
+        return Reflect.set(target, key, value, receiver)
       }
     })
   }
