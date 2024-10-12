@@ -245,10 +245,10 @@ const define = (
     attributeChanged?: EleAttributeChangedCallback
   },
   options?: ElementDefinitionOptions
-) => {
+): (() => void) => {
   if (customElementNameSet.has(name.toLowerCase())) {
     /*@__PURE__*/ console.error(`自定义组件 ${name} 重复定义。`)
-    return
+    return () => {}
   }
 
   const _shadow = shadow
