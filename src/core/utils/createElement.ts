@@ -1,3 +1,5 @@
+import { isArray } from '../utils/shared'
+
 const createElement = <T extends Node>(
   tag: string,
   opt?: { [key: string]: string },
@@ -8,7 +10,7 @@ const createElement = <T extends Node>(
     for (const key in opt) {
       el.setAttribute(key, opt[key])
     }
-  if (Array.isArray(children)) {
+  if (isArray(children)) {
     children.forEach((child) => {
       el.appendChild(child)
     })

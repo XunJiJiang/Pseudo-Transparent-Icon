@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Dependency class
  * 创建一个依赖项
@@ -8,7 +9,7 @@ import BaseElement from './BaseElement'
 import { setComponentIns, getCurrentComponent } from './fixComponentIns'
 import { onMounted } from './hooks/lifecycle/mounted'
 import AutoAsyncTask from './utils/AutoAsyncTask'
-import { isArray } from './utils/shared'
+import { isArray, isObject } from './utils/shared'
 
 export type EffectCallback = () => (() => void) | void
 
@@ -33,7 +34,10 @@ export const effect = (effCallback: EffectCallback) => {
   })
 }
 
+/** 无key的依赖key */
 const SYMBOL_EFFECT = Symbol('effect')
+/** 被代理标志 */
+const SYMBOL_DEPENDENCY = Symbol('dependency')
 
 /** 函数上非纯函数的属性 */
 const notPureArrFuncKey = [
@@ -47,6 +51,36 @@ const notPureArrFuncKey = [
   'copyWithin',
   'fill'
 ]
+
+export const isRef = <T = any>(
+  val: unknown
+): val is Dependency<{
+  value: T
+}> => {
+  return isReactive<{
+    value: T
+  }>(val)
+}
+
+const hasSYMBOL_DEPENDENCY = (
+  val: object
+): val is { [key in typeof SYMBOL_DEPENDENCY]: Dependency<object> } => {
+  return (
+    (val as { [key in typeof SYMBOL_DEPENDENCY]: Dependency<object> })[
+      SYMBOL_DEPENDENCY
+    ] !== undefined
+  )
+}
+
+export const isReactive = <T extends object = Record<string | symbol, any>>(
+  val: unknown
+): val is Dependency<T> => {
+  return (
+    isObject(val) &&
+    hasSYMBOL_DEPENDENCY(val) &&
+    val[SYMBOL_DEPENDENCY] instanceof Dependency
+  )
+}
 
 // 只要一个distribute尝试把运行某个effect加入AutoAsyncTask, 就将这个effect和此次对应的_depCleanups对应
 // 当EffectCallback真正运行时，会将其返回值加入全部记录的_depCleanups
@@ -73,14 +107,16 @@ class Dependency<T extends object> {
 
     this._proxy = new Proxy(this._value, {
       get: (target, key, receiver) => {
+        if (key === SYMBOL_DEPENDENCY) return this
+        // if (!Reflect.has(target, key)) {
+        // }
         const collect = this.collect.bind(this)
         const cleanup = this.cleanup.bind(this)
         const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
         if (
-          typeof _value === 'object' &&
-          _value !== null &&
+          isObject(_value) &&
           !this._isProxy.includes(this.baseKey + String(key))
         ) {
           const newDep = new Dependency(

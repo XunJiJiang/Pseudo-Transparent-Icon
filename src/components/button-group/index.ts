@@ -136,7 +136,6 @@ export default define('c-button-group', {
   },
   setup({ content, type }: ButtonGroupProps, { emit }) {
     const id = useId()
-    console.log(content)
     const butRefs = content.map((_, i) =>
       refTemplate('button-group::' + i + id)
     )

@@ -18,7 +18,7 @@ export { default as expose } from './exposeAttributes'
 
 export { default as reactive } from './reactive'
 
-export { effect } from './Dependency'
+export { effect, isRef, isReactive } from './Dependency'
 
 export { default as define } from './defineEle'
 
