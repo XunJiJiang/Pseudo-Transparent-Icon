@@ -8,7 +8,11 @@
  */
 
 import { Func } from '@type/function'
-import BaseElement, { type EventHandlers } from './BaseElement'
+import BaseElement, {
+  EventListeners,
+  SYMBOL_CLEAR_REF,
+  type EventHandlers
+} from './BaseElement'
 import reactive from './reactive'
 import { setComponentIns } from './fixComponentIns'
 import { exposeAttributes } from './exposeAttributes'
@@ -123,6 +127,15 @@ const beforeRemove = (ele: Node, root: BaseElement) => {
         }
       }
     }
+
+    if (ele instanceof BaseElement) {
+      ele.__destroy__(SYMBOL_CLEAR_REF)
+    }
+
+    const childNodes = Array.from(ele.childNodes)
+    childNodes.forEach((child) => {
+      beforeRemove(child, root)
+    })
   }
 }
 
@@ -137,6 +150,7 @@ const beforeAppend = (ele: Node, root: BaseElement) => {
           `${root.localName}: ref 属性 ${refName} 已存在引用，创建同名引用会导致上一个引用被丢弃。`
         )
       }
+
       root.$defineRefs[refName] = ele
       if (refName in root.$refs) {
         root.$refs[refName].value = ele
@@ -157,7 +171,17 @@ const beforeAppend = (ele: Node, root: BaseElement) => {
       }
     }
 
-    replaceMethods(ele, root)
+    if (!(ele instanceof BaseElement)) replaceMethods(ele, root)
+
+    // const childNodes = Array.from(ele.childNodes)
+    // console.dir(ele)
+    // childNodes.forEach((child) => {
+    //   beforeAppend(child, root)
+    // })
+
+    // if (ele instanceof BaseElement) {
+    //   beforeAppend(child, root)
+    // }
   }
 }
 
@@ -582,11 +606,7 @@ const define = (
         (acc, event) => {
           acc[event] = Array.from(
             shadow.querySelectorAll(`[on-${event}]`)
-          ).filter((ele) => {
-            const target = ele
-            const targetTagName = target.tagName
-            return !isCustomElement(targetTagName.toLowerCase())
-          })
+          ).filter((ele) => !(ele instanceof BaseElement))
           return acc
         },
         // TODO: 这里的类型声明有问题: HTMLElement[]
@@ -599,6 +619,24 @@ const define = (
       for (const event in eventEles) {
         eventEles[event as EventHandlers].forEach((ele) => {
           const target = ele
+          const targetEvents =
+            this.$eventElements.get(target) ??
+            this.$eventElements.set(target, {}).get(target)!
+          if (!(event in targetEvents)) {
+            const eventEle: EventListeners = {
+              handles: [],
+              listener(e: Event) {
+                eventEle.handles.forEach((fn) => {
+                  fn(e)
+                })
+              }
+            }
+            targetEvents[event as EventHandlers] = eventEle
+            target.addEventListener(
+              event,
+              targetEvents[event as EventHandlers]!.listener
+            )
+          }
           const _fnName = target.getAttribute(`on-${event}`)
           if (!_fnName) return
           const [fn, ...args] = _fnName.split(',').map((str, index) => {
@@ -617,7 +655,8 @@ const define = (
               `${this.localName}: 未定义 ${_fnName} 方法。可能是因为请求绑定事件的元素 [${ele.localName}] 为当前组件的子组件内的元素，而子组件未启用 shadow。`
             )
           }
-          target.addEventListener(event, (e: Event) => {
+
+          targetEvents[event as EventHandlers]!.handles.push((e: Event) => {
             fn(e, ...args)
           })
         })

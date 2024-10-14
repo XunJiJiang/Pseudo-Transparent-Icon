@@ -37,6 +37,10 @@ export default define('c-page', {
       pageRootRef.value?.setAttribute('style', style as string)
 
       pageRootRef.value?.addEventListener('scroll', scroll)
+
+      return () => {
+        pageRootRef.value?.removeEventListener('scroll', scroll)
+      }
     })
   },
   attributeChanged(name, _oldValue, newValue, props) {

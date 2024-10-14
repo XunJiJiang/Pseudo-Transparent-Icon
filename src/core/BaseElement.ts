@@ -245,6 +245,13 @@ const events = [
 ] as EventHandlers[]
 // #endregion
 
+/** 用于放置外部调用clearRef的标识 */
+export const SYMBOL_CLEAR_REF = Symbol('clearRef')
+
+export type EventListeners = {
+  listener: EventListener
+  handles: EventListener[]
+}
 export default class BaseElement extends HTMLElement {
   static events = events
 
@@ -278,7 +285,46 @@ export default class BaseElement extends HTMLElement {
   /** 父组件 */
   $parentComponent: BaseElement | null = null
 
+  /** 注册过事件的原生元素 */
+  $eventElements: Map<
+    Element,
+    {
+      [key in EventHandlers]?: EventListeners
+    }
+  > = new Map()
+
   constructor() {
     super()
+  }
+
+  // TODO: 节点已被删除但仍存在引用导致内存泄漏
+  // 现在这个没有成功清理
+  __destroy__(symbol: typeof SYMBOL_CLEAR_REF) {
+    if (symbol !== SYMBOL_CLEAR_REF) {
+      /*@__PURE__*/ console.error(
+        `${this.localName}: __destroy__方法只能由内部调用。`
+      )
+      return false
+    }
+
+    const shadow = this.$root
+
+    if (shadow) {
+      Array.from(shadow.querySelectorAll('*')).forEach((child) => {
+        if (child instanceof BaseElement) {
+          child.__destroy__(SYMBOL_CLEAR_REF)
+        }
+      })
+    }
+
+    for (const [element, events] of this.$eventElements) {
+      for (const [type, { listener }] of Object.entries(events)) {
+        element.removeEventListener(type, listener)
+      }
+    }
+
+    this.$parentComponent = null
+
+    return true
   }
 }
