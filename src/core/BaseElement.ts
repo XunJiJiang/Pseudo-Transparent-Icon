@@ -297,8 +297,7 @@ export default class BaseElement extends HTMLElement {
     super()
   }
 
-  // TODO: 节点已被删除但仍存在引用导致内存泄漏
-  // 现在这个没有成功清理
+  // TODO: 仍存在引用导致内存泄漏, 一些未清理的节点和监视器
   __destroy__(symbol: typeof SYMBOL_CLEAR_REF) {
     if (symbol !== SYMBOL_CLEAR_REF) {
       /*@__PURE__*/ console.error(

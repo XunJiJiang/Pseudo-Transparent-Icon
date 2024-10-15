@@ -24,8 +24,11 @@ const effectEleMap = new WeakMap<EffectCallback, BaseElement>()
 /** 记录当前运行的effect的依赖对应的清理函数集 */
 const effectDepCleanupMap = new WeakMap<EffectCallback, DepCleanupSets>()
 
-/** effect和对应的封装函数 */
+/** effect: effCallback和对应的effect */
 // const effectEncapsulationMap = new WeakMap<EffectCallback, EffectCallback>()
+
+/** 运行中的currentEffectFn列表，不包括最新的 */
+const currentEffectFns: EffectCallback[] = []
 
 export const effect = (effCallback: EffectCallback) => {
   onMounted(() => {
@@ -40,6 +43,7 @@ export const effect = (effCallback: EffectCallback) => {
       return _ret
     }
     effectEleMap.set(effect, ele)
+    if (currentEffectFn) currentEffectFns.push(currentEffectFn)
     currentEffectFn = effect
     const cleanupSets = new Set<WeakSet<() => void>>()
     effectDepCleanupMap.set(effect, cleanupSets)
@@ -51,12 +55,13 @@ export const effect = (effCallback: EffectCallback) => {
       depCleanupMap.set(cb, cleanupSets)
     }
     effectDepCleanupMap.delete(effect)
-    currentEffectFn = null
+    currentEffectFn = currentEffectFns.pop() ?? null
   })
 }
 
 // setInterval(() => {
 //   console.log('effectDepCleanupMap', effectDepCleanupMap)
+//   console.log('currentEffectFns', currentEffectFns)
 //   console.log('effectDepMap', effectDepMap)
 //   console.log('depCleanupMap', depCleanupMap)
 //   console.log('effectEleMap', effectEleMap)
