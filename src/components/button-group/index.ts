@@ -1,5 +1,10 @@
 import css from './index.scss?raw'
-import { define, getInstance, refTemplate, useId } from 'xj-web-core/index'
+import {
+  defineCustomElement,
+  getInstance,
+  refTemplate,
+  useId
+} from 'xj-web-core/index'
 
 type ButtonGroupProps = {
   type: 'radio' | 'checkbox' | 'independent'
@@ -88,7 +93,7 @@ const typeMap: TypeMap = {
   }
 }
 
-export default define('c-button-group', {
+export default defineCustomElement('c-button-group', {
   template: ({ title, content, type }: ButtonGroupProps) => {
     const { id } = getInstance().$data
     return `

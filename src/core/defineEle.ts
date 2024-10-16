@@ -268,7 +268,7 @@ const checkValue = /*@__PURE__*/ (value: any, ele: Element, key: string) => {
   )
 }
 
-const define = (
+const defineCustomElement = (
   name: string,
   {
     template,
@@ -753,4 +753,4 @@ const define = (
   }
 }
 
-export default define
+export default defineCustomElement

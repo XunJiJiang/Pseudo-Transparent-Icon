@@ -67,6 +67,6 @@ body:
       description: 您的存储库或复现所需的最少代码
       value: |
         // save as repro.ts
-        import { define } from 'xj-web-core/index'
+        import { defineCustomElement } from 'xj-web-core/index'
         // ...
       render: typescript

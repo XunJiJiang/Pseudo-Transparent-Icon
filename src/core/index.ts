@@ -20,7 +20,7 @@ export { default as reactive } from './reactive'
 
 export { effect, isRef, isReactive } from './Dependency'
 
-export { default as define } from './defineEle'
+export { default as defineCustomElement } from './defineEle'
 
 export { getInstance } from './fixComponentIns'
 

@@ -1,12 +1,12 @@
 import css from './index.scss?raw'
 import {
   getInstance,
-  define,
+  defineCustomElement,
   effect /* refTemplate */
 } from 'xj-web-core/index'
 import '@/assets/icon/iconfont.scss'
 
-export default define('c-icon', {
+export default defineCustomElement('c-icon', {
   style: css,
   observedAttributes: ['size', 'name', 'style'],
   setup(props) {

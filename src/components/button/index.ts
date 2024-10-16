@@ -1,7 +1,7 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
-  define,
+  defineCustomElement,
   getInstance,
   onMounted,
   ref,
@@ -18,7 +18,7 @@ export type CButtonProps = {
   'aria-label': string
 }
 
-export default define('c-button', {
+export default defineCustomElement('c-button', {
   template: html,
   style: css,
   observedAttributes: ['style', 'data-type', 'aria-label'],

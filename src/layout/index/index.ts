@@ -4,7 +4,7 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
   createElement,
-  define,
+  defineCustomElement,
   effect,
   onMounted,
   ref,
@@ -23,7 +23,7 @@ const setBodyBgColor = (type: BgColorType) => {
 
 // const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
 
-export default define('l-index', {
+export default defineCustomElement('l-index', {
   template: html,
   style: css,
   setup() {

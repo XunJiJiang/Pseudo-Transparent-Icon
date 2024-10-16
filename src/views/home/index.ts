@@ -1,6 +1,6 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define } from 'xj-web-core/index'
+import { defineCustomElement } from 'xj-web-core/index'
 
 type HomeProps = {
   style: string
@@ -11,7 +11,7 @@ type HomeEmit = {
   next: (index?: number, style?: string) => void
 }
 
-export default define('v-home', {
+export default defineCustomElement('v-home', {
   template: html,
   style: css,
   observedAttributes: ['data-status'],
