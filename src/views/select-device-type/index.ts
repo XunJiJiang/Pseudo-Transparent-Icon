@@ -2,7 +2,7 @@ import { type CButtonExpose } from '@components/button'
 import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
-  define,
+  defineCustomElement,
   effect,
   reactive,
   ref,
@@ -27,7 +27,7 @@ type SelectDeviceTypeEmit = {
   ) => void
 }
 
-export default define('v-sd-type', {
+export default defineCustomElement('v-sd-type', {
   template: html,
   style: css,
   observedAttributes: ['data-status'],
@@ -153,7 +153,6 @@ export default define('v-sd-type', {
     if (name === 'data-status') {
       this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
       if (newValue.includes('enter')) {
-        this.$defineExposes['c-button-group-expose']?.clear()
         data.nowDevice.value = null
       }
     }

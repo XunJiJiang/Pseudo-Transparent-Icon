@@ -6,9 +6,9 @@ export const exposeAttributes = (attrs: Record<string, unknown>) => {
   if (currentComponent) {
     for (const key in attrs) {
       if (key in currentComponent.$exposeAttributes) {
-        ;(() => {
-          console.error(`${currentComponent.localName} 重复暴露 ${key} 属性。`)
-        })()
+        /*@__PURE__*/ console.warn(
+          `${currentComponent.localName} 重复暴露 ${key} 属性，旧的值将被覆盖。`
+        )
       }
       const _val = attrs[key]
       if (isFunction(_val)) {

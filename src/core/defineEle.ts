@@ -8,7 +8,11 @@
  */
 
 import { Func } from '@type/function'
-import BaseElement, { type EventHandlers } from './BaseElement'
+import BaseElement, {
+  EventListeners,
+  SYMBOL_CLEAR_REF,
+  type EventHandlers
+} from './BaseElement'
 import reactive from './reactive'
 import { setComponentIns } from './fixComponentIns'
 import { exposeAttributes } from './exposeAttributes'
@@ -21,7 +25,8 @@ import { clearCreated, runCreated } from './hooks/lifecycle/created'
 import { clearBeforeMount, runBeforeMount } from './hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from './hooks/lifecycle/mounted'
 import { runUnmounted } from './hooks/lifecycle/unmounted'
-import { hasOwn } from './utils/shared'
+import { hasOwn, isObject } from './utils/shared'
+import { effect, isRef } from './Dependency'
 
 type DataType = Record<string | symbol, any>
 
@@ -122,6 +127,15 @@ const beforeRemove = (ele: Node, root: BaseElement) => {
         }
       }
     }
+
+    if (ele instanceof BaseElement) {
+      ele.__destroy__(SYMBOL_CLEAR_REF)
+    }
+
+    const childNodes = Array.from(ele.childNodes)
+    childNodes.forEach((child) => {
+      beforeRemove(child, root)
+    })
   }
 }
 
@@ -136,6 +150,7 @@ const beforeAppend = (ele: Node, root: BaseElement) => {
           `${root.localName}: ref 属性 ${refName} 已存在引用，创建同名引用会导致上一个引用被丢弃。`
         )
       }
+
       root.$defineRefs[refName] = ele
       if (refName in root.$refs) {
         root.$refs[refName].value = ele
@@ -156,7 +171,17 @@ const beforeAppend = (ele: Node, root: BaseElement) => {
       }
     }
 
-    replaceMethods(ele, root)
+    if (!(ele instanceof BaseElement)) replaceMethods(ele, root)
+
+    // const childNodes = Array.from(ele.childNodes)
+    // console.dir(ele)
+    // childNodes.forEach((child) => {
+    //   beforeAppend(child, root)
+    // })
+
+    // if (ele instanceof BaseElement) {
+    //   beforeAppend(child, root)
+    // }
   }
 }
 
@@ -168,8 +193,19 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   const nodeInsertBefore = ele.insertBefore.bind(ele)
   const nodeReplaceChild = ele.replaceChild.bind(ele)
 
+  /** 恢复原方法 */
+  const restore = () => {
+    ele.remove = nodeRemove
+    ele.appendChild = nodeAppend
+    ele.removeChild = nodeRemoveChild
+    ele.prepend = nodePrepend
+    ele.insertBefore = nodeInsertBefore
+    ele.replaceChild = nodeReplaceChild
+  }
+
   ele.remove = () => {
     beforeRemove(ele, root)
+    restore()
     nodeRemove()
   }
   ele.appendChild = <T extends Node>(node: T): T => {
@@ -178,6 +214,7 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   }
   ele.removeChild = <T extends Node>(node: T): T => {
     beforeRemove(node, root)
+    restore()
     return nodeRemoveChild(node)
   }
   ele.prepend = (...nodes: (Node | string)[]) => {
@@ -197,12 +234,41 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   }
   ele.replaceChild = <T extends Node>(newNode: Node, oldNode: T): T => {
     beforeRemove(oldNode, root)
+    restore()
     beforeAppend(newNode, root)
     return nodeReplaceChild(newNode, oldNode)
   }
 }
 
-const define = (
+/** is string、number、bigint、boolean、null */
+const isSimpleType = (val: any) =>
+  typeof val === 'string' ||
+  typeof val === 'number' ||
+  typeof val === 'bigint' ||
+  typeof val === 'boolean' ||
+  val === null
+
+/** 检测要绑定到非自定义组件的元素的值是否合法 */
+const checkValue = /*@__PURE__*/ (value: any, ele: Element, key: string) => {
+  if (isObject(value)) {
+    if (isRef(value)) {
+      if (isSimpleType(value.value)) {
+        return
+      }
+    }
+  } else {
+    if (isSimpleType(value)) {
+      return
+    }
+  }
+
+  console.error(key, value)
+  throw new TypeError(
+    `${ele.localName}: ${key} 不是一个可用的值。原生元素数据绑定限制值必须为 string，number，bigint，boolean，null 或包含上述类型值的ref`
+  )
+}
+
+const defineCustomElement = (
   name: string,
   {
     template,
@@ -245,10 +311,10 @@ const define = (
     attributeChanged?: EleAttributeChangedCallback
   },
   options?: ElementDefinitionOptions
-) => {
+): (() => void) => {
   if (customElementNameSet.has(name.toLowerCase())) {
     /*@__PURE__*/ console.error(`自定义组件 ${name} 重复定义。`)
-    return
+    return () => {}
   }
 
   const _shadow = shadow
@@ -283,6 +349,7 @@ const define = (
 
     connectedCallback() {
       const { old: parentComponent, restore } = setComponentIns(this)
+      this.$parentComponent = parentComponent
 
       const shadow = this.$root
 
@@ -327,7 +394,11 @@ const define = (
           const _parentKey = _emitKey[key] as string | typeof SYMBOL_NONE
 
           // 父组件暴露了该方法, 调用父组件的方法
-          if (hasOwn(parentMethods, _parentKey)) {
+          if (
+            hasOwn<{
+              [key in typeof _parentKey]: Func
+            }>(parentMethods, _parentKey)
+          ) {
             const fn = parentMethods[_parentKey]
             return fn(...args)
           }
@@ -418,7 +489,6 @@ const define = (
           expose: exposeAttributes,
           emit: emitFn
         }) || {}
-      setRunningSetup(false)
 
       // Lifecycle: beforeCreate 调用时机
       runBeforeCreate()
@@ -468,9 +538,46 @@ const define = (
         shadow.appendChild(styleEle)
       }
 
+      // 由于规定effect需要在组件创建开始，onMount 运行前就要创建，而目前使用setRunningSetup来限制在setup中运行
+      // 所以这里需要先模拟为在setup内
+      // 将非自定义组件的元素的动态属性与$data的值绑定
+      Array.from(shadow.querySelectorAll('*'))
+        .filter((ele) => !isCustomElement(ele.tagName.toLowerCase()))
+        .map((ele) => {
+          // 获取元素的属性
+          const attrs = Array.from(ele.attributes)
+          for (const attr of attrs) {
+            const { name, value: key } = attr
+            // if (reservedKeys.includes(name)) {
+            //   continue
+            // } else if (/^(on-)/.test(name)) {
+            //   continue
+            // } else
+            if (/^(x-)/.test(name)) {
+              if (!(key in this.$data)) {
+                /*@__PURE__*/ console.warn(`${this.localName}: ${key} 未定义。`)
+                continue
+              }
+              const val = this.$data[key]
+              /*@__PURE__*/ checkValue(val, ele, key)
+
+              if (isRef(val)) {
+                effect(() => {
+                  ele.setAttribute(name.slice(2), val.value.toString())
+                })
+              } else {
+                ele.setAttribute(name.slice(2), val.toString())
+              }
+
+              ele.removeAttribute(name)
+            }
+          }
+        })
+      setRunningSetup(false)
+
       // 获取定义了ref属性的元素
-      const refs = Array.from(shadow.querySelectorAll('[ref]'))
-      refs.forEach((ele: Element) => {
+      const refEles = Array.from(shadow.querySelectorAll('[ref]'))
+      refEles.forEach((ele: Element) => {
         const refName = ele.getAttribute('ref')
         replaceMethods(ele, this)
         if (!refName) return
@@ -481,9 +588,9 @@ const define = (
       })
 
       // 获取定义了expose属性的元素
-      const exposes = Array.from(shadow.querySelectorAll('[expose]'))
+      const exposeEles = Array.from(shadow.querySelectorAll('[expose]'))
       // 使用exposeTemplate声明的元素
-      exposes.forEach((ele: Element) => {
+      exposeEles.forEach((ele: Element) => {
         const exposeName = ele.getAttribute('expose')
         if (!exposeName) {
           return /*@__PURE__*/ console.error(
@@ -508,16 +615,12 @@ const define = (
         )
       })
 
-      // 获取全部请求绑定事件的元素
-      const elements = BaseElement.events.reduce(
+      /** 获取全部请求绑定事件的元素 */
+      const eventEles = BaseElement.events.reduce(
         (acc, event) => {
           acc[event] = Array.from(
             shadow.querySelectorAll(`[on-${event}]`)
-          ).filter((ele) => {
-            const target = ele
-            const targetTagName = target.tagName
-            return !isCustomElement(targetTagName.toLowerCase())
-          })
+          ).filter((ele) => !(ele instanceof BaseElement))
           return acc
         },
         // TODO: 这里的类型声明有问题: HTMLElement[]
@@ -527,9 +630,27 @@ const define = (
       )
 
       // 绑定事件
-      for (const event in elements) {
-        elements[event as EventHandlers].forEach((ele) => {
+      for (const event in eventEles) {
+        eventEles[event as EventHandlers].forEach((ele) => {
           const target = ele
+          const targetEvents =
+            this.$eventElements.get(target) ??
+            this.$eventElements.set(target, {}).get(target)!
+          if (!(event in targetEvents)) {
+            const eventEle: EventListeners = {
+              handles: [],
+              listener(e: Event) {
+                eventEle.handles.forEach((fn) => {
+                  fn(e)
+                })
+              }
+            }
+            targetEvents[event as EventHandlers] = eventEle
+            target.addEventListener(
+              event,
+              targetEvents[event as EventHandlers]!.listener
+            )
+          }
           const _fnName = target.getAttribute(`on-${event}`)
           if (!_fnName) return
           const [fn, ...args] = _fnName.split(',').map((str, index) => {
@@ -548,7 +669,8 @@ const define = (
               `${this.localName}: 未定义 ${_fnName} 方法。可能是因为请求绑定事件的元素 [${ele.localName}] 为当前组件的子组件内的元素，而子组件未启用 shadow。`
             )
           }
-          target.addEventListener(event, (e: Event) => {
+
+          targetEvents[event as EventHandlers]!.handles.push((e: Event) => {
             fn(e, ...args)
           })
         })
@@ -631,4 +753,4 @@ const define = (
   }
 }
 
-export default define
+export default defineCustomElement

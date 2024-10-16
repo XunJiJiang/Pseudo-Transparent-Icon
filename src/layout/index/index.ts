@@ -4,7 +4,7 @@ import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
   createElement,
-  define,
+  defineCustomElement,
   effect,
   onMounted,
   ref,
@@ -23,7 +23,7 @@ const setBodyBgColor = (type: BgColorType) => {
 
 // const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
 
-export default define('l-index', {
+export default defineCustomElement('l-index', {
   template: html,
   style: css,
   setup() {
@@ -49,6 +49,17 @@ export default define('l-index', {
           }
         ]
       ],
+      // [
+      //   refTemplate('v-home-re2f'),
+      //   '首页2',
+      //   [
+      //     'v-home',
+      //     {
+      //       ref: 'v-home-ref2',
+      //       'on-next': 'next'
+      //     }
+      //   ]
+      // ],
       [
         refTemplate('v-sd-type-ref'),
         '选择设备类型',
@@ -143,7 +154,7 @@ export default define('l-index', {
         views[index.value][2][1]
       )
 
-      const oldEle = nowELe
+      let oldEle = nowELe
       nowELe = newEle
 
       lIndexRef.value?.appendChild(newEle)
@@ -159,6 +170,7 @@ export default define('l-index', {
 
       setTimeout(() => {
         oldEle?.remove()
+        oldEle = null
       }, 500)
 
       let nowTitle = views[index.value][1]
@@ -184,6 +196,7 @@ export default define('l-index', {
       }
 
       return () => {
+        // debugger
         if (!backSpanRef.value || !titleSpanRef.value) return
 
         prevIndex = nowIndex

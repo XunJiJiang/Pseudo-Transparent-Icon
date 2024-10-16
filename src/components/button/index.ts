@@ -1,7 +1,7 @@
 import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
-  define,
+  defineCustomElement,
   getInstance,
   onMounted,
   ref,
@@ -12,24 +12,30 @@ export type CButtonExpose = {
   setStatus: (status: 'disabled' | 'normal') => void
 }
 
-export default define('c-button', {
+export type CButtonProps = {
+  style: string
+  'data-type': string
+  'aria-label': string
+}
+
+export default defineCustomElement('c-button', {
   template: html,
   style: css,
+  observedAttributes: ['style', 'data-type', 'aria-label'],
   emit: {
     click: {
       default: () => {}
     }
   },
-  observedAttributes: ['style', 'data-type'],
-  setup({ style, ...props }, { emit, expose }) {
+  setup(
+    { style, 'data-type': dataType, 'aria-label': ariaLabel }: CButtonProps,
+    { emit, expose }
+  ) {
     const buttonRef = refTemplate('c-button-ref')
     onMounted(() => {
       const { $defineRefs } = getInstance()
       const button = $defineRefs['c-button-ref']
-      button?.setAttribute(
-        'data-type',
-        (props['data-type'] as string) ?? 'default'
-      )
+      button?.setAttribute('data-type', (dataType as string) ?? 'default')
 
       if (style) button?.setAttribute('style', style as string)
 
@@ -68,7 +74,8 @@ export default define('c-button', {
       handleClick(e: Event) {
         if (status.value === 'disabled') return
         emit('click', e)
-      }
+      },
+      ariaLabel
     }
   }
 })

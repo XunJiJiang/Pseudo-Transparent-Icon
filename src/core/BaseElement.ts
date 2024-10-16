@@ -245,6 +245,16 @@ const events = [
 ] as EventHandlers[]
 // #endregion
 
+/** 用于放置外部调用clearRef的标识 */
+export const SYMBOL_CLEAR_REF = Symbol('clearRef')
+
+export type EventListeners = {
+  listener: EventListener
+  handles: EventListener[]
+}
+
+export type EffectCallback = () => (() => void) | void
+
 export default class BaseElement extends HTMLElement {
   static events = events
 
@@ -278,7 +288,65 @@ export default class BaseElement extends HTMLElement {
   /** 父组件 */
   $parentComponent: BaseElement | null = null
 
+  /** 注册过事件的原生元素 */
+  $eventElements: Map<
+    Element,
+    {
+      [key in EventHandlers]?: EventListeners
+    }
+  > = new Map()
+
+  /** setup函数中声明的effect, 用于从BaseEle组件获取对应effect函数. 目前, 除了在调用effect时添加effect外, 没有任何位置使用 */
+  $effects: WeakSet<EffectCallback> = new WeakSet()
+
   constructor() {
     super()
+  }
+
+  // TODO: 仍存在引用导致内存泄漏, 一些未清理的节点和监视器
+  __destroy__(symbol: typeof SYMBOL_CLEAR_REF) {
+    if (symbol !== SYMBOL_CLEAR_REF) {
+      /*@__PURE__*/ console.error(
+        `${this.localName}: __destroy__方法只能由内部调用。`
+      )
+      return false
+    }
+
+    const shadow = this.$root
+
+    if (shadow) {
+      Array.from(shadow.querySelectorAll('*')).forEach((child) => {
+        if (child instanceof BaseElement) {
+          child.__destroy__(SYMBOL_CLEAR_REF)
+        }
+      })
+    }
+
+    for (const [element, events] of this.$eventElements) {
+      for (const [type, { listener }] of Object.entries(events)) {
+        element.removeEventListener(type, listener)
+      }
+    }
+
+    // this.$eventElements.clear()
+    // this.$props = {}
+    // this.$data = {}
+    // this.$methods = {}
+    // for (const key in this.$exposeAttributes) {
+    //   delete this.$exposeAttributes[key]
+    // }
+    // this.$defineExposes = {}
+    // for (const key in this.$exposes) {
+    //   this.$exposes[key].value = null
+    // }
+    // this.$defineRefs = {}
+    // for (const key in this.$refs) {
+    //   this.$refs[key].value = null
+    // }
+    // this.$root = null
+
+    this.$parentComponent = null
+
+    return true
   }
 }

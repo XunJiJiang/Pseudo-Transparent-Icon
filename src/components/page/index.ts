@@ -1,7 +1,7 @@
 // import refTemplate from 'xj-web-core/refTemplate'
 import html from './index.html?raw'
 import css from './index.scss?raw'
-import { define, onMounted, refTemplate } from 'xj-web-core/index'
+import { defineCustomElement, onMounted, refTemplate } from 'xj-web-core/index'
 
 type PageProps = {
   style: string
@@ -13,7 +13,7 @@ type PageEmit = {
   scroll: (scrollTop: number) => void
 }
 
-export default define('c-page', {
+export default defineCustomElement('c-page', {
   template: html,
   style: css,
   observedAttributes: ['data-index', 'data-status'],
@@ -37,6 +37,10 @@ export default define('c-page', {
       pageRootRef.value?.setAttribute('style', style as string)
 
       pageRootRef.value?.addEventListener('scroll', scroll)
+
+      return () => {
+        pageRootRef.value?.removeEventListener('scroll', scroll)
+      }
     })
   },
   attributeChanged(name, _oldValue, newValue, props) {

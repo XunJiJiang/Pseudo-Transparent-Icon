@@ -1,5 +1,5 @@
 import css from './index.scss?raw'
-import { define } from 'xj-web-core/index'
+import { defineCustomElement } from 'xj-web-core/index'
 
 type CardProps = {
   title?: string
@@ -7,7 +7,7 @@ type CardProps = {
   'no-padding'?: boolean
 }
 
-export default define('c-card', {
+export default defineCustomElement('c-card', {
   template: ({ title, footer, 'no-padding': noPadding }: CardProps) => {
     return `
       ${title ? `<header class="header">${title}</header>` : ''}

@@ -67,6 +67,6 @@ body:
       description: Your Repository or the minimum code needed to reproduce
       value: |
         // save as repro.ts
-        import { define } from 'xj-web-core/index'
+        import { defineCustomElement } from 'xj-web-core/index'
         // ...
       render: typescript

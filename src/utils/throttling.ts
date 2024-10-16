@@ -13,7 +13,7 @@ const defaultOpt: Opt = {
 
 const throttling = (callback: Func, ms = 300, opt?: Partial<Opt>) => {
   opt = Object.assign({}, defaultOpt, opt)
-  let timer: NodeJS.Timeout | null = null
+  let timer: number | null = null
   if (opt.type === 'immediate') {
     /** 是否需要在计时结束后运行一次 */
     let needRun: null | Parameters<typeof callback> = null
@@ -53,3 +53,5 @@ const throttling = (callback: Func, ms = 300, opt?: Partial<Opt>) => {
 }
 
 export default throttling
+
+// console.log(global)
