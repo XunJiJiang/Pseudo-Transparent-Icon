@@ -193,8 +193,19 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   const nodeInsertBefore = ele.insertBefore.bind(ele)
   const nodeReplaceChild = ele.replaceChild.bind(ele)
 
+  /** 恢复原方法 */
+  const restore = () => {
+    ele.remove = nodeRemove
+    ele.appendChild = nodeAppend
+    ele.removeChild = nodeRemoveChild
+    ele.prepend = nodePrepend
+    ele.insertBefore = nodeInsertBefore
+    ele.replaceChild = nodeReplaceChild
+  }
+
   ele.remove = () => {
     beforeRemove(ele, root)
+    restore()
     nodeRemove()
   }
   ele.appendChild = <T extends Node>(node: T): T => {
@@ -203,6 +214,7 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   }
   ele.removeChild = <T extends Node>(node: T): T => {
     beforeRemove(node, root)
+    restore()
     return nodeRemoveChild(node)
   }
   ele.prepend = (...nodes: (Node | string)[]) => {
@@ -222,6 +234,7 @@ const replaceMethods = (ele: Element, root: BaseElement) => {
   }
   ele.replaceChild = <T extends Node>(newNode: Node, oldNode: T): T => {
     beforeRemove(oldNode, root)
+    restore()
     beforeAppend(newNode, root)
     return nodeReplaceChild(newNode, oldNode)
   }
@@ -336,6 +349,7 @@ const define = (
 
     connectedCallback() {
       const { old: parentComponent, restore } = setComponentIns(this)
+      this.$parentComponent = parentComponent
 
       const shadow = this.$root
 
@@ -601,7 +615,7 @@ const define = (
         )
       })
 
-      // 获取全部请求绑定事件的元素
+      /** 获取全部请求绑定事件的元素 */
       const eventEles = BaseElement.events.reduce(
         (acc, event) => {
           acc[event] = Array.from(

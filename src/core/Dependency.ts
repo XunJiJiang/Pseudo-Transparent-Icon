@@ -4,13 +4,11 @@
  * 创建一个依赖项
  */
 
-import BaseElement from './BaseElement'
+import BaseElement, { type EffectCallback } from './BaseElement'
 import { setComponentIns, getCurrentComponent } from './fixComponentIns'
 import { onMounted } from './hooks/lifecycle/mounted'
 import AutoAsyncTask from './utils/AutoAsyncTask'
 import { isArray, isObject } from './utils/shared'
-
-export type EffectCallback = () => (() => void) | void
 
 type DepCleanupSet = WeakSet<() => void>
 
@@ -42,6 +40,7 @@ export const effect = (effCallback: EffectCallback) => {
       restore()
       return _ret
     }
+    ele.$effects.add(effect)
     effectEleMap.set(effect, ele)
     if (currentEffectFn) currentEffectFns.push(currentEffectFn)
     currentEffectFn = effect

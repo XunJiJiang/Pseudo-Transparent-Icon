@@ -252,6 +252,9 @@ export type EventListeners = {
   listener: EventListener
   handles: EventListener[]
 }
+
+export type EffectCallback = () => (() => void) | void
+
 export default class BaseElement extends HTMLElement {
   static events = events
 
@@ -293,6 +296,9 @@ export default class BaseElement extends HTMLElement {
     }
   > = new Map()
 
+  /** setup函数中声明的effect, 用于从BaseEle组件获取对应effect函数. 目前, 除了在调用effect时添加effect外, 没有任何位置使用 */
+  $effects: WeakSet<EffectCallback> = new WeakSet()
+
   constructor() {
     super()
   }
@@ -321,6 +327,23 @@ export default class BaseElement extends HTMLElement {
         element.removeEventListener(type, listener)
       }
     }
+
+    // this.$eventElements.clear()
+    // this.$props = {}
+    // this.$data = {}
+    // this.$methods = {}
+    // for (const key in this.$exposeAttributes) {
+    //   delete this.$exposeAttributes[key]
+    // }
+    // this.$defineExposes = {}
+    // for (const key in this.$exposes) {
+    //   this.$exposes[key].value = null
+    // }
+    // this.$defineRefs = {}
+    // for (const key in this.$refs) {
+    //   this.$refs[key].value = null
+    // }
+    // this.$root = null
 
     this.$parentComponent = null
 
