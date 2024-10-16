@@ -33,7 +33,14 @@ export default defineConfig({
     alias
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, 'index.html'),
+        404: path.resolve(__dirname, '404.html')
+      }
+    }
   },
   server: {
     host: true,
