@@ -49,17 +49,6 @@ export default defineCustomElement('l-index', {
           }
         ]
       ],
-      // [
-      //   refTemplate('v-home-re2f'),
-      //   '首页2',
-      //   [
-      //     'v-home',
-      //     {
-      //       ref: 'v-home-ref2',
-      //       'on-next': 'next'
-      //     }
-      //   ]
-      // ],
       [
         refTemplate('v-sd-type-ref'),
         '选择设备类型',
@@ -67,45 +56,6 @@ export default defineCustomElement('l-index', {
           'v-sd-type',
           {
             ref: 'v-sd-type-ref',
-            'on-next': 'next',
-            'on-scroll': 'scroll',
-            'on-change': 'deviceChange'
-          }
-        ]
-      ],
-      [
-        refTemplate('v-sd-type-ref2'),
-        '选择设备类型2',
-        [
-          'v-sd-type',
-          {
-            ref: 'v-sd-type-ref2',
-            'on-next': 'next',
-            'on-scroll': 'scroll',
-            'on-change': 'deviceChange'
-          }
-        ]
-      ],
-      [
-        refTemplate('v-sd-type-ref3'),
-        '选择设备类型3',
-        [
-          'v-sd-type',
-          {
-            ref: 'v-sd-type-ref3',
-            'on-next': 'next',
-            'on-scroll': 'scroll',
-            'on-change': 'deviceChange'
-          }
-        ]
-      ],
-      [
-        refTemplate('v-sd-type-ref4'),
-        '选择设备类型4',
-        [
-          'v-sd-type',
-          {
-            ref: 'v-sd-type-ref4',
             'on-next': 'next',
             'on-scroll': 'scroll',
             'on-change': 'deviceChange'

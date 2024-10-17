@@ -273,7 +273,7 @@ const defineCustomElement = (
   {
     template,
     style,
-    shadow = true,
+    // shadow = true,
     setup,
     props,
     emit,
@@ -288,7 +288,7 @@ const defineCustomElement = (
   }: {
     template?: string | ((props: any) => string)
     style?: string | ((props: any) => string)
-    shadow?: boolean
+    // shadow?: boolean
     setup?: (
       props: any,
       context: {
@@ -317,23 +317,23 @@ const defineCustomElement = (
     return () => {}
   }
 
-  const _shadow = shadow
+  // const _shadow = shadow
   class Ele extends BaseElement {
     constructor() {
       super()
       // 设置当前组件实例, 并返回父组件实例
-      const { old: parentComponent, restore } = setComponentIns(this)
-      this.$parentComponent = parentComponent
+      const { restore } = setComponentIns(this)
       this.$data = reactive(data?.() || {})
       this.$methods = methods || {}
 
       const _observedAttributes = observedAttributes || []
 
-      if (_shadow) {
-        this.$root = this.attachShadow({ mode: 'open' })
-      } else {
-        this.$root = this
-      }
+      // TODO: 在解决 "不使用Shadow Root的元素绑定数据时外部会获取到子组件内容" 的问题前, 强制使用Shadow Root
+      // if (_shadow) {
+      //   this.$root = this.attachShadow({ mode: 'open' })
+      // } else {
+      //   this.$root = this
+      // }
 
       /*@__PURE__*/ checkPropsEmit<string, Func>(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
@@ -353,7 +353,6 @@ const defineCustomElement = (
 
       const shadow = this.$root
 
-      if (!shadow) return
       const _observedAttributes = observedAttributes || []
 
       // 获取on-、x-开头的和observedAttributes定义属性的键值
@@ -568,8 +567,6 @@ const defineCustomElement = (
               } else {
                 ele.setAttribute(name.slice(2), val.toString())
               }
-
-              ele.removeAttribute(name)
             }
           }
         })

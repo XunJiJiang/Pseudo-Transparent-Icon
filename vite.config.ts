@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import path from 'node:path'
 import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
@@ -50,7 +51,13 @@ export default defineConfig({
   preview: {
     port: 8080
   },
-  base: '/pseudo-transparent-icon.io/'
+  base: '/pseudo-transparent-icon.io/',
+  test: {
+    // 仅测试src/core内的文件
+    coverage: {
+      include: ['src/core/**']
+    }
+  }
 })
 
 export const viteConfig = {

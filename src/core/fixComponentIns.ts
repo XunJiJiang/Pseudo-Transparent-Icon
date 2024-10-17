@@ -29,7 +29,7 @@ export const getCurrentComponent = () => {
   return currentComponent ?? null
 }
 
-/** 用于在setup暴露的方法和effect依赖的副作用函数内获取有类型声明的实例 */
+/** 在setup暴露的方法和effect依赖的副作用函数内获取有类型声明的实例 */
 export const getInstance = () => {
   /*@__PURE__*/ ;(() => {
     if (!currentComponent) {

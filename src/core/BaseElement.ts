@@ -245,7 +245,7 @@ const events = [
 ] as EventHandlers[]
 // #endregion
 
-/** 用于放置外部调用clearRef的标识 */
+/** 放置外部调用clearRef的标识 */
 export const SYMBOL_CLEAR_REF = Symbol('clearRef')
 
 export type EventListeners = {
@@ -267,20 +267,20 @@ export default class BaseElement extends HTMLElement {
   /** 当前组件暴露给子组件的方法 */
   $methods: Record<string, Func> = {}
 
+  /** 影子 DOM 根 */
+  $root: ShadowRoot | BaseElement = this.attachShadow({ mode: 'open' })
+
   /** 当前组件暴露给父组件的属性 */
   $exposeAttributes: Record<string, any> = {}
 
-  /** 影子 DOM 根 */
-  $root: ShadowRoot | BaseElement | null = null
-
   /** 模板中声明了 expose 的元素 */
-  $defineExposes: Record<string, Record<string, any> | null> = {}
+  $defineExposes: Record<string, Record<string, any>> = {}
 
   /** setup 函数中 使用 exposeTemplate 声明的元素 */
   $exposes: Record<string, { value: Record<string, any> | null }> = {}
 
   /** 模板中声明了 ref 的元素 */
-  $defineRefs: Record<string, Element | null> = {}
+  $defineRefs: Record<string, Element> = {}
 
   /** setup 函数中 使用 refTemplate 声明的元素 */
   $refs: Record<string, { value: Element | null }> = {}
@@ -296,54 +296,58 @@ export default class BaseElement extends HTMLElement {
     }
   > = new Map()
 
-  /** setup函数中声明的effect, 用于从BaseEle组件获取对应effect函数. 目前, 除了在调用effect时添加effect外, 没有任何位置使用 */
+  /** setup函数中声明的effect, 从BaseElement组件获取对应effect函数. 目前, 除了在调用effect时添加effect外, 没有任何位置使用 */
   $effects: WeakSet<EffectCallback> = new WeakSet()
 
   constructor() {
     super()
   }
 
-  // TODO: 仍存在引用导致内存泄漏, 一些未清理的节点和监视器
   __destroy__(symbol: typeof SYMBOL_CLEAR_REF) {
     if (symbol !== SYMBOL_CLEAR_REF) {
       /*@__PURE__*/ console.error(
-        `${this.localName}: __destroy__方法只能由内部调用。`
+        `${this.localName}: __destroy__方法只能由xj-web内部调用。`
       )
       return false
     }
 
     const shadow = this.$root
 
-    if (shadow) {
-      Array.from(shadow.querySelectorAll('*')).forEach((child) => {
-        if (child instanceof BaseElement) {
-          child.__destroy__(SYMBOL_CLEAR_REF)
-        }
-      })
-    }
+    Array.from(shadow.querySelectorAll('*')).forEach((child) => {
+      if (child instanceof BaseElement) {
+        child.__destroy__(SYMBOL_CLEAR_REF)
+      }
+    })
 
     for (const [element, events] of this.$eventElements) {
       for (const [type, { listener }] of Object.entries(events)) {
         element.removeEventListener(type, listener)
       }
     }
+    this.$eventElements.clear()
 
-    // this.$eventElements.clear()
-    // this.$props = {}
-    // this.$data = {}
-    // this.$methods = {}
-    // for (const key in this.$exposeAttributes) {
-    //   delete this.$exposeAttributes[key]
-    // }
-    // this.$defineExposes = {}
-    // for (const key in this.$exposes) {
-    //   this.$exposes[key].value = null
-    // }
-    // this.$defineRefs = {}
-    // for (const key in this.$refs) {
-    //   this.$refs[key].value = null
-    // }
-    // this.$root = null
+    this.$props = {}
+    this.$data = {}
+    this.$methods = {}
+
+    for (const key in this.$exposeAttributes) {
+      delete this.$exposeAttributes[key]
+    }
+    this.$exposeAttributes = {}
+
+    this.$defineExposes = {}
+    for (const key in this.$exposes) {
+      this.$exposes[key].value = null
+    }
+    this.$exposes = {}
+
+    this.$defineRefs = {}
+    for (const key in this.$refs) {
+      this.$refs[key].value = null
+    }
+    this.$refs = {}
+
+    this.$effects = new WeakSet()
 
     this.$parentComponent = null
 

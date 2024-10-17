@@ -59,7 +59,7 @@ export default defineCustomElement('c-page', {
   }
 })
 
-/** 用于绑定一次性动画的class */
+/** 绑定一次性动画的class */
 const CLASS_LIST = [
   'enter-from-left',
   'enter-from-right',

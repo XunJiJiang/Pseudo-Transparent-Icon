@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Dependency class
- * 创建一个依赖项
+ * class Dependency
+ * 创建依赖
+ * function effect
+ * 创建副作用函数
+ * function isRef
+ * 判断是否为引用响应式
+ * function isReactive
+ * 判断是否为响应式对象
  */
 
 import BaseElement, { type EffectCallback } from './BaseElement'
@@ -28,20 +34,37 @@ const effectDepCleanupMap = new WeakMap<EffectCallback, DepCleanupSets>()
 /** 运行中的currentEffectFn列表，不包括最新的 */
 const currentEffectFns: EffectCallback[] = []
 
+/**
+ * 创建副作用函数
+ * @param effCallback 副作用函数
+ * @returns void
+ * @example
+ * ```ts
+ * effect(() => {
+ *  console.log('effect')
+ *  return () => {
+ *    console.log('cleanup')
+ *  }
+ * })
+ */
 export const effect = (effCallback: EffectCallback) => {
   onMounted(() => {
     const ele = getCurrentComponent()
-    if (!ele) {
-      return /*@__PURE__*/ console.error('effect 必须在 setup 函数中调用')
-    }
+    // 此处不再限制 effect 必须在 setup 函数中调用
+    // 但是没有测试过在其他地方调用的情况
     const effect = () => {
-      const { restore } = setComponentIns(ele)
+      const { restore } = (() => {
+        if (ele) setComponentIns(ele)
+        return { restore: () => {} }
+      })()
       const _ret = effCallback()
       restore()
       return _ret
     }
-    ele.$effects.add(effect)
-    effectEleMap.set(effect, ele)
+    if (ele) {
+      ele.$effects.add(effect)
+      effectEleMap.set(effect, ele)
+    }
     if (currentEffectFn) currentEffectFns.push(currentEffectFn)
     currentEffectFn = effect
     const cleanupSets = new Set<WeakSet<() => void>>()
@@ -58,21 +81,13 @@ export const effect = (effCallback: EffectCallback) => {
   })
 }
 
-// setInterval(() => {
-//   console.log('effectDepCleanupMap', effectDepCleanupMap)
-//   console.log('currentEffectFns', currentEffectFns)
-//   console.log('effectDepMap', effectDepMap)
-//   console.log('depCleanupMap', depCleanupMap)
-//   console.log('effectEleMap', effectEleMap)
-// }, 5000)
-
 /** 无key的依赖key */
 const SYMBOL_EFFECT = Symbol('effect')
 /** 被代理标志 */
 const SYMBOL_DEPENDENCY = Symbol('dependency')
 
 /** 函数上非纯函数的属性 */
-const notPureArrFuncKey = [
+const NOT_PURE_ARR_FUNC_KEY = [
   'push',
   'pop',
   'shift',
@@ -84,6 +99,19 @@ const notPureArrFuncKey = [
   'fill'
 ]
 
+/** 函数上修改this指向的属性 */
+const BIND_THIS_FUNC_KEY = ['bind ', 'call', 'apply']
+
+/**
+ * 判断是否为引用响应式
+ * @param val
+ * @returns
+ * @example
+ * ```ts
+ * const ref = ref(0)
+ * console.log(isRef(ref)) // true
+ * ```
+ */
 export const isRef = <T = any>(
   val: unknown
 ): val is Dependency<{
@@ -104,6 +132,16 @@ const hasSYMBOL_DEPENDENCY = (
   )
 }
 
+/**
+ * 判断是否为响应式对象
+ * @param val
+ * @returns
+ * @example
+ * ```ts
+ * const obj = reactive({})
+ * console.log(isReactive(obj)) // true
+ * ```
+ */
 export const isReactive = <T extends object = Record<string | symbol, any>>(
   val: unknown
 ): val is Dependency<T> => {
@@ -118,23 +156,47 @@ export const isReactive = <T extends object = Record<string | symbol, any>>(
 // 当EffectCallback真正运行时，会将其返回值加入全部记录的_depCleanups
 // 这样，不管是哪个dep触发了distribute，都会将当前effect的清理函数加入全部记录的_depCleanups
 // effect的清理函数唯一，且在任意dep触发cleanup时运行
+/**  */
 const effectDepMap = new WeakMap<EffectCallback, DepCleanupSets>()
 
 // 记录单个清理函数和对应的_depCleanups
 const depCleanupMap = new WeakMap<() => void, DepCleanupSets>()
 
+/**
+ * class Dependency
+ * 创建依赖
+ * @example
+ * ```ts
+ * const dep = new Dependency({})
+ * console.log(dep.value) // {}
+ * ```
+ */
 class Dependency<T extends object> {
+  /**
+   * 依赖集合
+   * key: 依赖对象上的属性
+   * value: 属性对应的effect集合
+   */
   private _deps = new Map<string | symbol, Set<EffectCallback>>()
+  /**
+   * 依赖清理函数集合
+   * key: 依赖对象上的属性
+   * value: 属性对应的清理函数集合
+   */
   private _depCleanups = new Map<string | symbol, Set<() => void>>()
+  /** 代理对象 */
   private _value: object
+  /** 代理处理器 */
   private _proxy: ProxyHandler<T>
-
+  /**
+   * 代理对象的属性是否被代理
+   * 防止重复代理
+   * 对于对象类型的属性, 需要深度代理
+   */
   private _isProxy: Array<string | symbol> = []
 
-  constructor(value: T, baseKey = '') {
+  constructor(value: T) {
     this._value = value
-    this.baseKey = baseKey
-
     this._proxy = new Proxy(this._value, {
       get: (target, key, receiver) => {
         if (key === SYMBOL_DEPENDENCY) return this
@@ -145,45 +207,56 @@ class Dependency<T extends object> {
         const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
-        if (
-          isObject(_value) &&
-          !this._isProxy.includes(this.baseKey + String(key))
-        ) {
-          const newDep = new Dependency(_value, this.baseKey + String(key))
+        if (isObject(_value) && !this._isProxy.includes(key)) {
+          const newDep = new Dependency(_value)
           Reflect.set(target, key, newDep.value, receiver)
           _ret = newDep.value
-          this._isProxy.push(this.baseKey + String(key))
+          this._isProxy.push(key)
         }
 
         if (
           typeof _value === 'function' &&
           isArray(target) &&
-          notPureArrFuncKey.includes(key as string)
+          NOT_PURE_ARR_FUNC_KEY.includes(String(key))
         ) {
-          return function (...args: Parameters<typeof _value>) {
-            // 调用原始方法
-            cleanup()
-            const result = _value.apply(target, args)
-            distribute()
-            return result
-          }
+          // return function (...args: Parameters<typeof _value>) {
+          //   cleanup()
+          //   const result = _value.apply(target, args)
+          //   distribute()
+          //   return result
+          // }
+          return new Proxy(_value, {
+            apply: (target, thisArg, argArray) => {
+              cleanup()
+              const result = Reflect.apply(target, thisArg, argArray)
+              distribute()
+              return result
+            },
+            get: (target, key, receiver) => {
+              if (key === SYMBOL_DEPENDENCY) return this
+
+              if (BIND_THIS_FUNC_KEY.includes(String(key))) {
+                return Reflect.get(target, key, receiver)
+              }
+
+              return Reflect.get(target, key, receiver)
+            }
+          })
         }
 
         if (isArray(target)) collect()
-        else collect(this.baseKey + String(key))
+        else collect(key)
         return _ret
       },
       set: (target, key, value, receiver) => {
         if (isArray(target)) this.cleanup()
-        else this.cleanup(this.baseKey + String(key))
+        else this.cleanup(key)
         if (isArray(target)) this.distribute()
-        else this.distribute(this.baseKey + String(key))
+        else this.distribute(key)
         return Reflect.set(target, key, value, receiver)
       }
     })
   }
-
-  private baseKey = ''
 
   private collect(key: string | symbol = SYMBOL_EFFECT) {
     if (currentEffectFn) {
