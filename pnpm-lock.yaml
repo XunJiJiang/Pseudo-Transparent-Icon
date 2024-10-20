@@ -21,7 +21,10 @@ importers:
         version: 22.7.5
       '@vitest/coverage-v8':
         specifier: ^2.1.3
-        version: 2.1.3(vitest@2.1.3(@types/node@22.7.5)(jsdom@25.0.1)(sass@1.79.1))
+        version: 2.1.3(vitest@2.1.3)
+      '@vitest/ui':
+        specifier: ^2.1.3
+        version: 2.1.3(vitest@2.1.3)
       eslint:
         specifier: ^9.10.0
         version: 9.10.0
@@ -66,7 +69,7 @@ importers:
         version: 5.4.6(@types/node@22.7.5)(sass@1.79.1)
       vitest:
         specifier: ^2.1.3
-        version: 2.1.3(@types/node@22.7.5)(jsdom@25.0.1)(sass@1.79.1)
+        version: 2.1.3(@types/node@22.7.5)(@vitest/ui@2.1.3)(jsdom@25.0.1)(sass@1.79.1)
 
 packages:
   '@ampproject/remapping@2.3.0':
@@ -465,6 +468,12 @@ packages:
       }
     engines: { node: ^12.20.0 || ^14.18.0 || >=16.0.0 }
 
+  '@polka/url@1.0.0-next.28':
+    resolution:
+      {
+        integrity: sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==
+      }
+
   '@rollup/rollup-android-arm-eabi@4.21.3':
     resolution:
       {
@@ -778,6 +787,14 @@ packages:
       {
         integrity: sha512-Nb2UzbcUswzeSP7JksMDaqsI43Sj5+Kry6ry6jQJT4b5gAK+NS9NED6mDb8FlMRCX8m5guaHCDZmqYMMWRy5nQ==
       }
+
+  '@vitest/ui@2.1.3':
+    resolution:
+      {
+        integrity: sha512-2XwTrHVJw3t9NYES26LQUYy51ZB8W4bRPgqUH2Eyda3kIuOlYw1ZdPNU22qcVlUVx4WKgECFQOSXuopsczuVjQ==
+      }
+    peerDependencies:
+      vitest: 2.1.3
 
   '@vitest/utils@2.1.3':
     resolution:
@@ -1465,6 +1482,23 @@ packages:
     resolution:
       {
         integrity: sha512-sRVD3lWVIXWg6By68ZN7vho9a1pQcN/WBFaAAsDDFzlJjvoGx0P8z7V1t72grFJfJhu3YPZBuu25f7Kaw2jN1w==
+      }
+
+  fdir@6.4.2:
+    resolution:
+      {
+        integrity: sha512-KnhMXsKSPZlAhp7+IjUkRZKPb4fUyccpDrdFXbi4QL1qkmFh9kVY09Yox+n4MaOb3lHZ1Tv829C3oaaXoMYPDQ==
+      }
+    peerDependencies:
+      picomatch: ^3 || ^4
+    peerDependenciesMeta:
+      picomatch:
+        optional: true
+
+  fflate@0.8.2:
+    resolution:
+      {
+        integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==
       }
 
   file-entry-cache@8.0.0:
@@ -2175,6 +2209,13 @@ packages:
       }
     engines: { node: '>=16 || 14 >=14.17' }
 
+  mrmime@2.0.0:
+    resolution:
+      {
+        integrity: sha512-eu38+hdgojoyq63s+yTpN4XMBdt5l8HhMhc4VKLO9KM5caLIBvUm4thi7fFaxyTmCKeNnXZ5pAlBwCUnhA09uw==
+      }
+    engines: { node: '>=10' }
+
   ms@2.1.3:
     resolution:
       {
@@ -2363,6 +2404,13 @@ packages:
         integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
       }
     engines: { node: '>=8.6' }
+
+  picomatch@4.0.2:
+    resolution:
+      {
+        integrity: sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==
+      }
+    engines: { node: '>=12' }
 
   pidtree@0.6.0:
     resolution:
@@ -2587,6 +2635,13 @@ packages:
       }
     engines: { node: '>=14' }
 
+  sirv@2.0.4:
+    resolution:
+      {
+        integrity: sha512-94Bdh3cC2PKrbgSOUqTiGPWVZeSiXfKOVZNJniWoqrWrRkB1CJzBU3NEbiTsPcYy1lDsANA/THzS+9WBiy5nfQ==
+      }
+    engines: { node: '>= 10' }
+
   slice-ansi@5.0.0:
     resolution:
       {
@@ -2755,6 +2810,13 @@ packages:
         integrity: sha512-WiCJLEECkO18gwqIp6+hJg0//p23HXp4S+gGtAKu3mI2F2/sXC4FvHvXvB0zJVVaTPhx1/tOwdbRsa1sOBIKqQ==
       }
 
+  tinyglobby@0.2.9:
+    resolution:
+      {
+        integrity: sha512-8or1+BGEdk1Zkkw2ii16qSS7uVrQJPre5A9o/XkWPATkk23FZh/15BKFxPnlTy6vkljZxLqYCzzBMj30ZrSvjw==
+      }
+    engines: { node: '>=12.0.0' }
+
   tinypool@1.0.1:
     resolution:
       {
@@ -2802,6 +2864,13 @@ packages:
         integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==
       }
     engines: { node: '>=8.0' }
+
+  totalist@3.0.1:
+    resolution:
+      {
+        integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==
+      }
+    engines: { node: '>=6' }
 
   tough-cookie@5.0.0:
     resolution:
@@ -3293,6 +3362,8 @@ snapshots:
 
   '@pkgr/core@0.1.1': {}
 
+  '@polka/url@1.0.0-next.28': {}
+
   '@rollup/rollup-android-arm-eabi@4.21.3':
     optional: true
 
@@ -3445,7 +3516,7 @@ snapshots:
       '@typescript-eslint/types': 8.6.0
       eslint-visitor-keys: 3.4.3
 
-  '@vitest/coverage-v8@2.1.3(vitest@2.1.3(@types/node@22.7.5)(jsdom@25.0.1)(sass@1.79.1))':
+  '@vitest/coverage-v8@2.1.3(vitest@2.1.3)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -3459,7 +3530,7 @@ snapshots:
       std-env: 3.7.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.3(@types/node@22.7.5)(jsdom@25.0.1)(sass@1.79.1)
+      vitest: 2.1.3(@types/node@22.7.5)(@vitest/ui@2.1.3)(jsdom@25.0.1)(sass@1.79.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -3496,6 +3567,17 @@ snapshots:
   '@vitest/spy@2.1.3':
     dependencies:
       tinyspy: 3.0.2
+
+  '@vitest/ui@2.1.3(vitest@2.1.3)':
+    dependencies:
+      '@vitest/utils': 2.1.3
+      fflate: 0.8.2
+      flatted: 3.3.1
+      pathe: 1.1.2
+      sirv: 2.0.4
+      tinyglobby: 0.2.9
+      tinyrainbow: 1.2.0
+      vitest: 2.1.3(@types/node@22.7.5)(@vitest/ui@2.1.3)(jsdom@25.0.1)(sass@1.79.1)
 
   '@vitest/utils@2.1.3':
     dependencies:
@@ -4015,6 +4097,12 @@ snapshots:
     dependencies:
       reusify: 1.0.4
 
+  fdir@6.4.2(picomatch@4.0.2):
+    optionalDependencies:
+      picomatch: 4.0.2
+
+  fflate@0.8.2: {}
+
   file-entry-cache@8.0.0:
     dependencies:
       flat-cache: 4.0.1
@@ -4431,6 +4519,8 @@ snapshots:
 
   minipass@7.1.2: {}
 
+  mrmime@2.0.0: {}
+
   ms@2.1.3: {}
 
   nanoid@3.3.7: {}
@@ -4528,6 +4618,8 @@ snapshots:
   picocolors@1.1.0: {}
 
   picomatch@2.3.1: {}
+
+  picomatch@4.0.2: {}
 
   pidtree@0.6.0: {}
 
@@ -4667,6 +4759,12 @@ snapshots:
 
   signal-exit@4.1.0: {}
 
+  sirv@2.0.4:
+    dependencies:
+      '@polka/url': 1.0.0-next.28
+      mrmime: 2.0.0
+      totalist: 3.0.1
+
   slice-ansi@5.0.0:
     dependencies:
       ansi-styles: 6.2.1
@@ -4761,6 +4859,11 @@ snapshots:
 
   tinyexec@0.3.1: {}
 
+  tinyglobby@0.2.9:
+    dependencies:
+      fdir: 6.4.2(picomatch@4.0.2)
+      picomatch: 4.0.2
+
   tinypool@1.0.1: {}
 
   tinyrainbow@1.2.0: {}
@@ -4778,6 +4881,8 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  totalist@3.0.1: {}
 
   tough-cookie@5.0.0:
     dependencies:
@@ -4889,7 +4994,7 @@ snapshots:
       fsevents: 2.3.3
       sass: 1.79.1
 
-  vitest@2.1.3(@types/node@22.7.5)(jsdom@25.0.1)(sass@1.79.1):
+  vitest@2.1.3(@types/node@22.7.5)(@vitest/ui@2.1.3)(jsdom@25.0.1)(sass@1.79.1):
     dependencies:
       '@vitest/expect': 2.1.3
       '@vitest/mocker': 2.1.3(@vitest/spy@2.1.3)(vite@5.4.6(@types/node@22.7.5)(sass@1.79.1))
@@ -4912,6 +5017,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.7.5
+      '@vitest/ui': 2.1.3(vitest@2.1.3)
       jsdom: 25.0.1
     transitivePeerDependencies:
       - less
