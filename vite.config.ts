@@ -55,7 +55,8 @@ export default defineConfig({
   test: {
     // 仅测试src/core内的文件
     coverage: {
-      include: ['src/core/**']
+      include: ['src/core/**'],
+      exclude: ['src/core/index.ts']
     }
   }
 })
