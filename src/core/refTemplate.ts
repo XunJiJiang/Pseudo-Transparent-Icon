@@ -1,9 +1,9 @@
 import { getCurrentComponent } from './fixComponentIns'
-import { getRunningSetup } from './hooks/lifecycle/verifySetup'
+import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
 
 const refTemplate = <T extends HTMLElement = HTMLElement>(refKey: string) => {
   const currentComponent = getCurrentComponent()
-  if (!getRunningSetup() || !currentComponent) {
+  if (!hasSetupRunning() || !currentComponent) {
     throw new Error('refTemplate 必须在 setup 函数中使用。')
   }
   const _ref = {

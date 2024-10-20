@@ -297,7 +297,7 @@ export default class BaseElement extends HTMLElement {
   > = new Map()
 
   /** setup函数中声明的effect, 从BaseElement组件获取对应effect函数. 目前, 除了在调用effect时添加effect外, 没有任何位置使用 */
-  $effects: WeakSet<EffectCallback> = new WeakSet()
+  $effects: Set<EffectCallback> = new Set()
 
   constructor() {
     super()
@@ -347,7 +347,7 @@ export default class BaseElement extends HTMLElement {
     }
     this.$refs = {}
 
-    this.$effects = new WeakSet()
+    this.$effects.clear()
 
     this.$parentComponent = null
 

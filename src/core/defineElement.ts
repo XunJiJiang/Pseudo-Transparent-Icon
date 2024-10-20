@@ -570,7 +570,6 @@ const defineCustomElement = (
             }
           }
         })
-      setRunningSetup(false)
 
       // 获取定义了ref属性的元素
       const refEles = Array.from(shadow.querySelectorAll('[ref]'))
@@ -678,6 +677,7 @@ const defineCustomElement = (
       clearBeforeMount(this)
       // Lifecycle: mounted 调用时机
       runMounted(this)
+      setRunningSetup(false)
       connected?.call(this, this.$data, { methods: this.$methods })
       restore()
     }

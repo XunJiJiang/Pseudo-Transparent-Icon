@@ -17,4 +17,4 @@ export const setRunningSetup = (val: boolean) => {
 }
 
 // 获取 setup 函数的运行状态
-export const getRunningSetup = () => isRunningSetup
+export const hasSetupRunning = () => isRunningSetup

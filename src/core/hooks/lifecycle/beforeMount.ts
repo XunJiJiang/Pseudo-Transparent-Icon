@@ -2,7 +2,7 @@ import BaseElement from 'xj-web-core/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
-  getRunningSetup
+  hasSetupRunning
 } from './verifySetup'
 
 // onBeforeMount在setup函数中调用
@@ -13,7 +13,7 @@ import {
 const callbackSet = new Set<LifecycleCallback>()
 
 export const onBeforeMount: LifecycleFn = (callback) => {
-  if (!getRunningSetup()) {
+  if (!hasSetupRunning()) {
     return /*@__PURE__*/ console.error('onBeforeMount 必须在 setup 函数中调用')
   }
   callbackSet.add(callback)

@@ -7,10 +7,10 @@ import {
   runBeforeCreate,
   clearBeforeCreate
 } from './beforeCreate'
-import { getRunningSetup } from './verifySetup'
+import { hasSetupRunning } from './verifySetup'
 
 vi.mock('./verifySetup', () => ({
-  getRunningSetup: vi.fn()
+  hasSetupRunning: vi.fn()
 }))
 
 describe('beforeCreate lifecycle hooks', () => {
@@ -19,7 +19,7 @@ describe('beforeCreate lifecycle hooks', () => {
   })
 
   test('onBeforeCreate should add callback to callbackSet if in setup', () => {
-    ;(getRunningSetup as Mock).mockReturnValue(true)
+    ;(hasSetupRunning as Mock).mockReturnValue(true)
     const callback = vi.fn()
 
     onBeforeCreate(callback)
@@ -30,7 +30,7 @@ describe('beforeCreate lifecycle hooks', () => {
   })
 
   test('onBeforeCreate should not add callback if not in setup', () => {
-    ;(getRunningSetup as Mock).mockReturnValue(false)
+    ;(hasSetupRunning as Mock).mockReturnValue(false)
     const consoleErrorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(() => {})
@@ -45,7 +45,7 @@ describe('beforeCreate lifecycle hooks', () => {
   })
 
   test('runBeforeCreate should execute all callbacks and store clear functions', () => {
-    ;(getRunningSetup as Mock).mockReturnValue(true)
+    ;(hasSetupRunning as Mock).mockReturnValue(true)
     const clearFn = vi.fn()
     const callback = vi.fn(() => clearFn)
 
@@ -65,7 +65,7 @@ describe('beforeCreate lifecycle hooks', () => {
     const clearFn = vi.fn()
     const callback = vi.fn(() => clearFn)
 
-    ;(getRunningSetup as Mock).mockReturnValue(true)
+    ;(hasSetupRunning as Mock).mockReturnValue(true)
     onBeforeCreate(callback)
 
     runBeforeCreate()

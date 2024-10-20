@@ -260,10 +260,9 @@ class Dependency<T extends object> {
 
   private collect(key: string | symbol = SYMBOL_EFFECT) {
     if (currentEffectFn) {
-      const ele = effectEleMap.get(currentEffectFn)
-      if (!ele) {
-        return /*@__PURE__*/ console.error('effect 必须在 setup 函数中调用')
-      }
+      // if (!ele || !hasSetupRunning()) {
+      //   return /*@__PURE__*/ console.error('effect 必须在 setup 函数中调用')
+      // }
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
       _dep.add(currentEffectFn)
@@ -279,21 +278,24 @@ class Dependency<T extends object> {
       const cleanupSets = effectDepCleanupMap.get(currentEffectFn)
       cleanupSets?.add(_depCleanup)
 
-      const eleDestroy = ele.__destroy__.bind(ele)
       const effectFn = currentEffectFn
-      ele.__destroy__ = (symbol: Parameters<typeof eleDestroy>[0]) => {
-        if (!eleDestroy(symbol)) {
-          return false
+      const ele = effectEleMap.get(currentEffectFn)
+      if (ele) {
+        const eleDestroy = ele.__destroy__.bind(ele)
+        ele.__destroy__ = (symbol: Parameters<typeof eleDestroy>[0]) => {
+          if (!eleDestroy(symbol)) {
+            return false
+          }
+          _dep.delete(effectFn)
+          if (effectEleMap.get(effectFn) === ele) {
+            effectEleMap.delete(effectFn)
+          }
+          effectDepMap.delete(effectFn)
+          depCleanupMap.delete(effectFn)
+          effectDepCleanups.delete(_depCleanup)
+          cleanupSets?.delete(_depCleanup)
+          return true
         }
-        _dep.delete(effectFn)
-        if (effectEleMap.get(effectFn) === ele) {
-          effectEleMap.delete(effectFn)
-        }
-        effectDepMap.delete(effectFn)
-        depCleanupMap.delete(effectFn)
-        effectDepCleanups.delete(_depCleanup)
-        cleanupSets?.delete(_depCleanup)
-        return true
       }
     }
   }
