@@ -709,38 +709,55 @@ const defineCustomElement = (
     }
 
     remove() {
+      const { restore } = setComponentIns(this)
       if (this.$parentComponent) beforeRemove(this, this.$parentComponent)
       super.remove()
+      restore()
     }
 
     appendChild<T extends Node>(node: T): T {
+      const { restore } = setComponentIns(this)
       beforeAppend(node, this)
-      return super.appendChild(node)
+      const _ret = super.appendChild(node)
+      restore()
+      return _ret
     }
 
     removeChild<T extends Node>(node: T): T {
+      const { restore } = setComponentIns(this)
       beforeRemove(node, this)
-      return super.removeChild(node)
+      const _ret = super.removeChild(node)
+      restore()
+      return _ret
     }
 
     prepend(...nodes: (Node | string)[]) {
+      const { restore } = setComponentIns(this)
       nodes.forEach((node) => {
         if (typeof node !== 'string') {
           beforeAppend(node, this)
         }
       })
-      return super.prepend(...nodes)
+      const _ret = super.prepend(...nodes)
+      restore()
+      return _ret
     }
 
     insertBefore<T extends Node>(newNode: T, referenceNode: Node | null): T {
+      const { restore } = setComponentIns(this)
       beforeAppend(newNode, this)
-      return super.insertBefore(newNode, referenceNode)
+      const _ret = super.insertBefore(newNode, referenceNode)
+      restore()
+      return _ret
     }
 
     replaceChild<T extends Node>(newNode: Node, oldNode: T): T {
+      const { restore } = setComponentIns(this)
       beforeRemove(oldNode, this)
       beforeAppend(newNode, this)
-      return super.replaceChild(newNode, oldNode)
+      const _ret = super.replaceChild(newNode, oldNode)
+      restore()
+      return _ret
     }
   }
 

@@ -253,8 +253,6 @@ export type EventListeners = {
   handles: EventListener[]
 }
 
-export type EffectCallback = () => (() => void) | void
-
 export default class BaseElement extends HTMLElement {
   static events = events
 
@@ -295,9 +293,6 @@ export default class BaseElement extends HTMLElement {
       [key in EventHandlers]?: EventListeners
     }
   > = new Map()
-
-  /** setup函数中声明的effect, 从BaseElement组件获取对应effect函数. 目前, 除了在调用effect时添加effect外, 没有任何位置使用 */
-  $effects: Set<EffectCallback> = new Set()
 
   constructor() {
     super()
@@ -346,8 +341,6 @@ export default class BaseElement extends HTMLElement {
       this.$refs[key].value = null
     }
     this.$refs = {}
-
-    this.$effects.clear()
 
     this.$parentComponent = null
 

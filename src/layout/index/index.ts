@@ -146,7 +146,6 @@ export default defineCustomElement('l-index', {
       }
 
       return () => {
-        // debugger
         if (!backSpanRef.value || !titleSpanRef.value) return
 
         prevIndex = nowIndex
