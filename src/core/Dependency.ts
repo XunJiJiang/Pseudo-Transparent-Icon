@@ -16,6 +16,8 @@ import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
 import AutoAsyncTask from './utils/AutoAsyncTask'
 import { isArray, isObject } from './utils/shared'
 
+// TODO: 如果effect要支持异步函数, 则 onCleanup 需要限制在await前调用
+// 如果传入异步函数，则不会将effect的返回值作为cleanup函数
 type OnCleanup = (cleanupFn: EffectCleanupFn) => void
 
 type EffectFn = (onCleanup: OnCleanup) => EffectCleanupFn | void

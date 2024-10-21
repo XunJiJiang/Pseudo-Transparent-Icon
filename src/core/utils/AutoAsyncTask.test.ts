@@ -7,8 +7,8 @@ import AutoAsyncTask from './AutoAsyncTask'
 
 describe('AutoAsyncTask', () => {
   beforeEach(() => {
-    // Clear the tasks map and reset the promise before each test
-    ;(AutoAsyncTask as any).tasks.clear()
+    // Clear the taskLists map and reset the promise before each test
+    ;(AutoAsyncTask as any).taskLists.forEach((t) => t.clear())
     ;(AutoAsyncTask as any).promise = null
   })
 
@@ -61,16 +61,6 @@ describe('AutoAsyncTask', () => {
     expect(task2).toHaveBeenCalled()
   })
 
-  it('执行后删除任务', async () => {
-    const task = vi.fn()
-
-    AutoAsyncTask.addTask(task)
-
-    await (AutoAsyncTask as any).promise
-
-    expect((AutoAsyncTask as any).tasks.size).toBe(0)
-  })
-
   it('如果使用相同的密钥添加，则只执行最后一次添加的任务', async () => {
     const task1 = vi.fn()
     const task2 = vi.fn()
@@ -83,5 +73,24 @@ describe('AutoAsyncTask', () => {
 
     expect(task1).not.toHaveBeenCalled()
     expect(task2).toHaveBeenCalled()
+  })
+
+  it('在执行任务期间添加任务，会放到下一次执行', async () => {
+    const task1 = vi.fn()
+    const task2 = vi.fn()
+
+    AutoAsyncTask.addTask(() => {
+      AutoAsyncTask.addTask(task2)
+      task1()
+    })
+
+    await (AutoAsyncTask as any).promise
+
+    expect(task1).toHaveBeenCalled()
+    expect(task2).not.toHaveBeenCalled()
+
+    setTimeout(() => {
+      expect(task2).toHaveBeenCalled()
+    })
   })
 })

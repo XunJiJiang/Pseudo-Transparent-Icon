@@ -314,11 +314,11 @@ export default class BaseElement extends HTMLElement {
       }
     })
 
-    for (const [element, events] of this.$eventElements) {
-      for (const [type, { listener }] of Object.entries(events)) {
-        element.removeEventListener(type, listener)
-      }
-    }
+    // for (const [element, events] of this.$eventElements) {
+    //   for (const [type, { listener }] of Object.entries(events)) {
+    //     element.removeEventListener(type, listener)
+    //   }
+    // }
     this.$eventElements.clear()
 
     this.$props = {}
