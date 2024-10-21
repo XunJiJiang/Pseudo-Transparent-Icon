@@ -92,7 +92,7 @@ export default defineCustomElement('l-index', {
 
     let nowELe: HTMLElement | null = null
 
-    effect(() => {
+    effect((onCleanup) => {
       if (!backSpanRef.value || !titleSpanRef.value) return
 
       const nowIndex = index.value
@@ -145,7 +145,7 @@ export default defineCustomElement('l-index', {
         titleSpanRef.value.classList.add('add')
       }
 
-      return () => {
+      onCleanup(() => {
         if (!backSpanRef.value || !titleSpanRef.value) return
 
         prevIndex = nowIndex
@@ -201,7 +201,7 @@ export default defineCustomElement('l-index', {
         } else {
           headerRef.value?.classList.remove('hide')
         }
-      }
+      })
     })
 
     const setLIndexBgColor = (type: BgColorType) => {

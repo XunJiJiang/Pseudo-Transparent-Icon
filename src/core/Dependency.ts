@@ -16,31 +16,33 @@ import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
 import AutoAsyncTask from './utils/AutoAsyncTask'
 import { isArray, isObject } from './utils/shared'
 
-type EffectCallback = () => EffectCleanupCallback | void
+type OnCleanup = (cleanupFn: EffectCleanupFn) => void
 
-type EffectCallbackReturn = {
+type EffectFn = (onCleanup: OnCleanup) => EffectCleanupFn | void
+
+type EffectFnReturn = {
   stop: (opt?: { cleanup?: boolean }) => void
   run: () => void
 }
 
-type EffectCleanupCallback = () => void
+type EffectCleanupFn = () => void
 
-let currentEffectFn: EffectCallback | null = null
+let currentEffectFn: EffectFn | null = null
 
 /** 运行中的currentEffectFn列表，不包括最新的 */
-const currentEffectFns: EffectCallback[] = []
+const currentEffectFns: EffectFn[] = []
 
 /**
- * 保存effect和对应的Set<EffectCallback>
- * 一个effect对应多个Set<EffectCallback>
+ * 保存effect和对应的Set<EffectFn>
+ * 一个effect对应多个Set<EffectFn>
  */
-const effectDepsMap = new Map<EffectCallback, Set<Set<EffectCallback>>>()
+const effectDepsMap = new Map<EffectFn, Set<Set<EffectFn>>>()
 
-const effectReturnMap = new WeakMap<EffectCallback, EffectCallbackReturn>()
+const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
 
 /**
  * 创建副作用函数
- * @param effCallback 副作用函数
+ * @param effFn 副作用函数
  * @returns 停止运行副作用函数
  * @example
  * ```ts
@@ -52,9 +54,9 @@ const effectReturnMap = new WeakMap<EffectCallback, EffectCallbackReturn>()
  * })
  * stop()
  */
-export const effect = (effCallback: EffectCallback): EffectCallbackReturn => {
+export const effect = (effFn: EffectFn): EffectFnReturn => {
   if (hasSetupRunning()) {
-    const effectCallbackReturn: EffectCallbackReturn = {
+    const effectFnReturn: EffectFnReturn = {
       stop: () => {
         console.warn(
           `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
@@ -68,74 +70,83 @@ export const effect = (effCallback: EffectCallback): EffectCallbackReturn => {
     }
     onMounted(() => {
       const ele = getInstance()
-      const _ret = _effect(() => {
+      const _ret = _effect((onCleanup) => {
         const { restore } = setComponentIns(ele)
-        const _ret = effCallback()
+        const _ret = effFn(onCleanup)
         restore()
         return _ret
       })
-      effectCallbackReturn.stop = _ret.stop
-      effectCallbackReturn.run = _ret.run
+      effectFnReturn.stop = _ret.stop
+      effectFnReturn.run = _ret.run
       return _ret.stop
     })
-    return effectCallbackReturn
+    return effectFnReturn
   } else {
-    return _effect(effCallback)
+    return _effect(effFn)
   }
 }
 
-const _effect = (effCallback: EffectCallback): EffectCallbackReturn => {
-  const effect = effCallback
-  effectDepsMap.set(effect, new Set())
+const _effect = (effectFn: EffectFn): EffectFnReturn => {
+  effectDepsMap.set(effectFn, new Set())
   if (currentEffectFn) currentEffectFns.push(currentEffectFn)
-  currentEffectFn = effect
-  let cleanupSet: Set<EffectCleanupCallback> | null =
-    new Set<EffectCleanupCallback>()
-  let clear = effect() ?? null
-  if (clear) {
-    cleanupSet.add(clear)
-    clear = null
+  currentEffectFn = effectFn
+  let cleanupSet: Set<EffectCleanupFn> | null = new Set<EffectCleanupFn>()
+  let effectFnRun = false
+  const onCleanup: OnCleanup = (cleanupFn) => {
+    if (!cleanupSet) return
+    if (effectFnRun) {
+      cleanupSet.add(cleanupFn)
+      return
+    }
+    /*__PURE__*/ console.error(`effect函数的onCleanup只能在effect函数内部调用`)
+  }
+  effectFnRun = true
+  let cleanupFn = effectFn(onCleanup) ?? null
+  effectFnRun = false
+  if (cleanupFn) {
+    onCleanup(cleanupFn)
+    cleanupFn = null
   }
   currentEffectFn = currentEffectFns.pop() ?? null
 
   const cleanup = () => {
     if (!cleanupSet) return
-    cleanupSet.forEach((cleanup, _, set) => {
-      AutoAsyncTask.addTask(() => {
-        cleanup()
-      }, cleanup)
-      set.delete(cleanup)
+    cleanupSet.forEach((cleanupFn, _, set) => {
+      cleanupFn()
+      set.delete(cleanupFn)
     })
   }
 
-  const effectCallbackReturn: EffectCallbackReturn = {
+  const effectFnReturn: EffectFnReturn = {
     stop: (opt) => {
       if (!cleanupSet) return
       if (opt?.cleanup) cleanup()
       cleanupSet = null
       // 获取影响当前effect的依赖
-      const effectDeps = effectDepsMap.get(effect)
+      const effectDeps = effectDepsMap.get(effectFn)
       // 删除effect对应的依赖中的effect
       effectDeps?.forEach((dep) => {
-        dep.delete(effect)
+        dep.delete(effectFn)
       })
-      effectDepsMap.delete(effect)
+      effectDepsMap.delete(effectFn)
     },
     run: () => {
       if (!cleanupSet) return
       cleanup()
       AutoAsyncTask.addTask(() => {
         if (!cleanupSet) return
-        let clear = effect() ?? null
-        if (clear) {
-          cleanupSet.add(clear)
-          clear = null
+        effectFnRun = true
+        let cleanupFn = effectFn(onCleanup) ?? null
+        effectFnRun = false
+        if (cleanupFn) {
+          onCleanup(cleanupFn)
+          cleanupFn = null
         }
       }, effect)
     }
   }
-  effectReturnMap.set(effect, effectCallbackReturn)
-  return effectCallbackReturn
+  effectReturnMap.set(effectFn, effectFnReturn)
+  return effectFnReturn
 }
 
 /** 无key的依赖key */
@@ -224,7 +235,7 @@ class Dependency<T extends object> {
    * key: 依赖对象上的属性
    * value: 属性对应的effect集合
    */
-  private _deps = new Map<string | symbol, Set<EffectCallback>>()
+  private _deps = new Map<string | symbol, Set<EffectFn>>()
   /** 代理对象 */
   private _value: object
   /** 代理处理器 */
@@ -311,8 +322,8 @@ class Dependency<T extends object> {
 
   private distribute(key: string | symbol = SYMBOL_EFFECT) {
     const _dep = this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
-    _dep.forEach((dep) => {
-      effectReturnMap.get(dep)?.run()
+    _dep.forEach((effectFn) => {
+      effectReturnMap.get(effectFn)?.run()
     })
   }
 
