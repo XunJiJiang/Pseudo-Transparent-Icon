@@ -23,6 +23,8 @@ type EffectFn = (onCleanup: OnCleanup) => EffectCleanupFn | void
 type EffectFnReturn = {
   stop: (opt?: { cleanup?: boolean }) => void
   run: () => void
+  pause: () => void
+  resume: () => void
 }
 
 type EffectCleanupFn = () => void
@@ -66,6 +68,16 @@ export const effect = (effFn: EffectFn): EffectFnReturn => {
         console.warn(
           `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
         )
+      },
+      pause: () => {
+        console.warn(
+          `自定义组件内effect的pause方法只能在onMounted生命周期运行后调用`
+        )
+      },
+      resume: () => {
+        console.warn(
+          `自定义组件内effect的resume方法只能在onMounted生命周期运行后调用`
+        )
       }
     }
     onMounted(() => {
@@ -86,16 +98,23 @@ export const effect = (effFn: EffectFn): EffectFnReturn => {
   }
 }
 
+enum EffectStatus {
+  RUNNING,
+  PAUSE,
+  STOP
+}
+
 const _effect = (effectFn: EffectFn): EffectFnReturn => {
   effectDepsMap.set(effectFn, new Set())
+  let state = EffectStatus.RUNNING
   if (currentEffectFn) currentEffectFns.push(currentEffectFn)
   currentEffectFn = effectFn
   let cleanupSet: Set<EffectCleanupFn> | null = new Set<EffectCleanupFn>()
   let effectFnRun = false
   const onCleanup: OnCleanup = (cleanupFn) => {
-    if (!cleanupSet) return
+    if (state === EffectStatus.STOP) return
     if (effectFnRun) {
-      cleanupSet.add(cleanupFn)
+      cleanupSet!.add(cleanupFn)
       return
     }
     /*__PURE__*/ console.error(`effect函数的onCleanup只能在effect函数内部调用`)
@@ -110,8 +129,8 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
   currentEffectFn = currentEffectFns.pop() ?? null
 
   const cleanup = () => {
-    if (!cleanupSet) return
-    cleanupSet.forEach((cleanupFn, _, set) => {
+    if (state === EffectStatus.STOP) return
+    cleanupSet!.forEach((cleanupFn, _, set) => {
       cleanupFn()
       set.delete(cleanupFn)
     })
@@ -119,8 +138,9 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
 
   const effectFnReturn: EffectFnReturn = {
     stop: (opt) => {
-      if (!cleanupSet) return
+      if (state === EffectStatus.STOP) return
       if (opt?.cleanup) cleanup()
+      state = EffectStatus.STOP
       cleanupSet = null
       // 获取影响当前effect的依赖
       const effectDeps = effectDepsMap.get(effectFn)
@@ -131,10 +151,10 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
       effectDepsMap.delete(effectFn)
     },
     run: () => {
-      if (!cleanupSet) return
+      if (state === EffectStatus.STOP) return
       cleanup()
       AutoAsyncTask.addTask(() => {
-        if (!cleanupSet) return
+        if (state === EffectStatus.STOP) return
         effectFnRun = true
         let cleanupFn = effectFn(onCleanup) ?? null
         effectFnRun = false
@@ -143,6 +163,14 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
           cleanupFn = null
         }
       }, effect)
+    },
+    pause: () => {
+      if (state === EffectStatus.STOP) return
+      state = EffectStatus.PAUSE
+    },
+    resume: () => {
+      if (state === EffectStatus.STOP) return
+      state = EffectStatus.RUNNING
     }
   }
   effectReturnMap.set(effectFn, effectFnReturn)
