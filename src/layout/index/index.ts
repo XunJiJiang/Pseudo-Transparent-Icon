@@ -235,28 +235,24 @@ export default defineCustomElement('l-index', {
     }
 
     const handle = {
-      prev: throttling(
-        () => {
-          if (index.value === 0) return
-          isPrev = true
-          index.value -= pageIndexChangeList.pop() || 0
-        },
-        500,
+      ...throttling(
         {
-          type: 'once'
-        }
-      ),
-      // TODO: [next函数] 此处
-      next: throttling(
-        (num = 1, type: 'relative' | 'absolute' = 'relative') => {
-          /*@__PURE__*/ nextCheck(num, type)
-          isPrev = false
-          if (type === 'absolute') {
-            pageIndexChangeList.push(num - index.value)
-            index.value = num
-          } else if (type === 'relative') {
-            pageIndexChangeList.push(num)
-            index.value += num
+          prev: () => {
+            if (index.value === 0) return
+            isPrev = true
+            index.value -= pageIndexChangeList.pop() || 0
+          },
+          // TODO: [next函数] 此处
+          next: (num = 1, type: 'relative' | 'absolute' = 'relative') => {
+            /*@__PURE__*/ nextCheck(num, type)
+            isPrev = false
+            if (type === 'absolute') {
+              pageIndexChangeList.push(num - index.value)
+              index.value = num
+            } else if (type === 'relative') {
+              pageIndexChangeList.push(num)
+              index.value += num
+            }
           }
         },
         500,
