@@ -181,7 +181,7 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
     effectDepsMap.delete(effectFn)
   }
   effectFnReturn.run = () => {
-    if (state === EffectStatus.STOP) return
+    if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) return
     cleanup()
     AutoAsyncTask.addTask(() => {
       if (state === EffectStatus.STOP) return
