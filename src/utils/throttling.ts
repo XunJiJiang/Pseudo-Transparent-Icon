@@ -13,8 +13,6 @@ type Opt = {
   type: 'immediate' | 'delay' | 'once'
 }
 
-type ThrottlingReturn<T> = T extends Func ? Func : { [key in keyof T]: Func }
-
 const defaultOpt: Opt = {
   type: 'delay'
 }
@@ -23,13 +21,13 @@ const throttling = <T extends CallBacks>(
   callbacks: T,
   ms = 300,
   opt?: Partial<Opt>
-): ThrottlingReturn<T> => {
+): T => {
   opt = Object.assign({}, defaultOpt, opt)
   let timer: number | null = null
-  let runOne: ((callback: Func) => Func) | null = null
+  let pack: ((callback: Func) => Func) | null = null
   if (opt.type === 'immediate') {
-    /** 是否需要在计时结束后运行一次 */
-    runOne = (callback: Func) => {
+    pack = (callback: Func) => {
+      /** 是否需要在计时结束后运行一次 */
       let needRun: null | Parameters<typeof callback> = null
       const ret = (...args: Parameters<typeof callback>) => {
         if (!timer) {
@@ -49,7 +47,7 @@ const throttling = <T extends CallBacks>(
       return ret
     }
   } else if (opt.type === 'delay') {
-    runOne = (callback: Func) => {
+    pack = (callback: Func) => {
       return (...args: Parameters<typeof callback>) => {
         if (timer) return
         timer = setTimeout(() => {
@@ -59,7 +57,7 @@ const throttling = <T extends CallBacks>(
       }
     }
   } else if (opt.type === 'once') {
-    runOne = (callback: Func) => {
+    pack = (callback: Func) => {
       return (...args: Parameters<typeof callback>) => {
         if (timer) return
         callback(...args)
@@ -70,15 +68,15 @@ const throttling = <T extends CallBacks>(
     }
   }
 
-  if (runOne) {
+  if (pack) {
     if (typeof callbacks === 'function') {
-      return runOne(callbacks) as ThrottlingReturn<T>
+      return pack(callbacks) as T
     } else {
       const ret: Record<string, Func> = {}
       for (const key in callbacks) {
-        ret[key] = runOne(callbacks[key] as Func)
+        ret[key] = pack(callbacks[key] as Func)
       }
-      return ret as ThrottlingReturn<T>
+      return ret as T
     }
   }
 
