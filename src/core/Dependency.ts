@@ -20,12 +20,18 @@ type OnCleanup = (cleanupFn: EffectCleanupFn) => void
 
 type EffectFn = (onCleanup: OnCleanup) => EffectCleanupFn | void
 
-type EffectFnReturn = {
-  stop: (opt?: { cleanup?: boolean }) => void
+type StopFn = (opt?: { cleanup?: boolean }) => void
+
+type EffectFnReturnFn = {
+  stop: StopFn
   run: () => void
   pause: () => void
   resume: () => void
 }
+
+type EffectFnReturn = {
+  (opt?: { cleanup?: boolean }): void
+} & EffectFnReturnFn
 
 type EffectCleanupFn = () => void
 
@@ -54,32 +60,50 @@ const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
  *     console.log('cleanup')
  *   }
  * })
+ * // 停止
+ * stop()
+ *
+ * const { pause, resume, run, stop } = effect(() => {
+ *   console.log('effect')
+ *   return () => {
+ *     console.log('cleanup')
+ *   }
+ * })
+ * // 暂停
+ * pause()
+ * // 恢复
+ * resume()
+ * // 运行一次
+ * run()
+ * // 停止
  * stop()
  */
 export const effect = (effFn: EffectFn): EffectFnReturn => {
   if (hasSetupRunning()) {
-    const effectFnReturn: EffectFnReturn = {
-      stop: () => {
-        console.warn(
-          `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
-        )
-      },
-      run: () => {
-        console.warn(
-          `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
-        )
-      },
-      pause: () => {
-        console.warn(
-          `自定义组件内effect的pause方法只能在onMounted生命周期运行后调用`
-        )
-      },
-      resume: () => {
-        console.warn(
-          `自定义组件内effect的resume方法只能在onMounted生命周期运行后调用`
-        )
-      }
+    let stopFn: StopFn | null = null
+    const effectFnReturn: EffectFnReturn = (opt) => effectFnReturn.stop(opt)
+    effectFnReturn.stop = (opt) => {
+      if (stopFn) return stopFn(opt)
+      console.warn(
+        `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
+      )
     }
+    effectFnReturn.run = () => {
+      console.warn(
+        `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
+      )
+    }
+    effectFnReturn.pause = () => {
+      console.warn(
+        `自定义组件内effect的pause方法只能在onMounted生命周期运行后调用`
+      )
+    }
+    effectFnReturn.resume = () => {
+      console.warn(
+        `自定义组件内effect的resume方法只能在onMounted生命周期运行后调用`
+      )
+    }
+
     onMounted(() => {
       const ele = getInstance()
       const _ret = _effect((onCleanup) => {
@@ -88,10 +112,14 @@ export const effect = (effFn: EffectFn): EffectFnReturn => {
         restore()
         return _ret
       })
+      stopFn = _ret
       effectFnReturn.stop = _ret.stop
       effectFnReturn.run = _ret.run
-      return _ret.stop
+      effectFnReturn.pause = _ret.pause
+      effectFnReturn.resume = _ret.resume
+      return _ret
     })
+
     return effectFnReturn
   } else {
     return _effect(effFn)
@@ -136,42 +164,41 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
     })
   }
 
-  const effectFnReturn: EffectFnReturn = {
-    stop: (opt) => {
+  const effectFnReturn: EffectFnReturn = (opt) => effectFnReturn.stop(opt)
+  effectFnReturn.stop = (opt) => {
+    if (state === EffectStatus.STOP) return
+    if (opt?.cleanup) cleanup()
+    state = EffectStatus.STOP
+    cleanupSet = null
+    // 获取影响当前effect的依赖
+    const effectDeps = effectDepsMap.get(effectFn)
+    // 删除effect对应的依赖中的effect
+    effectDeps?.forEach((dep) => {
+      dep.delete(effectFn)
+    })
+    effectDepsMap.delete(effectFn)
+  }
+  effectFnReturn.run = () => {
+    if (state === EffectStatus.STOP) return
+    cleanup()
+    AutoAsyncTask.addTask(() => {
       if (state === EffectStatus.STOP) return
-      if (opt?.cleanup) cleanup()
-      state = EffectStatus.STOP
-      cleanupSet = null
-      // 获取影响当前effect的依赖
-      const effectDeps = effectDepsMap.get(effectFn)
-      // 删除effect对应的依赖中的effect
-      effectDeps?.forEach((dep) => {
-        dep.delete(effectFn)
-      })
-      effectDepsMap.delete(effectFn)
-    },
-    run: () => {
-      if (state === EffectStatus.STOP) return
-      cleanup()
-      AutoAsyncTask.addTask(() => {
-        if (state === EffectStatus.STOP) return
-        effectFnRun = true
-        let cleanupFn = effectFn(onCleanup) ?? null
-        effectFnRun = false
-        if (cleanupFn) {
-          onCleanup(cleanupFn)
-          cleanupFn = null
-        }
-      }, effect)
-    },
-    pause: () => {
-      if (state === EffectStatus.STOP) return
-      state = EffectStatus.PAUSE
-    },
-    resume: () => {
-      if (state === EffectStatus.STOP) return
-      state = EffectStatus.RUNNING
-    }
+      effectFnRun = true
+      let cleanupFn = effectFn(onCleanup) ?? null
+      effectFnRun = false
+      if (cleanupFn) {
+        onCleanup(cleanupFn)
+        cleanupFn = null
+      }
+    }, effect)
+  }
+  effectFnReturn.pause = () => {
+    if (state === EffectStatus.STOP) return
+    state = EffectStatus.PAUSE
+  }
+  effectFnReturn.resume = () => {
+    if (state === EffectStatus.STOP) return
+    state = EffectStatus.RUNNING
   }
   effectReturnMap.set(effectFn, effectFnReturn)
   return effectFnReturn
