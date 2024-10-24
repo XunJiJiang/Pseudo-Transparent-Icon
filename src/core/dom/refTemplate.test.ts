@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, type Mock } from 'vitest'
 import refTemplate from './refTemplate'
 import { getCurrentComponent } from './fixComponentIns'
-import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
+import { hasSetupRunning } from '../hooks/lifecycle/verifySetup'
 
 type GetCurrentComponent = Mock<
   () => {

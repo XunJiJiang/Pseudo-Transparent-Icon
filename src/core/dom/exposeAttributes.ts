@@ -1,5 +1,5 @@
 import { getCurrentComponent, setComponentIns } from './fixComponentIns'
-import { isFunction } from './utils/shared'
+import { isFunction } from '../utils/shared'
 
 export const exposeAttributes = (attrs: Record<string, unknown>) => {
   const currentComponent = getCurrentComponent()

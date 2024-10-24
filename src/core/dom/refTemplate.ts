@@ -1,5 +1,5 @@
 import { getCurrentComponent } from './fixComponentIns'
-import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
+import { hasSetupRunning } from '../hooks/lifecycle/verifySetup'
 
 const refTemplate = <T extends HTMLElement = HTMLElement>(refKey: string) => {
   const currentComponent = getCurrentComponent()

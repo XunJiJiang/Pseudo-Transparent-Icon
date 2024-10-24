@@ -10,7 +10,7 @@
  * 判断是否为响应式对象
  */
 
-import { getInstance, setComponentIns } from './fixComponentIns'
+import { getInstance, setComponentIns } from './dom/fixComponentIns'
 import { onMounted } from './hooks/lifecycle/mounted'
 import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
 import AutoAsyncTask from './utils/AutoAsyncTask'

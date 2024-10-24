@@ -13,20 +13,23 @@ import BaseElement, {
   SYMBOL_CLEAR_REF,
   type EventHandlers
 } from './BaseElement'
-import reactive from './reactive'
+import reactive from '../reactive'
 import { setComponentIns } from './fixComponentIns'
 import { exposeAttributes } from './exposeAttributes'
-import { setRunningSetup } from './hooks/lifecycle/verifySetup'
+import { setRunningSetup } from '../hooks/lifecycle/verifySetup'
 import {
   clearBeforeCreate,
   runBeforeCreate
-} from './hooks/lifecycle/beforeCreate'
-import { clearCreated, runCreated } from './hooks/lifecycle/created'
-import { clearBeforeMount, runBeforeMount } from './hooks/lifecycle/beforeMount'
-import { clearMounted, runMounted } from './hooks/lifecycle/mounted'
-import { runUnmounted } from './hooks/lifecycle/unmounted'
-import { hasOwn, isObject } from './utils/shared'
-import { effect, isRef } from './Dependency'
+} from '../hooks/lifecycle/beforeCreate'
+import { clearCreated, runCreated } from '../hooks/lifecycle/created'
+import {
+  clearBeforeMount,
+  runBeforeMount
+} from '../hooks/lifecycle/beforeMount'
+import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
+import { runUnmounted } from '../hooks/lifecycle/unmounted'
+import { hasOwn, isObject } from '../utils/shared'
+import { effect, isRef } from '../Dependency'
 
 type DataType = Record<string | symbol, any>
 

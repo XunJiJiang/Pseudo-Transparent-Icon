@@ -1,10 +1,10 @@
-import BaseElement from 'xj-web-core/BaseElement'
+import BaseElement from 'xj-web-core/dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
   hasSetupRunning
 } from './verifySetup'
-import { getCurrentComponent } from 'xj-web-core/fixComponentIns'
+import { getCurrentComponent } from 'xj-web-core/dom/fixComponentIns'
 
 const callbackMap = new WeakMap<BaseElement, Set<LifecycleCallback>>()
 
