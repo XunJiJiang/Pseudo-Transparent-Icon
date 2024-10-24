@@ -30,4 +30,4 @@ export { default as useId } from './hooks/useId'
 
 export { isHTMLElement } from './utils/shared'
 
-export { default as createElement } from './utils/createElement'
+export { createElement } from './dom/createElement'

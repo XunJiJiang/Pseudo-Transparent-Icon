@@ -1,6 +1,6 @@
 import { isArray } from '../utils/shared'
 
-const createElement = <T extends Node>(
+export const createElement = <T extends Node>(
   tag: string,
   opt?: { [key: string]: string },
   children?: T[] | string
@@ -19,5 +19,3 @@ const createElement = <T extends Node>(
   }
   return el
 }
-
-export default createElement

@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect } from 'vitest'
-import createElement from './createElement'
+import { createElement } from './createElement'
 
 describe('createElement', () => {
   it('创建具有指定标签的元素', () => {
