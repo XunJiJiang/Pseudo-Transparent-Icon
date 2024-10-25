@@ -1,4 +1,4 @@
-import index from './index/index.ts'
+import index from './index/index'
 
 export default () => {
   index()

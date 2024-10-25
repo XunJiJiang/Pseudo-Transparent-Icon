@@ -1,5 +1,5 @@
-import home from './home'
-import selectDeviceType from './select-device-type'
+import home from './home/index'
+import selectDeviceType from './select-device-type/index'
 export default () => {
   home()
   selectDeviceType()

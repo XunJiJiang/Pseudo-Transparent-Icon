@@ -1,7 +1,7 @@
 import {
   type LifecycleFn,
   type LifecycleCallback,
-  getRunningSetup
+  hasSetupRunning
 } from './verifySetup'
 
 // onBeforeCreate在setup函数中调用
@@ -12,7 +12,7 @@ import {
 const callbackSet = new Set<LifecycleCallback>()
 
 export const onBeforeCreate: LifecycleFn = (callback) => {
-  if (!getRunningSetup()) {
+  if (!hasSetupRunning()) {
     return /*@__PURE__*/ console.error('onBeforeCreate 必须在 setup 函数中调用')
   }
   callbackSet.add(callback)

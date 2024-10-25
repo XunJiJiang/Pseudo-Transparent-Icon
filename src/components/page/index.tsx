@@ -1,5 +1,4 @@
 // import refTemplate from 'xj-web-core/refTemplate'
-import html from './index.html?raw'
 import css from './index.scss?raw'
 import { defineCustomElement, onMounted, refTemplate } from 'xj-web-core/index'
 
@@ -14,7 +13,6 @@ type PageEmit = {
 }
 
 export default defineCustomElement('c-page', {
-  template: html,
   style: css,
   observedAttributes: ['data-index', 'data-status'],
   props: {
@@ -42,15 +40,23 @@ export default defineCustomElement('c-page', {
         pageRootRef.value?.removeEventListener('scroll', scroll)
       }
     })
+
+    return (
+      <div ref="c-page-ref" class="c-page">
+        <main>
+          <slot name="default"></slot>
+        </main>
+      </div>
+    )
   },
-  attributeChanged(name, _oldValue, newValue, props) {
+  attributeChanged({ name, newValue }, { data }) {
     if (name === 'data-status') {
       if (!CLASS_LIST.includes(newValue)) {
         throw /*@__PURE__*/ new Error('data-status 属性值不合法')
       }
       this.$defineRefs['c-page-ref']?.setAttribute(
         'class',
-        `c-page ${newValue} page-${props['data-index'] || '1'}`
+        `c-page ${newValue} page-${data['data-index'] || '1'}`
       )
       if (newValue.includes('enter')) {
         this.$defineRefs['c-page-ref']?.scrollTo(0, 0)
@@ -59,7 +65,7 @@ export default defineCustomElement('c-page', {
   }
 })
 
-/** 用于绑定一次性动画的class */
+/** 绑定一次性动画的class */
 const CLASS_LIST = [
   'enter-from-left',
   'enter-from-right',

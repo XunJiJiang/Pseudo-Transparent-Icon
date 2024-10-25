@@ -1,10 +1,10 @@
-import BaseElement from 'xj-web-core/BaseElement'
+import BaseElement from 'xj-web-core/dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
-  getRunningSetup
+  hasSetupRunning
 } from './verifySetup'
-import { getCurrentComponent } from 'xj-web-core/fixComponentIns'
+import { getCurrentComponent } from 'xj-web-core/dom/fixComponentIns'
 
 // onMounted在setup函数中调用
 // setup结束后，构造器调用前执行runMounted
@@ -14,7 +14,7 @@ import { getCurrentComponent } from 'xj-web-core/fixComponentIns'
 const callbackMap = new WeakMap<BaseElement, Set<LifecycleCallback>>()
 
 export const onMounted: LifecycleFn = (callback) => {
-  if (!getRunningSetup()) {
+  if (!hasSetupRunning()) {
     return /*@__PURE__*/ console.error('onMounted 必须在 setup 函数中调用')
   }
   const ele = getCurrentComponent()

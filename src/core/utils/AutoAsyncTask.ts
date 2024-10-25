@@ -1,27 +1,42 @@
 import { Func } from '@type/function'
 
+enum State {
+  Pending,
+  Running,
+  Done
+}
+
 export default class AutoAsyncTask {
-  private static tasks = new Map<Func, Func>()
+  private static taskLists = [new Map<Func, Func>(), new Map<Func, Func>()]
   private static promise: Promise<void> | null = null
+  private static state = State.Done
 
   static addTask(task: Func, key?: Func) {
-    if (this.tasks.has(key ?? task)) this.tasks.delete(key ?? task)
-    this.tasks.set(key ?? task, task)
-    this.run()
+    const index = this.state === State.Running ? 1 : 0
+    const taskList = this.taskLists[index]
+    if (taskList.has(key ?? task)) taskList.delete(key ?? task)
+    taskList.set(key ?? task, task)
+    if (this.state !== State.Running) this.run()
   }
 
   private static run() {
-    if (this.promise) return
+    const taskList = this.taskLists[0]
+    if (this.state !== State.Done) return
+    this.state = State.Pending
     this.promise = Promise.resolve()
     this.promise
       .then(() => {
-        this.tasks.forEach((task, key, map) => {
+        this.state = State.Running
+        taskList.forEach((task, key, map) => {
           task()
           map.delete(key)
         })
       })
       .finally(() => {
+        this.state = State.Done
         this.promise = null
+        this.taskLists.reverse()
+        if (this.taskLists[0].size) this.run()
       })
   }
 }

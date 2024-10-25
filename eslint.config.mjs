@@ -10,7 +10,9 @@ import resolverAlias from 'eslint-import-resolver-alias'
 const __dirname = path.dirname(new URL(import.meta.url).pathname)
 
 export default [
-  { files: ['**/*.{js,mjs,cjs,ts}'] },
+  {
+    files: ['**/*.{js,mjs,cjs,ts}']
+  },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tsEslint.configs.recommended,
@@ -46,5 +48,20 @@ export default [
       }
     }
   },
-  eslintConfigPrettier
+  eslintConfigPrettier,
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      '**/public/**',
+      '**/scripts/**',
+      '**/test/**',
+      '**/tests/**',
+      '**/tmp/**',
+      '**/vendor/**',
+      '**/webpack/**'
+    ]
+  }
 ]

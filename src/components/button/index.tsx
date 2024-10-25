@@ -1,4 +1,3 @@
-import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
   defineCustomElement,
@@ -19,7 +18,6 @@ export type CButtonProps = {
 }
 
 export default defineCustomElement('c-button', {
-  template: html,
   style: css,
   observedAttributes: ['style', 'data-type', 'aria-label'],
   emit: {
@@ -70,12 +68,18 @@ export default defineCustomElement('c-button', {
       }
     })
 
-    return {
-      handleClick(e: Event) {
-        if (status.value === 'disabled') return
-        emit('click', e)
-      },
-      ariaLabel
-    }
+    return (
+      <button
+        ref="c-button-ref"
+        class="c-button"
+        aria-label={ariaLabel}
+        on-click={(e: Event) => {
+          if (status.value === 'disabled') return
+          emit('click', e)
+        }}
+      >
+        <slot name="default"></slot>
+      </button>
+    )
   }
 })

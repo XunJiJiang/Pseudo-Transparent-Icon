@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import path from 'node:path'
 import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
@@ -33,7 +34,14 @@ export default defineConfig({
     alias
   },
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, 'index.html'),
+        404: path.resolve(__dirname, '404.html')
+      }
+    }
   },
   server: {
     host: true,
@@ -43,7 +51,19 @@ export default defineConfig({
   preview: {
     port: 8080
   },
-  base: '/pseudo-transparent-icon.io/'
+  base: '/pseudo-transparent-icon.io/',
+  test: {
+    // 仅测试src/core内的文件
+    coverage: {
+      include: ['src/core/**'],
+      exclude: ['src/core/index.ts']
+    }
+  },
+  esbuild: {
+    jsxFactory: '__jsx.h',
+    jsxFragment: '__jsx.Fragment',
+    jsxInject: `import { __jsx } from 'xj-web-core/index'`
+  }
 })
 
 export const viteConfig = {

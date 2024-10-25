@@ -1,9 +1,10 @@
 import Dependency from './Dependency'
-import { getCurrentComponent } from './fixComponentIns'
+/**
+ * TODO: 当传入的值是dep实例时，是直接返回还是根据dep实例的值返回一个新的dep实例？
+ */
 
 const reactive = <T extends object>(obj: T): T => {
-  const currentComponent = getCurrentComponent()
-  const dep = new Dependency(obj, currentComponent)
+  const dep = new Dependency(obj)
 
   return dep.value as T
 }
