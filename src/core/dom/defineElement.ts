@@ -129,8 +129,6 @@ const beforeRemove = (ele: Node, root: BaseElement) => {
 }
 
 const beforeAppend = (ele: Node, root: BaseElement) => {
-  console.log('beforeAppend', ele)
-
   if (ele instanceof Element) {
     const nodeRefAttr = ele.attributes.getNamedItem('ref')
     const nodeExposeAttr = ele.attributes.getNamedItem('expose')
@@ -325,10 +323,12 @@ const defineCustomElement = (
         key: keyof T & string,
         ...args: Parameters<T[typeof key]>
       ): ReturnType<T[typeof key]> => {
-        if (emit && hasOwn(this.$emitMethods, key) && hasOwn(emit, key)) {
+        if (
+          emit &&
+          (hasOwn(this.$emitMethods, key) || !emit[key].required) &&
+          hasOwn(emit, key)
+        ) {
           const emitMethods = this.$emitMethods
-
-          const parentName = this.$parentComponent?.localName ?? ''
 
           const _emit = emit as DefaultOptions<keyof T & string, Func>
 
@@ -350,10 +350,20 @@ const defineCustomElement = (
 
           /*@__PURE__*/ console.error(
             (() => {
-              if (_emit[key].required) {
-                return `${this.localName}: ${parentName} 未赋予当前组件 ${key} 方法。事件绑定的值不能为空。`
+              const parentName = this.$parentComponent?.localName ?? ''
+              if (
+                hasOwn(emitMethods, key) &&
+                typeof emitMethods[key] !== 'function'
+              ) {
+                return `on-${key} 需要的类型为 function, 而 ${parentName} 向 ${this.localName} 传递了类型为 ${typeof emitMethods[key]} 的值`
+              } else if (
+                !_emit[key].required &&
+                typeof _emit[key].default !== 'function'
+              ) {
+                return `在 ${parentName} 中创建的 ${this.localName} 的 on-${key} 属性为空, 且没有默认值`
               }
-              return `${this.localName}: ${parentName} ${key} 不是一个方法。`
+
+              return `${this.localName}(${emitFn}): 未知错误`
             })()
           )
 
@@ -361,12 +371,19 @@ const defineCustomElement = (
         } else {
           /*@__PURE__*/ console.error(
             (() => {
-              if (!parentComponent) {
-                return `${this.localName}: 未找到父组件实例。`
-              } else if (!emit) {
-                return `${this.localName}: 未定义 emit。`
+              const parentName = this.$parentComponent?.localName ?? ''
+              if (!emit) {
+                return `${this.localName} 未定义任何 emit`
+              } else if (!hasOwn(emit, key)) {
+                return `${this.localName} 未定义 emit: ${key}`
+              } else if (
+                emit[key].required &&
+                !hasOwn(this.$emitMethods, key)
+              ) {
+                return `在 ${parentName} 中创建的 ${this.localName} 的 on-${key} 属性为空, 而该值为必传`
               }
-              return `${this.localName}: emit 未定义 ${key} 方法。`
+
+              return `${this.localName}(${emitFn}): 未知错误`
             })()
           )
         }
@@ -409,11 +426,11 @@ const defineCustomElement = (
       // Lifecycle: beforeCreate 调用时机
       runBeforeCreate()
 
+      setupEnd()
+
       clearBeforeCreate()
       // Lifecycle: created 调用时机
       runCreated()
-
-      // 如果需要，在此处运行模板编译器
 
       clearCreated()
       // Lifecycle: beforeMount 调用时机
@@ -487,8 +504,6 @@ const defineCustomElement = (
       clearBeforeMount(this)
       // Lifecycle: mounted 调用时机
       runMounted(this)
-
-      setupEnd()
 
       connected?.call(this, {
         data: this.$sharedData
