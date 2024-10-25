@@ -33,7 +33,7 @@ describe('createElement', () => {
   it('如果 children 是字符串则应附加文本节点', () => {
     const tag = 'div'
     const text = 'Hello, World!'
-    const element = createElement(tag, {}, text)
+    const element = createElement(tag, {}, [text])
     expect(element.textContent).toBe(text)
   })
 

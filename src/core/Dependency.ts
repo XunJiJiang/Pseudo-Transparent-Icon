@@ -12,6 +12,7 @@
 
 import { getInstance, setComponentIns } from './dom/fixComponentIns'
 import { onMounted } from './hooks/lifecycle/mounted'
+import { onBeforeCreate } from './hooks/lifecycle/beforeCreate'
 import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
 import AutoAsyncTask from './utils/AutoAsyncTask'
 import { isArray, isObject } from './utils/shared'
@@ -21,6 +22,10 @@ import { isArray, isObject } from './utils/shared'
 type OnCleanup = (cleanupFn: EffectCleanupFn) => void
 
 type EffectFn = (onCleanup: OnCleanup) => EffectCleanupFn | void
+
+type EffectOpt = {
+  flush?: 'pre' | 'sync' | 'post'
+}
 
 type StopFn = (opt?: { cleanup?: boolean }) => void
 
@@ -49,6 +54,15 @@ const currentEffectFns: EffectFn[] = []
 const effectDepsMap = new Map<EffectFn, Set<Set<EffectFn>>>()
 
 const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
+
+// TODO: flush
+// 对于在setup函数中运行的effect
+//       postFlush: 在onMounted后运行 默认
+//       preFlush: 在onMounted前运行
+//       sync: 同步运行 未实现
+// 对于其他effect
+//       postFlush\preFlush: 异步运行 默认
+//       sync: 同步运行 未实现
 
 /**
  * 创建副作用函数
@@ -80,8 +94,12 @@ const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
  * // 停止
  * stop()
  */
-export const effect = (effFn: EffectFn): EffectFnReturn => {
-  if (hasSetupRunning()) {
+export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
+  const inSetup = hasSetupRunning()
+  const flush = opt?.flush ?? 'post'
+  opt = { flush }
+
+  if (inSetup && flush !== 'sync') {
     let stopFn: StopFn | null = null
     const effectFnReturn: EffectFnReturn = (opt) => effectFnReturn.stop(opt)
     effectFnReturn.stop = (opt) => {
@@ -105,22 +123,39 @@ export const effect = (effFn: EffectFn): EffectFnReturn => {
         `自定义组件内effect的resume方法只能在onMounted生命周期运行后调用`
       )
     }
-
-    onMounted(() => {
-      const ele = getInstance()
-      const _ret = _effect((onCleanup) => {
-        const { restore } = setComponentIns(ele)
-        const _ret = effFn(onCleanup)
-        restore()
+    if (flush === 'post') {
+      onMounted(() => {
+        const ele = getInstance()
+        const _ret = _effect((onCleanup) => {
+          const { restore } = setComponentIns(ele)
+          const _ret = effFn(onCleanup)
+          restore()
+          return _ret
+        })
+        stopFn = _ret
+        effectFnReturn.stop = _ret.stop
+        effectFnReturn.run = _ret.run
+        effectFnReturn.pause = _ret.pause
+        effectFnReturn.resume = _ret.resume
         return _ret
       })
-      stopFn = _ret
-      effectFnReturn.stop = _ret.stop
-      effectFnReturn.run = _ret.run
-      effectFnReturn.pause = _ret.pause
-      effectFnReturn.resume = _ret.resume
-      return _ret
-    })
+    } else {
+      onBeforeCreate(() => {
+        const ele = getInstance()
+        const _ret = _effect((onCleanup) => {
+          const { restore } = setComponentIns(ele)
+          const _ret = effFn(onCleanup)
+          restore()
+          return _ret
+        })
+        stopFn = _ret
+        effectFnReturn.stop = _ret.stop
+        effectFnReturn.run = _ret.run
+        effectFnReturn.pause = _ret.pause
+        effectFnReturn.resume = _ret.resume
+        return _ret
+      })
+    }
 
     return effectFnReturn
   } else {
@@ -135,6 +170,8 @@ enum EffectStatus {
 }
 
 const _effect = (effectFn: EffectFn): EffectFnReturn => {
+  // const flush = opt.flush
+
   effectDepsMap.set(effectFn, new Set())
   let state = EffectStatus.RUNNING
   if (currentEffectFn) currentEffectFns.push(currentEffectFn)
@@ -151,11 +188,11 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
   }
   effectFnRun = true
   let cleanupFn = effectFn(onCleanup) ?? null
-  effectFnRun = false
   if (cleanupFn) {
     onCleanup(cleanupFn)
     cleanupFn = null
   }
+  effectFnRun = false
   currentEffectFn = currentEffectFns.pop() ?? null
 
   const cleanup = () => {

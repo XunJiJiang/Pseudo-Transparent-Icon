@@ -1,9 +1,7 @@
 // TODO: 当前[next函数]只能增加，不能减少，计划修改为可以增加和减少。目前没有用到，暂时不修改
 
-import html from './index.html?raw'
 import css from './index.scss?raw'
 import {
-  createElement,
   defineCustomElement,
   effect,
   onMounted,
@@ -12,6 +10,7 @@ import {
 } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
+import BaseElement from 'xj-web-core/dom/BaseElement'
 
 type BgColorType = 'pure' | 'vague'
 
@@ -24,43 +23,82 @@ const setBodyBgColor = (type: BgColorType) => {
 // const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
 
 export default defineCustomElement('l-index', {
-  template: html,
   style: css,
   setup() {
     const lIndexRef = refTemplate('l-index-ref')
     const headerRef = refTemplate('header-ref')
     const backSpanRef = refTemplate('back-span-ref')
     const titleSpanRef = refTemplate('title-span-ref')
+
+    const handle = {
+      ...throttling(
+        {
+          prev: () => {
+            if (index.value === 0) return
+            isPrev = true
+            index.value -= pageIndexChangeList.pop() || 0
+          },
+          // TODO: [next函数] 此处
+          next: (num = 1, type: 'relative' | 'absolute' = 'relative') => {
+            /*@__PURE__*/ nextCheck(num, type)
+            isPrev = false
+            if (type === 'absolute') {
+              pageIndexChangeList.push(num - index.value)
+              index.value = num
+            } else if (type === 'relative') {
+              pageIndexChangeList.push(num)
+              index.value += num
+            }
+          }
+        },
+        500,
+        {
+          type: 'once'
+        }
+      ),
+      deviceChange(
+        index: number,
+        value: {
+          label: string
+          value: string
+        }
+      ) {
+        console.log(index, value)
+      },
+      scroll(scrollTop: number) {
+        if (scrollTop < 16) {
+          setBodyBgColor('pure')
+          setLIndexBgColor('pure')
+        } else {
+          setBodyBgColor('vague')
+          setLIndexBgColor('vague')
+        }
+      }
+    }
+
     const views: [
       {
         value: HTMLElement | null
       },
       string,
-      Parameters<typeof createElement>
+      () => BaseElement
     ][] = [
       [
         refTemplate('v-home-ref'),
         '首页',
-        [
-          'v-home',
-          {
-            ref: 'v-home-ref',
-            'on-next': 'next'
-          }
-        ]
+        () => <v-home ref="v-home-ref" on-next={handle.next} />
       ],
       [
         refTemplate('v-sd-type-ref'),
         '选择设备类型',
-        [
-          'v-sd-type',
-          {
-            ref: 'v-sd-type-ref',
-            'on-next': 'next',
-            'on-scroll': 'scroll',
-            'on-change': 'deviceChange'
-          }
-        ]
+        () => (
+          <v-sd-type
+            ref="v-sd-type-ref"
+            on-next={handle.next}
+            on-scroll={handle.scroll}
+            on-change={handle.deviceChange}
+          />
+        )
       ]
     ]
 
@@ -99,10 +137,7 @@ export default defineCustomElement('l-index', {
 
       handle.scroll(0)
 
-      const newEle = createElement(
-        views[index.value][2][0],
-        views[index.value][2][1]
-      )
+      const newEle = views[index.value][2]()
 
       let oldEle = nowELe
       nowELe = newEle
@@ -234,57 +269,39 @@ export default defineCustomElement('l-index', {
       throw new Error(err)
     }
 
-    const handle = {
-      ...throttling(
-        {
-          prev: () => {
-            if (index.value === 0) return
-            isPrev = true
-            index.value -= pageIndexChangeList.pop() || 0
-          },
-          // TODO: [next函数] 此处
-          next: (num = 1, type: 'relative' | 'absolute' = 'relative') => {
-            /*@__PURE__*/ nextCheck(num, type)
-            isPrev = false
-            if (type === 'absolute') {
-              pageIndexChangeList.push(num - index.value)
-              index.value = num
-            } else if (type === 'relative') {
-              pageIndexChangeList.push(num)
-              index.value += num
-            }
-          }
-        },
-        500,
-        {
-          type: 'once'
-        }
-      ),
-      deviceChange(
-        index: number,
-        value: {
-          label: string
-          value: string
-        }
-      ) {
-        console.log(index, value)
-      },
-      scroll(scrollTop: number) {
-        if (scrollTop < 16) {
-          setBodyBgColor('pure')
-          setLIndexBgColor('pure')
-        } else {
-          setBodyBgColor('vague')
-          setLIndexBgColor('vague')
-        }
-      }
-    }
-
-    return {
-      back() {
-        handle.prev()
-      },
-      ...handle
-    }
+    return (
+      <div id="l-index" ref="l-index-ref">
+        <header ref="header-ref" class="hide">
+          <span ref="back-root-ref" class="back">
+            <c-button
+              ref="back-but-ref"
+              on-click={() => {
+                handle.prev()
+              }}
+              data-type="back"
+              aria-label="返回"
+              style="position: absolute; top: 50%; transform: translate(0, -50%)"
+            >
+              <span class="but-slot-def" slot="default">
+                <c-icon
+                  name="left"
+                  size="1rem"
+                  style="
+                    position: absolute;
+                    top: 50%;
+                    transform: translate(0, -50%);
+                    line-height: 1.5rem;
+                  "
+                ></c-icon>
+                <span ref="back-span-ref" class="back-span"></span>
+              </span>
+            </c-button>
+          </span>
+          <span ref="title-root-ref" class="title">
+            <span ref="title-span-ref" class="title-span"></span>
+          </span>
+        </header>
+      </div>
+    )
   }
 })

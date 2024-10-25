@@ -2,6 +2,10 @@
   "include": ["env.d.ts", "src/**/*"],
   "exclude": ["src/**/__tests__/*", "src/**/*.test.*"],
   "compilerOptions": {
+    "jsx": "preserve",
+    "jsxFactory": "__jsx.h",
+    "jsxFragmentFactory": "__jsx.Fragment",
+
     "composite": true,
     "target": "esnext",
     "useDefineForClassFields": true,

@@ -58,6 +58,11 @@ export default defineConfig({
       include: ['src/core/**'],
       exclude: ['src/core/index.ts']
     }
+  },
+  esbuild: {
+    jsxFactory: '__jsx.h',
+    jsxFragment: '__jsx.Fragment',
+    jsxInject: `import { __jsx } from 'xj-web-core/index'`
   }
 })
 

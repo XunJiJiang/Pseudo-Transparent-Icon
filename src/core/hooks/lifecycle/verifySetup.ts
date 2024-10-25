@@ -8,13 +8,19 @@ export interface LifecycleFn<T extends (() => void) | void = () => void> {
   (callback: LifecycleCallback<T>): void
 }
 
-// 记录是否在运行 setup 函数
+// 是否在运行 setup 函数
 let isRunningSetup = false
 
-// 修改 setup 函数的运行状态
-export const setRunningSetup = (val: boolean) => {
-  isRunningSetup = val
+/** 修改setup运行状态 */
+export const startSetupRunning = () => {
+  isRunningSetup = true
+
+  return {
+    end: () => {
+      isRunningSetup = false
+    }
+  }
 }
 
-// 获取 setup 函数的运行状态
+/** 获取 setup 函数的运行状态 */
 export const hasSetupRunning = () => isRunningSetup

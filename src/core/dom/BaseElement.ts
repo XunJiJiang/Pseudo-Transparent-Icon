@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { type Func } from '@type/function'
 
 // #region Description
@@ -256,20 +255,23 @@ export type EventListeners = {
 export default class BaseElement extends HTMLElement {
   static events = events
 
-  /** 整合observedAttributes和从父组件获取的数据(由x-开头的属性所得) */
+  /** 整合observedAttributes和从父组件获取的数据 */
   $props: Record<string, any> = {}
 
-  /** 当前组件暴露给子组件的数据 */
-  $data: Record<string, any> = {}
+  /** 当前组件给原生生命周期事件共享的数据 */
+  $sharedData: Record<string, any> = {}
 
-  /** 当前组件暴露给子组件的方法 */
-  $methods: Record<string, Func> = {}
+  /** 当使用createElement创建dom时，将参数中的属性赋予此处 */
+  $propData: Record<string, any> = {}
+
+  /** 当使用createElement创建dom时，将参数中的事件赋予此处 */
+  $emitMethods: Record<string, Func> = {}
 
   /** 影子 DOM 根 */
   $root: ShadowRoot | BaseElement = this.attachShadow({ mode: 'open' })
 
   /** 当前组件暴露给父组件的属性 */
-  $exposeAttributes: Record<string, any> = {}
+  $exposedData: Record<string, any> = {}
 
   /** 模板中声明了 expose 的元素 */
   $defineExposes: Record<string, Record<string, any>> = {}
@@ -285,14 +287,6 @@ export default class BaseElement extends HTMLElement {
 
   /** 父组件 */
   $parentComponent: BaseElement | null = null
-
-  /** 注册过事件的原生元素 */
-  $eventElements: Map<
-    Element,
-    {
-      [key in EventHandlers]?: EventListeners
-    }
-  > = new Map()
 
   constructor() {
     super()
@@ -314,21 +308,13 @@ export default class BaseElement extends HTMLElement {
       }
     })
 
-    // for (const [element, events] of this.$eventElements) {
-    //   for (const [type, { listener }] of Object.entries(events)) {
-    //     element.removeEventListener(type, listener)
-    //   }
-    // }
-    this.$eventElements.clear()
-
     this.$props = {}
-    this.$data = {}
-    this.$methods = {}
+    this.$sharedData = {}
 
-    for (const key in this.$exposeAttributes) {
-      delete this.$exposeAttributes[key]
+    for (const key in this.$exposedData) {
+      delete this.$exposedData[key]
     }
-    this.$exposeAttributes = {}
+    this.$exposedData = {}
 
     this.$defineExposes = {}
     for (const key in this.$exposes) {

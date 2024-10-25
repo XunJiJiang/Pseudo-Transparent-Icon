@@ -14,7 +14,7 @@ export { default as refTemplate } from './dom/refTemplate'
 
 export { default as exposeTemplate } from './dom/exposeTemplate'
 
-export { default as expose } from './dom/exposeAttributes'
+export { default as expose } from './dom/exposeData'
 
 export { default as reactive } from './reactive'
 
@@ -31,3 +31,5 @@ export { default as useId } from './hooks/useId'
 export { isHTMLElement } from './utils/shared'
 
 export { createElement } from './dom/createElement'
+
+export { __jsx, h, Fragment } from './dom/jsx'

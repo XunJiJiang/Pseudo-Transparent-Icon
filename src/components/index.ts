@@ -1,8 +1,8 @@
-import button from './button/index.ts'
-import icon from './icon/index.ts'
-import page from './page/index.ts'
-import card from './card/index.ts'
-import buttonGroup from './button-group/index.ts'
+import button from './button/index'
+import icon from './icon/index'
+import page from './page/index'
+import card from './card/index'
+import buttonGroup from './button-group/index'
 
 export default () => {
   button()
