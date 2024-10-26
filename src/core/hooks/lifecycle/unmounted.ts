@@ -1,10 +1,10 @@
-import BaseElement from 'xj-web-core/dom/BaseElement'
+import BaseElement from '../../dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
   hasSetupRunning
 } from './verifySetup'
-import { getCurrentComponent } from 'xj-web-core/dom/fixComponentIns'
+import { getCurrentComponent } from '../../dom/fixComponentIns'
 
 const callbackMap = new WeakMap<BaseElement, Set<LifecycleCallback>>()
 
@@ -22,8 +22,7 @@ export const onUnmounted: LifecycleFn = (callback) => {
   callbackMap.get(ele)!.add(callback)
 }
 
-export const runUnmounted = () => {
-  const ele = getCurrentComponent()
+export const runUnmounted = (ele: BaseElement) => {
   if (!ele) {
     /*@__PURE__*/ throw new Error(`runUnMounted: 当前组件实例不存在`)
   }

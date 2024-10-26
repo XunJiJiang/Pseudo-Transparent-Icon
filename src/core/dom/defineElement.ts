@@ -87,11 +87,18 @@ const checkObservedAttributes = /*@__PURE__*/ (attrs: string[]) => {
 /** 保留键 */
 const reservedKeys = ['ref', 'expose']
 
+export const isReservedKey = (
+  key: string
+): key is (typeof reservedKeys)[number] => reservedKeys.includes(key)
+
 /** 记录自定义web组件名 */
 const customElementNameSet = new Set<string>()
 
 /** 是否是自定义web组件 */
-export const isCustomElement = (name: string) => customElementNameSet.has(name)
+export const isCustomElement = (
+  name: string,
+  el: HTMLElement
+): el is BaseElement => customElementNameSet.has(name)
 
 const beforeRemove = (ele: Node, root: BaseElement) => {
   if (ele instanceof Element) {
@@ -293,6 +300,10 @@ const defineCustomElement = (
       return observedAttributes || []
     }
 
+    get obAttr() {
+      return observedAttributes || []
+    }
+
     connectedCallback() {
       const { old: parentComponent, restore } = setComponentIns(this)
       this.$parentComponent = parentComponent
@@ -419,20 +430,16 @@ const defineCustomElement = (
           emit: emitFn
         }) || {}
 
-      if (setupData instanceof Node) {
-        // TODO:
-      }
-
       // Lifecycle: beforeCreate 调用时机
-      runBeforeCreate()
+      runBeforeCreate(this)
 
       setupEnd()
 
-      clearBeforeCreate()
+      clearBeforeCreate(this)
       // Lifecycle: created 调用时机
-      runCreated()
+      runCreated(this)
 
-      clearCreated()
+      clearCreated(this)
       // Lifecycle: beforeMount 调用时机
       runBeforeMount(this)
 
@@ -516,7 +523,7 @@ const defineCustomElement = (
       clearMounted(this)
 
       // Lifecycle: unmounted 调用时机
-      runUnmounted()
+      runUnmounted(this)
       disconnected?.call(this, {
         data: this.$sharedData
       })

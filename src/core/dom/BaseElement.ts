@@ -255,6 +255,10 @@ export type EventListeners = {
 export default class BaseElement extends HTMLElement {
   static events = events
 
+  get obAttr(): string[] {
+    return []
+  }
+
   /** 整合observedAttributes和从父组件获取的数据 */
   $props: Record<string, any> = {}
 

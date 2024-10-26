@@ -1,3 +1,5 @@
+import { getCurrentComponent } from '../../dom/fixComponentIns'
+import BaseElement from '../../dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
@@ -9,30 +11,42 @@ import {
 // 此时同步函数未执行完毕，而callbackSet已经清空
 // 因此可以复用callbackSet
 
-const callbackSet = new Set<LifecycleCallback>()
+const callbackMap = new WeakMap<BaseElement, Set<LifecycleCallback>>()
 
 export const onCreated: LifecycleFn = (callback) => {
   if (!hasSetupRunning()) {
     return /*@__PURE__*/ console.error('onCreated 必须在 setup 函数中调用')
   }
-  callbackSet.add(callback)
+  const ele = getCurrentComponent()
+  if (!ele) {
+    return /*@__PURE__*/ console.error('onMounted 必须在 setup 函数中调用')
+  }
+  if (!callbackMap.has(ele)) {
+    callbackMap.set(ele, new Set())
+  }
+  callbackMap.get(ele)!.add(callback)
 }
 
 // 同理，可以复用
+const clearFnMap = new WeakMap<BaseElement, Set<() => void>>()
 
-const clearFnSet = new Set<() => void>()
-
-export const runCreated = () => {
-  callbackSet.forEach((cb) => {
+export const runCreated = (ele: BaseElement) => {
+  const callbackSet = callbackMap.get(ele)
+  callbackSet?.forEach((cb) => {
     const clearFn = cb()
     if (clearFn) {
-      clearFnSet.add(clearFn)
+      if (!clearFnMap.has(ele)) {
+        clearFnMap.set(ele, new Set())
+      }
+      clearFnMap.get(ele)!.add(clearFn)
     }
   })
-  callbackSet.clear()
+  callbackSet?.clear()
 }
 
-export const clearCreated = () => {
-  clearFnSet.forEach((cb) => cb())
-  clearFnSet.clear()
+export const clearCreated = (ele: BaseElement) => {
+  if (clearFnMap.has(ele)) {
+    clearFnMap.get(ele)!.forEach((fn) => fn())
+    clearFnMap.delete(ele)
+  }
 }

@@ -29,7 +29,7 @@ type EffectOpt = {
 
 type StopFn = (opt?: { cleanup?: boolean }) => void
 
-type EffectFnReturnFn = {
+export type EffectFnReturnFn = {
   stop: StopFn
   run: () => void
   pause: () => void
@@ -139,7 +139,8 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
         effectFnReturn.resume = _ret.resume
         return _ret
       })
-    } else {
+    } else if (flush === 'pre') {
+      let _stopFn: EffectCleanupFn
       onBeforeCreate(() => {
         const ele = getInstance()
         const _ret = _effect((onCleanup) => {
@@ -148,12 +149,15 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
           restore()
           return _ret
         })
+        _stopFn = _ret
         stopFn = _ret
         effectFnReturn.stop = _ret.stop
         effectFnReturn.run = _ret.run
         effectFnReturn.pause = _ret.pause
         effectFnReturn.resume = _ret.resume
-        return _ret
+      })
+      onMounted(() => {
+        return _stopFn
       })
     }
 
