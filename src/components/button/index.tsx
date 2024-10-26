@@ -33,9 +33,6 @@ export default defineCustomElement('c-button', {
     onMounted(() => {
       const { $defineRefs } = getInstance()
       const button = $defineRefs['c-button-ref']
-      button?.setAttribute('data-type', (dataType as string) ?? 'default')
-
-      if (style) button?.setAttribute('style', style as string)
 
       const touchstart = () => {
         button?.classList.add('touch-active')
@@ -73,6 +70,8 @@ export default defineCustomElement('c-button', {
         ref="c-button-ref"
         class="c-button"
         aria-label={ariaLabel}
+        data-type={dataType}
+        style={style}
         on-click={(e: Event) => {
           if (status.value === 'disabled') return
           emit('click', e)

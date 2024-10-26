@@ -32,7 +32,6 @@ export default defineCustomElement('c-page', {
     }
     onMounted(() => {
       pageRootRef.value?.classList.add(`page-${props['data-index'] || '1'}`)
-      pageRootRef.value?.setAttribute('style', style as string)
 
       pageRootRef.value?.addEventListener('scroll', scroll)
 
@@ -42,7 +41,7 @@ export default defineCustomElement('c-page', {
     })
 
     return (
-      <div ref="c-page-ref" class="c-page">
+      <div ref="c-page-ref" class="c-page" style={style}>
         <main>
           <slot name="default"></slot>
         </main>

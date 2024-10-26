@@ -10,6 +10,7 @@ import {
 } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
+// TODO: 需要单独导出一个interface, 而不暴露BaseElement
 import BaseElement from 'xj-web-core/dom/BaseElement'
 
 type BgColorType = 'pure' | 'vague'
@@ -107,12 +108,16 @@ export default defineCustomElement('l-index', {
 
     const pageList: string[] = []
 
+    const lIndexRefStyle = ref(`--root-width: 0px;`)
+
     const resize = throttling(() => {
-      lIndexRef.value?.setAttribute(
-        'style',
-        `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
-      )
+      // lIndexRef.value?.setAttribute(
+      //   'style',
+      //   `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
+      // )
+      lIndexRefStyle.value = `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
     })
+
     onMounted(() => {
       resize()
 
@@ -270,7 +275,7 @@ export default defineCustomElement('l-index', {
     }
 
     return (
-      <div id="l-index" ref="l-index-ref">
+      <div id="l-index" ref="l-index-ref" style={lIndexRefStyle}>
         <header ref="header-ref" class="hide">
           <span ref="back-root-ref" class="back">
             <c-button
