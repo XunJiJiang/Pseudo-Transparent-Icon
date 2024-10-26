@@ -29,9 +29,12 @@ type EffectOpt = {
 
 type StopFn = (opt?: { cleanup?: boolean }) => void
 
+const SYMBOL_PRIVATE = Symbol('private')
+
+// 此处对外公开的类型需要删除run
 export type EffectFnReturnFn = {
   stop: StopFn
-  run: () => void
+  run: (cb: () => void, privateSymbol: typeof SYMBOL_PRIVATE) => void
   pause: () => void
   resume: () => void
 }
@@ -57,12 +60,12 @@ const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
 
 // TODO: flush
 // 对于在setup函数中运行的effect
-//       postFlush: 在onMounted后运行 默认
-//       preFlush: 在onMounted前运行
-//       sync: 同步运行 未实现
+//       post: 在onMounted后运行 默认
+//       pre: 在onMounted前运行
+//       sync: 同步运行
 // 对于其他effect
-//       postFlush\preFlush: 异步运行 默认
-//       sync: 同步运行 未实现
+//       post\pre: 异步运行 默认
+//       sync: 同步运行
 
 /**
  * 创建副作用函数
@@ -79,7 +82,7 @@ const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
  * // 停止
  * stop()
  *
- * const { pause, resume, run, stop } = effect(() => {
+ * const { pause, resume, stop } = effect(() => {
  *   console.log('effect')
  *   return () => {
  *     console.log('cleanup')
@@ -89,8 +92,6 @@ const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
  * pause()
  * // 恢复
  * resume()
- * // 运行一次
- * run()
  * // 停止
  * stop()
  */
@@ -131,7 +132,7 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
           const _ret = effFn(onCleanup)
           restore()
           return _ret
-        })
+        }, opt)
         stopFn = _ret
         effectFnReturn.stop = _ret.stop
         effectFnReturn.run = _ret.run
@@ -148,7 +149,7 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
           const _ret = effFn(onCleanup)
           restore()
           return _ret
-        })
+        }, opt)
         _stopFn = _ret
         stopFn = _ret
         effectFnReturn.stop = _ret.stop
@@ -163,7 +164,7 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
 
     return effectFnReturn
   } else {
-    return _effect(effFn)
+    return _effect(effFn, opt)
   }
 }
 
@@ -173,7 +174,7 @@ enum EffectStatus {
   STOP
 }
 
-const _effect = (effectFn: EffectFn): EffectFnReturn => {
+const _effect = (effectFn: EffectFn, opt: EffectOpt): EffectFnReturn => {
   // const flush = opt.flush
 
   effectDepsMap.set(effectFn, new Set())
@@ -221,11 +222,16 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
     })
     effectDepsMap.delete(effectFn)
   }
-  effectFnReturn.run = () => {
-    if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) return
+  effectFnReturn.run = (cb) => {
+    if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) {
+      cb()
+      return
+    }
     cleanup()
-    AutoAsyncTask.addTask(() => {
-      if (state === EffectStatus.STOP) return
+
+    cb()
+
+    if (opt.flush === 'sync') {
       effectFnRun = true
       let cleanupFn = effectFn(onCleanup) ?? null
       effectFnRun = false
@@ -233,7 +239,18 @@ const _effect = (effectFn: EffectFn): EffectFnReturn => {
         onCleanup(cleanupFn)
         cleanupFn = null
       }
-    }, effect)
+    } else {
+      AutoAsyncTask.addTask(() => {
+        if (state === EffectStatus.STOP) return
+        effectFnRun = true
+        let cleanupFn = effectFn(onCleanup) ?? null
+        effectFnRun = false
+        if (cleanupFn) {
+          onCleanup(cleanupFn)
+          cleanupFn = null
+        }
+      }, effect)
+    }
   }
   effectFnReturn.pause = () => {
     if (state === EffectStatus.STOP) return
@@ -378,8 +395,10 @@ class Dependency<T extends object> {
           return new Proxy(_value, {
             apply: (target, thisArg, argArray) => {
               collect()
-              const result = Reflect.apply(target, thisArg, argArray)
-              distribute()
+              let result: unknown
+              distribute(() => {
+                result = Reflect.apply(target, thisArg, argArray)
+              })
               return result
             },
             get: (target, key, receiver) => {
@@ -400,9 +419,14 @@ class Dependency<T extends object> {
         return _ret
       },
       set: (target, key, value, receiver) => {
-        if (isArray(target)) this.distribute()
-        else this.distribute(key)
-        return Reflect.set(target, key, value, receiver)
+        let _ret = false
+        const cb = () => {
+          _ret = Reflect.set(target, key, value, receiver)
+        }
+
+        if (isArray(target)) this.distribute(cb)
+        else this.distribute(cb, key)
+        return _ret
       }
     })
   }
@@ -418,11 +442,20 @@ class Dependency<T extends object> {
     }
   }
 
-  private distribute(key: string | symbol = SYMBOL_EFFECT) {
+  private distribute(update: () => void, key: string | symbol = SYMBOL_EFFECT) {
     const _dep = this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
+    let updateRun = false
+    const run = () => {
+      if (updateRun) return
+      updateRun = true
+      update()
+    }
     _dep.forEach((effectFn) => {
-      effectReturnMap.get(effectFn)?.run()
+      const effectReturn = effectReturnMap.get(effectFn)
+      if (effectReturn) effectReturn.run(run, SYMBOL_PRIVATE)
+      else run()
     })
+    if (!updateRun) run()
   }
 
   get value() {
