@@ -16,12 +16,7 @@ import { isCustomElement, isReservedKey } from './defineElement'
 // }
 
 // TODO: 重写remove appendChild等方法, 尽量不用FinalizationRegistry
-const registry = new FinalizationRegistry<Set<StopFn>>((heldValue) => {
-  for (const effectStop of heldValue) {
-    effectStop()
-  }
-  registry.unregister(heldValue)
-})
+// 仅重写remove, 同时不允许外部直接添加和删除元素
 
 const setAttribute = (el: Element, key: string, value: any) => {
   if (value === null || value === undefined) {
@@ -38,7 +33,9 @@ export const createElement = (
   props?: { [key: string]: any },
   children?: ChildType[]
 ): Element => {
-  const el = document.createElement(tag)
+  const el = document.createElement(tag) as HTMLElement & {
+    __stopEffects__: () => void
+  }
 
   if (isArray(children)) {
     children.forEach((child) => {
@@ -53,11 +50,22 @@ export const createElement = (
   }
 
   const isCustomEle = isCustomElement(tag, el)
-  const component = el as BaseElement
+  const component = el as BaseElement & {
+    __stopEffects__: () => void
+  }
 
   const EffectStops: Set<StopFn> = new Set()
 
-  registry.register(el, EffectStops)
+  el.__stopEffects__ = () => {
+    EffectStops.forEach((stop) => stop())
+  }
+
+  const elRemove = el.remove.bind(el)
+
+  el.remove = () => {
+    el.__stopEffects__()
+    elRemove()
+  }
 
   for (const key in props) {
     // 处理事件绑定

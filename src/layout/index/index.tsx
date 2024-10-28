@@ -17,10 +17,6 @@ const setBodyBgColor = (type: BgColorType) => {
 
 // const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
 
-const registry = new FinalizationRegistry<string>((heldValue) => {
-  console.log('heldValue', heldValue)
-})
-
 export default defineCustomElement('l-index', {
   style: css,
   setup() {
@@ -125,7 +121,6 @@ export default defineCustomElement('l-index', {
       handle.scroll(0)
 
       const newEle = views[index.value][1]()
-      registry.register(newEle, newEle.localName)
 
       let oldEle = nowELe
       nowELe = newEle
