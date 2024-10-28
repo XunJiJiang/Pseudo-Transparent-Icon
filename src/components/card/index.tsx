@@ -31,16 +31,16 @@ export default defineCustomElement('c-card', {
             <div class="default">
               <div class="header-icon">
                 <span>
-                  <c-icon name="radius-upleft" size="1.6rem"></c-icon>
+                  <c-icon name="radius-upleft" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-setting" size="1.6rem"></c-icon>
+                  <c-icon name="radius-setting" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-bottomleft" size="1.6rem"></c-icon>
+                  <c-icon name="radius-bottomleft" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-bottomright" size="1.6rem"></c-icon>
+                  <c-icon name="radius-bottomright" size="1.6rem" />
                 </span>
               </div>
               <div class="content">
@@ -49,7 +49,7 @@ export default defineCustomElement('c-card', {
                     href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon"
                     target="_blank"
                   >
-                    <c-icon name="github-fill" size="0.8rem"></c-icon>
+                    <c-icon name="github-fill" size="0.8rem" />
                     &nbsp; 进一步了解伪透明图标和xj-web...
                   </a>
                 </p>

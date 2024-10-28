@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { effect, isRef, type EffectFnReturnFn } from '../Dependency'
+import { effect, isRef, type StopFn } from '../Dependency'
 import { isArray } from '../utils/shared'
 import BaseElement from './BaseElement'
 import { isCustomElement, isReservedKey } from './defineElement'
@@ -15,14 +15,13 @@ import { isCustomElement, isReservedKey } from './defineElement'
 //   return true
 // }
 
-const registry = new FinalizationRegistry<Set<EffectFnReturnFn>>(
-  (heldValue) => {
-    for (const effectStop of heldValue) {
-      effectStop.stop()
-    }
-    registry.unregister(heldValue)
+// TODO: 重写remove appendChild等方法, 尽量不用FinalizationRegistry
+const registry = new FinalizationRegistry<Set<StopFn>>((heldValue) => {
+  for (const effectStop of heldValue) {
+    effectStop()
   }
-)
+  registry.unregister(heldValue)
+})
 
 const setAttribute = (el: Element, key: string, value: any) => {
   if (value === null || value === undefined) {
@@ -56,11 +55,9 @@ export const createElement = (
   const isCustomEle = isCustomElement(tag, el)
   const component = el as BaseElement
 
-  const EffectStops: Set<EffectFnReturnFn> = new Set()
+  const EffectStops: Set<StopFn> = new Set()
 
-  if (!isCustomEle) {
-    registry.register(el, EffectStops)
-  }
+  registry.register(el, EffectStops)
 
   for (const key in props) {
     // 处理事件绑定
@@ -82,7 +79,17 @@ export const createElement = (
       if (isCustomEle) {
         // 对于保留属性 TODO: 目前是ref和expose。有修改需求时，需要修改此处
         if (isReservedKey(key)) {
-          setAttribute(el, key, props[key])
+          if (isRef(props[key])) {
+            if (key === 'ref') {
+              props[key].value = el
+            } else if (key === 'expose') {
+              props[key].value = el.$exposedData
+            }
+          } else {
+            /*#__PURE__*/ console.error(
+              `ref和expose属性只能是ref类型, 但得到了 ${typeof props[key]} ${props[key]}`
+            )
+          }
         }
         // 对于observe属性
         else if (el.obAttr.includes(key)) {
@@ -107,8 +114,24 @@ export const createElement = (
       }
       // 对于原生元素
       else {
+        // 对于保留属性 TODO: 目前是ref和expose。有修改需求时，需要修改此处
+        if (isReservedKey(key)) {
+          if (isRef(props[key])) {
+            if (key === 'ref') {
+              props[key].value = el
+            } else if (key === 'expose') {
+              /*@__PURE__*/ console.error(
+                `原生元素不支持expose属性, 请使用自定义元素`
+              )
+            }
+          } else {
+            /*#__PURE__*/ console.error(
+              `ref和expose属性只能是ref类型, 但得到了 ${typeof props[key]} ${props[key]}`
+            )
+          }
+        }
         // 值是ref, 监听ref的变化, 自动更新属性值
-        if (isRef(props[key])) {
+        else if (isRef(props[key])) {
           EffectStops.add(
             effect(
               () => {

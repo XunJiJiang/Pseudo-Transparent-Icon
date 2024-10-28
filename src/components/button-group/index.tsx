@@ -1,5 +1,5 @@
 import css from './index.scss?raw'
-import { defineCustomElement, refTemplate, useId } from 'xj-web-core/index'
+import { defineCustomElement, useId, ref } from 'xj-web-core/index'
 
 type ButtonGroupProps = {
   type: 'radio' | 'checkbox' | 'independent'
@@ -32,10 +32,14 @@ const createItem = (
   opt: {
     event: (e: Event) => void
     style?: string
+    // TODO: 完善RefType后修改
+    ref: {
+      value: HTMLInputElement | null
+    }
   }
 ) => {
   return (
-    <label ref={id} for={id} class="button-item" style={opt.style}>
+    <label ref={opt.ref} for={id} class="button-item" style={opt.style}>
       <input
         type={type}
         id={id}
@@ -48,7 +52,7 @@ const createItem = (
       <span class="button-item-inner">
         <span class="button-item-label">{value}</span>
         <span class="button-item-icon">
-          <c-icon name="check" size="1rem"></c-icon>
+          <c-icon name="check" size="1rem" />
         </span>
       </span>
     </label>
@@ -63,6 +67,10 @@ type TypeMap = {
     opt: {
       event: (e: Event) => void
       style?: string
+      // TODO: 完善RefType后修改
+      ref: {
+        value: HTMLInputElement | null
+      }
     }
   ) => string
 }
@@ -105,9 +113,7 @@ export default defineCustomElement('c-button-group', {
   },
   setup({ content, type, title }: ButtonGroupProps, { emit }) {
     const id = useId()
-    const butRefs = content.map((_, i) =>
-      refTemplate('button-group::' + i + id)
-    )
+    const butRefs = content.map(() => ref<HTMLInputElement>(null))
     let prevIndex = -1
 
     const change = (_e: Event, i: string) => {
@@ -138,7 +144,8 @@ export default defineCustomElement('c-button-group', {
                 label,
                 {
                   event: (event: Event) => change(event, i.toString()),
-                  style
+                  style,
+                  ref: butRefs[i]
                 }
               )
             )}

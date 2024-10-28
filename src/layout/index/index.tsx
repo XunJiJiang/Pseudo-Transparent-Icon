@@ -1,13 +1,7 @@
 // TODO: 当前[next函数]只能增加，不能减少，计划修改为可以增加和减少。目前没有用到，暂时不修改
 
 import css from './index.scss?raw'
-import {
-  defineCustomElement,
-  effect,
-  onMounted,
-  ref,
-  refTemplate
-} from 'xj-web-core/index'
+import { defineCustomElement, effect, onMounted, ref } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
 // TODO: 需要单独导出一个interface, 而不暴露BaseElement
@@ -23,13 +17,17 @@ const setBodyBgColor = (type: BgColorType) => {
 
 // const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
 
+const registry = new FinalizationRegistry<string>((heldValue) => {
+  console.log('heldValue', heldValue)
+})
+
 export default defineCustomElement('l-index', {
   style: css,
   setup() {
-    const lIndexRef = refTemplate('l-index-ref')
-    const headerRef = refTemplate('header-ref')
-    const backSpanRef = refTemplate('back-span-ref')
-    const titleSpanRef = refTemplate('title-span-ref')
+    const lIndexRef = ref<HTMLDivElement | null>(null)
+    const headerRef = ref<HTMLHeadElement>(null)
+    const backSpanRef = ref<HTMLSpanElement>(null)
+    const titleSpanRef = ref<HTMLSpanElement>(null)
 
     const handle = {
       ...throttling(
@@ -77,24 +75,12 @@ export default defineCustomElement('l-index', {
       }
     }
 
-    const views: [
-      {
-        value: HTMLElement | null
-      },
-      string,
-      () => BaseElement
-    ][] = [
+    const views: [string, () => BaseElement][] = [
+      ['首页', () => <v-home on-next={handle.next} />],
       [
-        refTemplate('v-home-ref'),
-        '首页',
-        () => <v-home ref="v-home-ref" on-next={handle.next} />
-      ],
-      [
-        refTemplate('v-sd-type-ref'),
         '选择设备类型',
         () => (
           <v-sd-type
-            ref="v-sd-type-ref"
             on-next={handle.next}
             on-scroll={handle.scroll}
             on-change={handle.deviceChange}
@@ -111,10 +97,6 @@ export default defineCustomElement('l-index', {
     const lIndexRefStyle = ref(`--root-width: 0px;`)
 
     const resize = throttling(() => {
-      // lIndexRef.value?.setAttribute(
-      //   'style',
-      //   `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
-      // )
       lIndexRefStyle.value = `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
     })
 
@@ -142,7 +124,8 @@ export default defineCustomElement('l-index', {
 
       handle.scroll(0)
 
-      const newEle = views[index.value][2]()
+      const newEle = views[index.value][1]()
+      registry.register(newEle, newEle.localName)
 
       let oldEle = nowELe
       nowELe = newEle
@@ -163,8 +146,8 @@ export default defineCustomElement('l-index', {
         oldEle = null
       }, 500)
 
-      let nowTitle = views[index.value][1]
-      const prevTitle = prevIndex >= 0 ? views[prevIndex][1] : views[0][1]
+      let nowTitle = views[index.value][0]
+      const prevTitle = prevIndex >= 0 ? views[prevIndex][0] : views[0][0]
 
       titleSpanRef.value.classList.remove('add')
       titleSpanRef.value.classList.remove('reduce')
@@ -172,15 +155,15 @@ export default defineCustomElement('l-index', {
       if (isPrev && isPrev !== null) {
         // reduce
         titleSpanRef.value.innerHTML = `
-        <span>${nowTitle}</span>
-        <span>${prevTitle}</span>
+          <span>${nowTitle}</span>
+          <span>${prevTitle}</span>
         `
         titleSpanRef.value.classList.add('reduce')
       } else if (isPrev !== null) {
         // add
         titleSpanRef.value.innerHTML = `
-        <span>${prevTitle}</span>
-        <span>${nowTitle}</span>
+          <span>${prevTitle}</span>
+          <span>${nowTitle}</span>
         `
         titleSpanRef.value.classList.add('add')
       }
@@ -275,11 +258,10 @@ export default defineCustomElement('l-index', {
     }
 
     return (
-      <div id="l-index" ref="l-index-ref" style={lIndexRefStyle}>
-        <header ref="header-ref" class="hide">
-          <span ref="back-root-ref" class="back">
+      <div id="l-index" ref={lIndexRef} style={lIndexRefStyle}>
+        <header ref={headerRef} class="hide">
+          <span class="back">
             <c-button
-              ref="back-but-ref"
               on-click={() => {
                 handle.prev()
               }}
@@ -297,13 +279,13 @@ export default defineCustomElement('l-index', {
                     transform: translate(0, -50%);
                     line-height: 1.5rem;
                   "
-                ></c-icon>
-                <span ref="back-span-ref" class="back-span"></span>
+                />
+                <span ref={backSpanRef} class="back-span" />
               </span>
             </c-button>
           </span>
-          <span ref="title-root-ref" class="title">
-            <span ref="title-span-ref" class="title-span"></span>
+          <span class="title">
+            <span ref={titleSpanRef} class="title-span" />
           </span>
         </header>
       </div>

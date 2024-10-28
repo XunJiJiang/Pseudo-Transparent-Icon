@@ -1,5 +1,6 @@
+import BaseElement from 'xj-web-core/dom/BaseElement'
 import css from './index.scss?raw'
-import { defineCustomElement } from 'xj-web-core/index'
+import { defineCustomElement, ref } from 'xj-web-core/index'
 
 type HomeProps = {
   style: string
@@ -12,7 +13,7 @@ type HomeEmit = {
 
 export default defineCustomElement('v-home', {
   style: css,
-  observedAttributes: ['data-status'],
+  observedAttributes: ['data-status', 'd-test'],
   props: {
     style: {
       default: ''
@@ -23,26 +24,26 @@ export default defineCustomElement('v-home', {
       required: true
     }
   },
-  setup({ style }: HomeProps, { emit }) {
-    // const homeRef = refTemplate('home-ref')
-
+  setup({ style }: HomeProps, { emit, share }) {
+    const cPageRef = ref<BaseElement>(null)
+    share({ cPageRef })
     return (
-      <c-page ref="c-page-ref" data-index="0" on-scroll="scroll" style={style}>
+      <c-page ref={cPageRef} data-index="0" on-scroll="scroll" style={style}>
         <div slot="default" class="root">
           <c-card>
             <div slot="default" class="card">
               <div class="header-icon">
                 <span>
-                  <c-icon name="radius-upleft" size="1.6rem"></c-icon>
+                  <c-icon name="radius-upleft" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-setting" size="1.6rem"></c-icon>
+                  <c-icon name="radius-setting" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-bottomleft" size="1.6rem"></c-icon>
+                  <c-icon name="radius-bottomleft" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-bottomright" size="1.6rem"></c-icon>
+                  <c-icon name="radius-bottomright" size="1.6rem" />
                 </span>
               </div>
               <div class="content">
@@ -55,7 +56,7 @@ export default defineCustomElement('v-home', {
                     href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon"
                     target="_blank"
                   >
-                    <c-icon name="github-fill" size="0.8rem"></c-icon>
+                    <c-icon name="github-fill" size="0.8rem" />
                     &nbsp; 进一步了解伪透明图标和xj-web...
                   </a>
                 </p>
@@ -75,8 +76,8 @@ export default defineCustomElement('v-home', {
       </c-page>
     )
   },
-  attributeChanged({ name, newValue }) {
+  attributeChanged({ name, newValue }, { data }) {
     if (name === 'data-status')
-      this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
+      data.cPageRef.value?.setAttribute('data-status', newValue)
   }
 })

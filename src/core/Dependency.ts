@@ -10,7 +10,6 @@
  * 判断是否为响应式对象
  */
 
-import { getInstance, setComponentIns } from './dom/fixComponentIns'
 import { onMounted } from './hooks/lifecycle/mounted'
 import { onBeforeCreate } from './hooks/lifecycle/beforeCreate'
 import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
@@ -27,16 +26,16 @@ type EffectOpt = {
   flush?: 'pre' | 'sync' | 'post'
 }
 
-type StopFn = (opt?: { cleanup?: boolean }) => void
+export type StopFn = (opt?: { cleanup?: boolean }) => void
 
 const SYMBOL_PRIVATE = Symbol('private')
 
 // 此处对外公开的类型需要删除run
 export type EffectFnReturnFn = {
   stop: StopFn
-  run: (cb: () => void, privateSymbol: typeof SYMBOL_PRIVATE) => void
   pause: () => void
   resume: () => void
+  __run__: (cb: () => void, privateSymbol: typeof SYMBOL_PRIVATE) => void
 }
 
 type EffectFnReturn = {
@@ -109,7 +108,7 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
         `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
       )
     }
-    effectFnReturn.run = () => {
+    effectFnReturn.__run__ = () => {
       console.warn(
         `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
       )
@@ -126,16 +125,13 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
     }
     if (flush === 'post') {
       onMounted(() => {
-        const ele = getInstance()
         const _ret = _effect((onCleanup) => {
-          const { restore } = setComponentIns(ele)
           const _ret = effFn(onCleanup)
-          restore()
           return _ret
         }, opt)
         stopFn = _ret
         effectFnReturn.stop = _ret.stop
-        effectFnReturn.run = _ret.run
+        effectFnReturn.__run__ = _ret.__run__
         effectFnReturn.pause = _ret.pause
         effectFnReturn.resume = _ret.resume
         return _ret
@@ -143,17 +139,14 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
     } else if (flush === 'pre') {
       let _stopFn: EffectCleanupFn
       onBeforeCreate(() => {
-        const ele = getInstance()
         const _ret = _effect((onCleanup) => {
-          const { restore } = setComponentIns(ele)
           const _ret = effFn(onCleanup)
-          restore()
           return _ret
         }, opt)
         _stopFn = _ret
         stopFn = _ret
         effectFnReturn.stop = _ret.stop
-        effectFnReturn.run = _ret.run
+        effectFnReturn.__run__ = _ret.__run__
         effectFnReturn.pause = _ret.pause
         effectFnReturn.resume = _ret.resume
       })
@@ -222,7 +215,7 @@ const _effect = (effectFn: EffectFn, opt: EffectOpt): EffectFnReturn => {
     })
     effectDepsMap.delete(effectFn)
   }
-  effectFnReturn.run = (cb) => {
+  effectFnReturn.__run__ = (cb) => {
     if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) {
       cb()
       return
@@ -297,9 +290,9 @@ const BIND_THIS_FUNC_KEY = ['bind ', 'call', 'apply']
  */
 export const isRef = <T = any>(
   val: unknown
-): val is Dependency<{
+): val is {
   value: T
-}> => {
+} => {
   return isReactive<{
     value: T
   }>(val)
@@ -327,7 +320,7 @@ const hasSYMBOL_DEPENDENCY = (
  */
 export const isReactive = <T extends object = Record<string | symbol, any>>(
   val: unknown
-): val is Dependency<T> => {
+): val is T => {
   return (
     isObject(val) &&
     hasSYMBOL_DEPENDENCY(val) &&
@@ -373,7 +366,12 @@ class Dependency<T extends object> {
         const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
-        if (isObject(_value) && !this._isProxy.includes(key)) {
+        if (
+          isObject(_value) &&
+          !this._isProxy.includes(key) &&
+          !(_value instanceof Node) &&
+          typeof _value !== 'function'
+        ) {
           const newDep = new Dependency(_value)
           Reflect.set(target, key, newDep.value, receiver)
           _ret = newDep.value
@@ -452,7 +450,7 @@ class Dependency<T extends object> {
     }
     _dep.forEach((effectFn) => {
       const effectReturn = effectReturnMap.get(effectFn)
-      if (effectReturn) effectReturn.run(run, SYMBOL_PRIVATE)
+      if (effectReturn) effectReturn.__run__(run, SYMBOL_PRIVATE)
       else run()
     })
     if (!updateRun) run()

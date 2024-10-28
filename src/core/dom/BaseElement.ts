@@ -245,7 +245,7 @@ const events = [
 // #endregion
 
 /** 放置外部调用clearRef的标识 */
-export const SYMBOL_CLEAR_REF = Symbol('clearRef')
+export const SYMBOL_INIT = Symbol('clearRef')
 
 export type EventListeners = {
   listener: EventListener
@@ -272,22 +272,10 @@ export default class BaseElement extends HTMLElement {
   $emitMethods: Record<string, Func> = {}
 
   /** 影子 DOM 根 */
-  $root: ShadowRoot | BaseElement = this.attachShadow({ mode: 'open' })
+  $root: ShadowRoot | BaseElement = this
 
   /** 当前组件暴露给父组件的属性 */
   $exposedData: Record<string, any> = {}
-
-  /** 模板中声明了 expose 的元素 */
-  $defineExposes: Record<string, Record<string, any>> = {}
-
-  /** setup 函数中 使用 exposeTemplate 声明的元素 */
-  $exposes: Record<string, { value: Record<string, any> | null }> = {}
-
-  /** 模板中声明了 ref 的元素 */
-  $defineRefs: Record<string, Element> = {}
-
-  /** setup 函数中 使用 refTemplate 声明的元素 */
-  $refs: Record<string, { value: Element | null }> = {}
 
   /** 父组件 */
   $parentComponent: BaseElement | null = null
@@ -296,41 +284,18 @@ export default class BaseElement extends HTMLElement {
     super()
   }
 
-  __destroy__(symbol: typeof SYMBOL_CLEAR_REF) {
-    if (symbol !== SYMBOL_CLEAR_REF) {
+  protected __init__(symbol: typeof SYMBOL_INIT) {
+    if (symbol !== SYMBOL_INIT) {
       /*@__PURE__*/ console.error(
-        `${this.localName}: __destroy__方法只能由xj-web内部调用。`
+        `${this.localName}: __init__方法只能由xj-web内部调用。`
       )
       return false
     }
 
-    const shadow = this.$root
-
-    Array.from(shadow.querySelectorAll('*')).forEach((child) => {
-      if (child instanceof BaseElement) {
-        child.__destroy__(SYMBOL_CLEAR_REF)
-      }
-    })
-
     this.$props = {}
     this.$sharedData = {}
 
-    for (const key in this.$exposedData) {
-      delete this.$exposedData[key]
-    }
     this.$exposedData = {}
-
-    this.$defineExposes = {}
-    for (const key in this.$exposes) {
-      this.$exposes[key].value = null
-    }
-    this.$exposes = {}
-
-    this.$defineRefs = {}
-    for (const key in this.$refs) {
-      this.$refs[key].value = null
-    }
-    this.$refs = {}
 
     this.$parentComponent = null
 

@@ -28,18 +28,3 @@ export const setComponentIns = (instance: BaseElement) => {
 export const getCurrentComponent = () => {
   return currentComponent ?? null
 }
-
-/** 在setup暴露的方法和effect依赖的副作用函数内获取有类型声明的实例 */
-export const getInstance = () => {
-  /*@__PURE__*/ ;(() => {
-    if (!currentComponent) {
-      throw new Error('当前组件实例不存在, 可能是由于错误的调用时机。')
-    }
-  })()
-
-  return currentComponent as BaseElement
-}
-
-// export const getParentComponent = (): BaseElement | null => {
-//   return componentInsTree[componentInsTree.length - 1] || null
-// }
