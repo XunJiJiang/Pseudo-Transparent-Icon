@@ -12,9 +12,9 @@
 import {
   effectDepsMap,
   effectReturnMap,
-  getCurrentEffectFn,
+  getCurrentEffectCallback,
   SYMBOL_PRIVATE,
-  type EffectFn
+  type EffectCallback
 } from './effect'
 import { isArray, isObject } from './utils/shared'
 
@@ -84,7 +84,7 @@ class Dependency<T extends object> {
    * key: 依赖对象上的属性
    * value: 属性对应的effect集合
    */
-  private _deps = new Map<string | symbol, Set<EffectFn>>()
+  private _deps = new Map<string | symbol, Set<EffectCallback>>()
   /** 代理对象 */
   private _value: object
   /** 代理处理器 */
@@ -197,7 +197,7 @@ class Dependency<T extends object> {
   }
 
   private collect(key: string | symbol = SYMBOL_EFFECT) {
-    const currentEffectFn = getCurrentEffectFn()
+    const currentEffectFn = getCurrentEffectCallback()
 
     if (currentEffectFn) {
       const _dep =
