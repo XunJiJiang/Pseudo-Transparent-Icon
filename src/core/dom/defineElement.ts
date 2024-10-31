@@ -12,16 +12,10 @@ import BaseElement, { SYMBOL_INIT } from './BaseElement'
 import { setComponentIns } from './fixComponentIns'
 import { startSetupRunning } from '../hooks/lifecycle/verifySetup'
 import {
-  clearBeforeCreate,
-  runBeforeCreate
-} from '../hooks/lifecycle/beforeCreate'
-import { clearCreated, runCreated } from '../hooks/lifecycle/created'
-import {
   clearBeforeMount,
   runBeforeMount
 } from '../hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
-import { runUnmounted } from '../hooks/lifecycle/unmounted'
 import { hasOwn, isArray } from '../utils/shared'
 
 type DataType = Record<string | symbol, any>
@@ -336,14 +330,6 @@ const defineCustomElement = (
 
       setupEnd()
 
-      // Lifecycle: beforeCreate 调用时机
-      runBeforeCreate(this)
-
-      clearBeforeCreate(this)
-      // Lifecycle: created 调用时机
-      runCreated(this)
-
-      clearCreated(this)
       // Lifecycle: beforeMount 调用时机
       runBeforeMount(this)
 
@@ -388,9 +374,6 @@ const defineCustomElement = (
     disconnectedCallback() {
       const { restore } = setComponentIns(this)
       clearMounted(this)
-
-      // Lifecycle: unmounted 调用时机
-      runUnmounted(this)
       disconnected?.call(this, {
         data: this.$sharedData
       })

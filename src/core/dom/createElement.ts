@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { effect, isRef, type StopFn } from '../Dependency'
+import { isReactive } from '../Dependency'
+import { isRef } from '../ref'
+import { effect, type StopFn } from '../effect'
 import { isArray } from '../utils/shared'
 import BaseElement from './BaseElement'
 import { isCustomElement, isReservedKey } from './defineElement'
@@ -28,36 +30,130 @@ const setAttribute = (el: Element, key: string, value: any) => {
 
 export type ChildType = string | Node
 
+const isXJElement = <T extends Element = Element>(
+  el: any
+): el is XJ.Element<T> => {
+  return '__stopEffects__' in el && '__startEffects__' in el
+}
+
+const oldAppendChild = Element.prototype.appendChild
+
+Element.prototype.appendChild = function <T extends Node>(node: T): T {
+  const _ret = oldAppendChild.call<Element, [T], T>(this, node)
+  if (isXJElement(node)) {
+    node.__startEffects__()
+  }
+  return _ret
+}
+
 export const createElement = (
   tag: string,
   props?: { [key: string]: any },
   children?: ChildType[]
 ): Element => {
-  const el = document.createElement(tag) as HTMLElement & {
-    __stopEffects__: () => void
-  }
+  // TODO: 使用模板字符串拼接dom字符串, 使用与否目前没有显著性能差异
+  // if (
+  //   Object.values(props ?? {}).every((val) => typeof val === 'string') &&
+  //   children &&
+  //   children.length <= 1 &&
+  //   children.every((val) => typeof val === 'string')
+  // ) {
+  //   return `
+  //     <${tag} ${Object.entries(props ?? {})
+  //       .map(([key, val]) => `${key}="${val}"`)
+  //       .join(' ')}
+  //     >
+  //       ${children.join('')}
+  //     </${tag}>
+  //   `
+  // }
 
-  if (isArray(children)) {
-    children.forEach((child) => {
-      if (child instanceof Node) {
-        el.appendChild(child)
-      } else {
-        el.appendChild(document.createTextNode(child))
-      }
-    })
-  } else if (children) {
-    el.appendChild(document.createTextNode(children))
-  }
+  const el = document.createElement(tag) as XJ.Element<HTMLElement>
 
   const isCustomEle = isCustomElement(tag, el)
-  const component = el as BaseElement & {
-    __stopEffects__: () => void
-  }
+  const component = el as XJ.Element<BaseElement>
 
   const EffectStops: Set<StopFn> = new Set()
 
+  let isStop = true
+  const childNodes = isCustomEle ? el.$root?.childNodes : el.childNodes
+
   el.__stopEffects__ = () => {
+    if (isStop) return
+    isStop = true
     EffectStops.forEach((stop) => stop())
+    EffectStops.clear()
+
+    childNodes.forEach((child) => {
+      if (isXJElement(child)) {
+        child.__stopEffects__()
+      }
+    })
+  }
+
+  el.__startEffects__ = () => {
+    if (!isStop) return
+    isStop = false
+    for (const key in props) {
+      if (isCustomEle) {
+        if (el.obAttr.includes(key) && isRef(props[key])) {
+          const stop = effect(
+            () => {
+              setAttribute(el, key, props[key].value)
+            },
+            { flush: 'sync' }
+          )
+          EffectStops.add(stop)
+        }
+      } else {
+        if (!isReservedKey(key)) {
+          if (key === 'class') {
+            if (isArray(props[key])) {
+              if (isReactive(props[key])) {
+                const stop = effect(
+                  () => {
+                    el.className = props[key].join(' ')
+                  },
+                  { flush: 'sync' }
+                )
+                EffectStops.add(stop)
+              } else if (isRef(props[key])) {
+                const stop = effect(
+                  () => {
+                    el.className = props[key].value
+                  },
+                  { flush: 'sync' }
+                )
+                EffectStops.add(stop)
+              }
+            } else {
+              if (isRef(props[key])) {
+                const stop = effect(
+                  () => {
+                    setAttribute(el, key, props[key].value)
+                  },
+                  { flush: 'sync' }
+                )
+                EffectStops.add(stop)
+              }
+            }
+          } else if (isRef(props[key])) {
+            const stop = effect(
+              () => {
+                setAttribute(el, key, props[key].value)
+              },
+              { flush: 'sync' }
+            )
+            EffectStops.add(stop)
+          }
+        }
+      }
+    }
+    childNodes.forEach((child) => {
+      if (isXJElement(child)) {
+        child.__startEffects__()
+      }
+    })
   }
 
   const elRemove = el.remove.bind(el)
@@ -102,16 +198,7 @@ export const createElement = (
         // 对于observe属性
         else if (el.obAttr.includes(key)) {
           // 值是ref, 监听ref的变化, 自动更新属性值
-          if (isRef(props[key])) {
-            EffectStops.add(
-              effect(
-                () => {
-                  setAttribute(el, key, props[key].value)
-                },
-                { flush: 'sync' }
-              )
-            )
-          } else {
+          if (!isRef(props[key])) {
             setAttribute(el, key, props[key])
           }
         }
@@ -138,22 +225,33 @@ export const createElement = (
             )
           }
         }
+        // 对于class
+        else if (key === 'class') {
+          if (isArray(props[key])) {
+            if (!isReactive(props[key])) {
+              el.className = props[key].join(' ')
+            }
+          } else {
+            if (!isRef(props[key])) {
+              setAttribute(el, key, props[key])
+            }
+          }
+        }
         // 值是ref, 监听ref的变化, 自动更新属性值
-        else if (isRef(props[key])) {
-          EffectStops.add(
-            effect(
-              () => {
-                setAttribute(el, key, props[key].value)
-              },
-              { flush: 'sync' }
-            )
-          )
-        } else {
+        else if (!isRef(props[key])) {
           setAttribute(el, key, props[key])
         }
       }
     }
   }
+
+  children?.forEach((child) => {
+    if (child instanceof Node) {
+      el.appendChild(child)
+    } else {
+      el.appendChild(document.createTextNode(child))
+    }
+  })
 
   return el
 }

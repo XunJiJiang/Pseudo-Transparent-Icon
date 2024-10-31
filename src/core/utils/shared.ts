@@ -7,7 +7,7 @@ export const isFunction = (
 export const isArray = (arr: unknown): arr is unknown[] => Array.isArray(arr)
 
 export const isObject = (val: unknown): val is object => {
-  return val !== null && typeof val === 'object' && !Array.isArray(val)
+  return val !== null && typeof val === 'object'
 }
 
 export const hasOwn = <T extends object>(
@@ -17,3 +17,6 @@ export const hasOwn = <T extends object>(
 
 export const isHTMLElement = (el: unknown): el is HTMLElement =>
   el instanceof HTMLElement
+
+export const isPromise = <T = unknown>(val: unknown): val is Promise<T> =>
+  (isObject(val) || isFunction(val)) && isFunction((val as Promise<T>).then)

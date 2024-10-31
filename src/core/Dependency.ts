@@ -9,253 +9,14 @@
  * function isReactive
  * 判断是否为响应式对象
  */
-
-import { onMounted } from './hooks/lifecycle/mounted'
-import { onBeforeCreate } from './hooks/lifecycle/beforeCreate'
-import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
-import AutoAsyncTask from './utils/AutoAsyncTask'
+import {
+  effectDepsMap,
+  effectReturnMap,
+  getCurrentEffectFn,
+  SYMBOL_PRIVATE,
+  type EffectFn
+} from './effect'
 import { isArray, isObject } from './utils/shared'
-
-// TODO: 如果effect要支持异步函数, 则 onCleanup 需要限制在await前调用
-// 如果传入异步函数，则不会将effect的返回值作为cleanup函数
-type OnCleanup = (cleanupFn: EffectCleanupFn) => void
-
-type EffectFn = (onCleanup: OnCleanup) => EffectCleanupFn | void
-
-type EffectOpt = {
-  flush?: 'pre' | 'sync' | 'post'
-}
-
-export type StopFn = (opt?: { cleanup?: boolean }) => void
-
-const SYMBOL_PRIVATE = Symbol('private')
-
-// 此处对外公开的类型需要删除run
-export type EffectFnReturnFn = {
-  stop: StopFn
-  pause: () => void
-  resume: () => void
-  __run__: (cb: () => void, privateSymbol: typeof SYMBOL_PRIVATE) => void
-}
-
-type EffectFnReturn = {
-  (opt?: { cleanup?: boolean }): void
-} & EffectFnReturnFn
-
-type EffectCleanupFn = () => void
-
-let currentEffectFn: EffectFn | null = null
-
-/** 运行中的currentEffectFn列表，不包括最新的 */
-const currentEffectFns: EffectFn[] = []
-
-/**
- * 保存effect和对应的Set<EffectFn>
- * 一个effect对应多个Set<EffectFn>
- */
-const effectDepsMap = new Map<EffectFn, Set<Set<EffectFn>>>()
-
-const effectReturnMap = new WeakMap<EffectFn, EffectFnReturn>()
-
-// TODO: flush
-// 对于在setup函数中运行的effect
-//       post: 在onMounted后运行 默认
-//       pre: 在onMounted前运行
-//       sync: 同步运行
-// 对于其他effect
-//       post\pre: 异步运行 默认
-//       sync: 同步运行
-
-/**
- * 创建副作用函数
- * @param effFn 副作用函数
- * @returns 停止运行副作用函数
- * @example
- * ```ts
- * const stop = effect(() => {
- *   console.log('effect')
- *   return () => {
- *     console.log('cleanup')
- *   }
- * })
- * // 停止
- * stop()
- *
- * const { pause, resume, stop } = effect(() => {
- *   console.log('effect')
- *   return () => {
- *     console.log('cleanup')
- *   }
- * })
- * // 暂停
- * pause()
- * // 恢复
- * resume()
- * // 停止
- * stop()
- */
-export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectFnReturn => {
-  const inSetup = hasSetupRunning()
-  const flush = opt?.flush ?? 'post'
-  opt = { flush }
-
-  if (inSetup && flush !== 'sync') {
-    let stopFn: StopFn | null = null
-    const effectFnReturn: EffectFnReturn = (opt) => effectFnReturn.stop(opt)
-    effectFnReturn.stop = (opt) => {
-      if (stopFn) return stopFn(opt)
-      console.warn(
-        `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
-      )
-    }
-    effectFnReturn.__run__ = () => {
-      console.warn(
-        `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
-      )
-    }
-    effectFnReturn.pause = () => {
-      console.warn(
-        `自定义组件内effect的pause方法只能在onMounted生命周期运行后调用`
-      )
-    }
-    effectFnReturn.resume = () => {
-      console.warn(
-        `自定义组件内effect的resume方法只能在onMounted生命周期运行后调用`
-      )
-    }
-    if (flush === 'post') {
-      onMounted(() => {
-        const _ret = _effect((onCleanup) => {
-          const _ret = effFn(onCleanup)
-          return _ret
-        }, opt)
-        stopFn = _ret
-        effectFnReturn.stop = _ret.stop
-        effectFnReturn.__run__ = _ret.__run__
-        effectFnReturn.pause = _ret.pause
-        effectFnReturn.resume = _ret.resume
-        return _ret
-      })
-    } else if (flush === 'pre') {
-      let _stopFn: EffectCleanupFn
-      onBeforeCreate(() => {
-        const _ret = _effect((onCleanup) => {
-          const _ret = effFn(onCleanup)
-          return _ret
-        }, opt)
-        _stopFn = _ret
-        stopFn = _ret
-        effectFnReturn.stop = _ret.stop
-        effectFnReturn.__run__ = _ret.__run__
-        effectFnReturn.pause = _ret.pause
-        effectFnReturn.resume = _ret.resume
-      })
-      onMounted(() => {
-        return _stopFn
-      })
-    }
-
-    return effectFnReturn
-  } else {
-    return _effect(effFn, opt)
-  }
-}
-
-enum EffectStatus {
-  RUNNING,
-  PAUSE,
-  STOP
-}
-
-const _effect = (effectFn: EffectFn, opt: EffectOpt): EffectFnReturn => {
-  // const flush = opt.flush
-
-  effectDepsMap.set(effectFn, new Set())
-  let state = EffectStatus.RUNNING
-  if (currentEffectFn) currentEffectFns.push(currentEffectFn)
-  currentEffectFn = effectFn
-  let cleanupSet: Set<EffectCleanupFn> | null = new Set<EffectCleanupFn>()
-  let effectFnRun = false
-  const onCleanup: OnCleanup = (cleanupFn) => {
-    if (state === EffectStatus.STOP) return
-    if (effectFnRun) {
-      cleanupSet!.add(cleanupFn)
-      return
-    }
-    /*__PURE__*/ console.error(`effect函数的onCleanup只能在effect函数内部调用`)
-  }
-  effectFnRun = true
-  let cleanupFn = effectFn(onCleanup) ?? null
-  if (cleanupFn) {
-    onCleanup(cleanupFn)
-    cleanupFn = null
-  }
-  effectFnRun = false
-  currentEffectFn = currentEffectFns.pop() ?? null
-
-  const cleanup = () => {
-    if (state === EffectStatus.STOP) return
-    cleanupSet!.forEach((cleanupFn, _, set) => {
-      cleanupFn()
-      set.delete(cleanupFn)
-    })
-  }
-
-  const effectFnReturn: EffectFnReturn = (opt) => effectFnReturn.stop(opt)
-  effectFnReturn.stop = (opt) => {
-    if (state === EffectStatus.STOP) return
-    if (opt?.cleanup) cleanup()
-    state = EffectStatus.STOP
-    cleanupSet = null
-    // 获取影响当前effect的依赖
-    const effectDeps = effectDepsMap.get(effectFn)
-    // 删除effect对应的依赖中的effect
-    effectDeps?.forEach((dep) => {
-      dep.delete(effectFn)
-    })
-    effectDepsMap.delete(effectFn)
-  }
-  effectFnReturn.__run__ = (cb) => {
-    if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) {
-      cb()
-      return
-    }
-    cleanup()
-
-    cb()
-
-    if (opt.flush === 'sync') {
-      effectFnRun = true
-      let cleanupFn = effectFn(onCleanup) ?? null
-      effectFnRun = false
-      if (cleanupFn) {
-        onCleanup(cleanupFn)
-        cleanupFn = null
-      }
-    } else {
-      AutoAsyncTask.addTask(() => {
-        if (state === EffectStatus.STOP) return
-        effectFnRun = true
-        let cleanupFn = effectFn(onCleanup) ?? null
-        effectFnRun = false
-        if (cleanupFn) {
-          onCleanup(cleanupFn)
-          cleanupFn = null
-        }
-      }, effect)
-    }
-  }
-  effectFnReturn.pause = () => {
-    if (state === EffectStatus.STOP) return
-    state = EffectStatus.PAUSE
-  }
-  effectFnReturn.resume = () => {
-    if (state === EffectStatus.STOP) return
-    state = EffectStatus.RUNNING
-  }
-  effectReturnMap.set(effectFn, effectFnReturn)
-  return effectFnReturn
-}
 
 /** 无key的依赖key */
 const SYMBOL_EFFECT = Symbol('effect')
@@ -263,40 +24,20 @@ const SYMBOL_EFFECT = Symbol('effect')
 const SYMBOL_DEPENDENCY = Symbol('dependency')
 
 /** 函数上非纯函数的属性 */
-const NOT_PURE_ARR_FUNC_KEY = [
-  'push',
-  'pop',
-  'shift',
-  'unshift',
-  'splice',
-  'sort',
-  'reverse',
-  'copyWithin',
-  'fill'
-]
+// const NOT_PURE_ARR_FUNC_KEY = [
+//   'push',
+//   'pop',
+//   'shift',
+//   'unshift',
+//   'splice',
+//   'sort',
+//   'reverse',
+//   'copyWithin',
+//   'fill'
+// ]
 
 /** 函数上修改this指向的属性 */
-const BIND_THIS_FUNC_KEY = ['bind ', 'call', 'apply']
-
-/**
- * 判断是否为引用响应式
- * @param val
- * @returns
- * @example
- * ```ts
- * const ref = ref(0)
- * console.log(isRef(ref)) // true
- * ```
- */
-export const isRef = <T = any>(
-  val: unknown
-): val is {
-  value: T
-} => {
-  return isReactive<{
-    value: T
-  }>(val)
-}
+// const BIND_THIS_FUNC_KEY = ['bind ', 'call', 'apply']
 
 const hasSYMBOL_DEPENDENCY = (
   val: object
@@ -320,7 +61,7 @@ const hasSYMBOL_DEPENDENCY = (
  */
 export const isReactive = <T extends object = Record<string | symbol, any>>(
   val: unknown
-): val is T => {
+): val is Dependency<T> => {
   return (
     isObject(val) &&
     hasSYMBOL_DEPENDENCY(val) &&
@@ -363,7 +104,7 @@ class Dependency<T extends object> {
         // if (!Reflect.has(target, key)) {
         // }
         const collect = this.collect.bind(this)
-        const distribute = this.distribute.bind(this)
+        // const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
         if (
@@ -378,42 +119,45 @@ class Dependency<T extends object> {
           this._isProxy.push(key)
         }
 
-        if (
-          typeof _value === 'function' &&
-          isArray(target) &&
-          NOT_PURE_ARR_FUNC_KEY.includes(String(key))
-        ) {
-          // return function (...args: Parameters<typeof _value>) {
-          //   cleanup()
-          //   const result = _value.apply(target, args)
-          //   distribute()
-          //   return result
-          // }
-          // TODO: 未测试
-          return new Proxy(_value, {
-            apply: (target, thisArg, argArray) => {
-              collect()
-              let result: unknown
-              distribute(() => {
-                result = Reflect.apply(target, thisArg, argArray)
-              })
-              return result
-            },
-            get: (target, key, receiver) => {
-              if (key === SYMBOL_DEPENDENCY) return this
+        // if (isArray(target)) collect()
+        // else
+        collect(key)
 
-              if (BIND_THIS_FUNC_KEY.includes(String(key))) {
-                return Reflect.get(target, key, receiver)
-              }
+        // if (
+        //   typeof _value === 'function' &&
+        //   isArray(target) &&
+        //   NOT_PURE_ARR_FUNC_KEY.includes(String(key))
+        // ) {
+        //   // return function (...args: Parameters<typeof _value>) {
+        //   //   let result: unknown
+        //   //   distribute(() => {
+        //   //     result = _value.apply(target, args)
+        //   //   })
+        //   //   return result
+        //   // }
+        //   // TODO: 未测试
+        //   return new Proxy(_value, {
+        //     apply: (target, thisArg, argArray) => {
+        //       collect()
+        //       let result: unknown
+        //       distribute(() => {
+        //         result = Reflect.apply(target, thisArg, argArray)
+        //       })
+        //       return result
+        //     },
+        //     get: (target, key, receiver) => {
+        //       if (key === SYMBOL_DEPENDENCY) return this
 
-              collect()
-              return Reflect.get(target, key, receiver)
-            }
-          })
-        }
+        //       if (BIND_THIS_FUNC_KEY.includes(String(key))) {
+        //         return Reflect.get(target, key, receiver)
+        //       }
 
-        if (isArray(target)) collect()
-        else collect(key)
+        //       collect()
+        //       return Reflect.get(target, key, receiver)
+        //     }
+        //   })
+        // }
+
         return _ret
       },
       set: (target, key, value, receiver) => {
@@ -425,11 +169,36 @@ class Dependency<T extends object> {
         if (isArray(target)) this.distribute(cb)
         else this.distribute(cb, key)
         return _ret
+      },
+      defineProperty: (target, key, descriptor) => {
+        let _ret = false
+        const cb = () => {
+          _ret = Reflect.defineProperty(target, key, descriptor)
+        }
+
+        if (isArray(target)) this.distribute(cb)
+        else this.distribute(cb, key)
+        return _ret
+      },
+      deleteProperty: (target, key) => {
+        let _ret = false
+        const cb = () => {
+          _ret = Reflect.deleteProperty(target, key)
+        }
+
+        if (isArray(target)) this.distribute(cb)
+        else this.distribute(cb, key)
+
+        if (_ret) this.remove(key)
+
+        return _ret
       }
     })
   }
 
   private collect(key: string | symbol = SYMBOL_EFFECT) {
+    const currentEffectFn = getCurrentEffectFn()
+
     if (currentEffectFn) {
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
@@ -441,19 +210,35 @@ class Dependency<T extends object> {
   }
 
   private distribute(update: () => void, key: string | symbol = SYMBOL_EFFECT) {
-    const _dep = this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
     let updateRun = false
     const run = () => {
       if (updateRun) return
       updateRun = true
       update()
     }
-    _dep.forEach((effectFn) => {
-      const effectReturn = effectReturnMap.get(effectFn)
-      if (effectReturn) effectReturn.__run__(run, SYMBOL_PRIVATE)
-      else run()
-    })
+
+    if (key === SYMBOL_EFFECT) {
+      this._deps.forEach((dep) => {
+        dep.forEach((effectFn) => {
+          const effectReturn = effectReturnMap.get(effectFn)
+          if (effectReturn) effectReturn.__run__(run, SYMBOL_PRIVATE)
+          else run()
+        })
+      })
+    } else {
+      const _dep =
+        this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
+      _dep.forEach((effectFn) => {
+        const effectReturn = effectReturnMap.get(effectFn)
+        if (effectReturn) effectReturn.__run__(run, SYMBOL_PRIVATE)
+        else run()
+      })
+    }
     if (!updateRun) run()
+  }
+
+  private remove(key: string | symbol) {
+    this._deps.delete(key)
   }
 
   get value() {

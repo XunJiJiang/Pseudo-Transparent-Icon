@@ -38,7 +38,7 @@ describe('shared utility functions', () => {
     expect(isObject(null)).toBe(false)
     expect(isObject(123)).toBe(false)
     expect(isObject('string')).toBe(false)
-    expect(isObject([])).toBe(false)
+    expect(isObject([])).toBe(true)
   })
 
   test('hasOwn 应该对具有指定 key 属性的对象返回 true', () => {

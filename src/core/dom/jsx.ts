@@ -28,7 +28,9 @@ export const h = (
       if (child instanceof Node) return child
       return document.createTextNode(child)
     })
-  } else return createElement(tag, props ?? {}, _children ?? [])
+  } else {
+    return createElement(tag, props ?? {}, _children ?? [])
+  }
 }
 
 export const __jsx = {
