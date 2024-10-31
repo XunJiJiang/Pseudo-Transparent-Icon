@@ -6,24 +6,22 @@ import { isPromise } from './utils/shared'
 
 // ABOUT: flush
 // 对于在setup函数中运行的effect
-//       post: 在onMounted后运行 默认
-//       pre: 在onMounted前运行
+//       post: 初次在onMounted后运行, 之后异步运行 默认
+//       pre: 初次在onMounted前运行, 之后异步运行
 //       sync: 同步运行
 // 对于其他effect
 //       post\pre: 异步运行 默认
 //       sync: 同步运行
 
-type EffectCleanupFn = () => void
+type EffectCleanupCallback = () => void
 
 // TODO: 如果effect要支持异步函数, 则 onCleanup 需要限制在await前调用
 // 如果传入异步函数，则不会将effect的返回值作为cleanup函数
-type OnCleanup = (cleanupFn: EffectCleanupFn) => void
+type OnCleanup = (cleanupCallback: EffectCleanupCallback) => void
 
-type EffectFnSync = (onCleanup: OnCleanup) => EffectCleanupFn | void
-
-type EffectFnAsync = (onCleanup: OnCleanup) => Promise<unknown>
-
-export type EffectFn = EffectFnSync | EffectFnAsync
+export type EffectCallback = (
+  onCleanup: OnCleanup
+) => Promise<unknown> | EffectCleanupCallback | void
 
 export type StopFn = (opt?: { cleanup?: boolean }) => void
 
@@ -37,28 +35,28 @@ interface EffectHandle {
   __run__: (cb: () => void, privateSymbol: typeof SYMBOL_PRIVATE) => void
 }
 
-type EffectOpt = {
+type EffectOptions = {
   flush?: 'pre' | 'sync' | 'post'
 }
 
-let currentEffectFn: EffectFn | null = null
+let currentEffectCallback: EffectCallback | null = null
 
-export const getCurrentEffectFn = () => currentEffectFn
+export const getCurrentEffectCallback = () => currentEffectCallback
 
-/** 运行中的currentEffectFn列表，不包括最新的 */
-const currentEffectFns: EffectFn[] = []
+/** 运行中的currentEffectCallback列表，不包括最新的 */
+const currentEffectCallbacks: EffectCallback[] = []
 
 /**
- * 保存effect和对应的Set<EffectFn>
- * 一个effect对应多个Set<EffectFn>
+ * 保存effect和对应的Set<EffectCallback>
+ * 一个effect对应多个Set<EffectCallback>
  */
-export const effectDepsMap = new Map<EffectFn, Set<Set<EffectFn>>>()
+export const effectDepsMap = new Map<EffectCallback, Set<Set<EffectCallback>>>()
 
-export const effectReturnMap = new WeakMap<EffectFn, EffectHandle>()
+export const effectReturnMap = new WeakMap<EffectCallback, EffectHandle>()
 
 /**
  * 创建副作用函数
- * @param effFn 副作用函数
+ * @param callback 副作用函数
  * @returns 停止运行副作用函数
  * @example
  * ```ts
@@ -84,31 +82,35 @@ export const effectReturnMap = new WeakMap<EffectFn, EffectHandle>()
  * // 停止
  * stop()
  */
-export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectHandle => {
+export const effect = (
+  callback: EffectCallback,
+  opt?: EffectOptions
+): EffectHandle => {
   const inSetup = hasSetupRunning()
   const flush = opt?.flush ?? 'post'
   opt = { flush }
 
   if (inSetup && flush !== 'sync') {
     let stopFn: StopFn | null = null
-    const effectFnReturn: EffectHandle = (opt) => effectFnReturn.stop(opt)
-    effectFnReturn.stop = (opt) => {
+    const effectCallbackReturn: EffectHandle = (opt) =>
+      effectCallbackReturn.stop(opt)
+    effectCallbackReturn.stop = (opt) => {
       if (stopFn) return stopFn(opt)
       console.warn(
         `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
       )
     }
-    effectFnReturn.__run__ = () => {
+    effectCallbackReturn.__run__ = () => {
       console.warn(
         `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
       )
     }
-    effectFnReturn.pause = () => {
+    effectCallbackReturn.pause = () => {
       console.warn(
         `自定义组件内effect的pause方法只能在onMounted生命周期运行后调用`
       )
     }
-    effectFnReturn.resume = () => {
+    effectCallbackReturn.resume = () => {
       console.warn(
         `自定义组件内effect的resume方法只能在onMounted生命周期运行后调用`
       )
@@ -116,38 +118,38 @@ export const effect = (effFn: EffectFn, opt?: EffectOpt): EffectHandle => {
     if (flush === 'post') {
       onMounted(() => {
         const _ret = _effect(async (onCleanup) => {
-          const _ret = await effFn(onCleanup)
+          const _ret = await callback(onCleanup)
           return _ret
         }, opt)
         stopFn = _ret
-        effectFnReturn.stop = _ret.stop
-        effectFnReturn.__run__ = _ret.__run__
-        effectFnReturn.pause = _ret.pause
-        effectFnReturn.resume = _ret.resume
+        effectCallbackReturn.stop = _ret.stop
+        effectCallbackReturn.__run__ = _ret.__run__
+        effectCallbackReturn.pause = _ret.pause
+        effectCallbackReturn.resume = _ret.resume
         return _ret
       })
     } else if (flush === 'pre') {
-      let _stopFn: EffectCleanupFn
+      let _stopFn: EffectCleanupCallback
       onBeforeMount(() => {
         const _ret = _effect(async (onCleanup) => {
-          const _ret = await effFn(onCleanup)
+          const _ret = await callback(onCleanup)
           return _ret
         }, opt)
         _stopFn = _ret
         stopFn = _ret
-        effectFnReturn.stop = _ret.stop
-        effectFnReturn.__run__ = _ret.__run__
-        effectFnReturn.pause = _ret.pause
-        effectFnReturn.resume = _ret.resume
+        effectCallbackReturn.stop = _ret.stop
+        effectCallbackReturn.__run__ = _ret.__run__
+        effectCallbackReturn.pause = _ret.pause
+        effectCallbackReturn.resume = _ret.resume
       })
       onMounted(() => {
         return _stopFn
       })
     }
 
-    return effectFnReturn
+    return effectCallbackReturn
   } else {
-    return _effect(effFn, opt)
+    return _effect(callback, opt)
   }
 }
 
@@ -157,48 +159,53 @@ enum EffectStatus {
   STOP
 }
 
-const _effect = (effectFn: EffectFn, opt: EffectOpt): EffectHandle => {
+const _effect = (
+  callback: EffectCallback,
+  opt: EffectOptions
+): EffectHandle => {
   // const flush = opt.flush
 
-  effectDepsMap.set(effectFn, new Set())
+  effectDepsMap.set(callback, new Set())
   let state = EffectStatus.RUNNING
-  if (currentEffectFn) currentEffectFns.push(currentEffectFn)
-  currentEffectFn = effectFn
-  let cleanupSet: Set<EffectCleanupFn> | null = new Set<EffectCleanupFn>()
-  const onCleanup: OnCleanup = (cleanupFn) => {
+  if (currentEffectCallback) currentEffectCallbacks.push(currentEffectCallback)
+  currentEffectCallback = callback
+  let cleanupSet: Set<EffectCleanupCallback> | null =
+    new Set<EffectCleanupCallback>()
+  const onCleanup: OnCleanup = (cleanupCallback) => {
     if (state === EffectStatus.STOP) return
-    cleanupSet!.add(cleanupFn)
+    cleanupSet!.add(cleanupCallback)
   }
-  let cleanupFn = effectFn(onCleanup) ?? null
-  if (cleanupFn && !isPromise(cleanupFn)) {
-    onCleanup(cleanupFn)
-    cleanupFn = null
+  let cleanupCallback = callback(onCleanup) ?? null
+  if (cleanupCallback && !isPromise(cleanupCallback)) {
+    onCleanup(cleanupCallback)
+    cleanupCallback = null
   }
-  currentEffectFn = currentEffectFns.pop() ?? null
+  currentEffectCallback = currentEffectCallbacks.pop() ?? null
 
   const cleanup = () => {
     if (state === EffectStatus.STOP) return
-    cleanupSet!.forEach((cleanupFn, _, set) => {
-      cleanupFn()
-      set.delete(cleanupFn)
+    cleanupSet!.forEach((cleanupCallback, _, set) => {
+      cleanupCallback()
+      set.delete(cleanupCallback)
     })
   }
 
-  const effectFnReturn: EffectHandle = (opt) => effectFnReturn.stop(opt)
-  effectFnReturn.stop = (opt) => {
+  const effectCallbackReturn: EffectHandle = (opt) =>
+    effectCallbackReturn.stop(opt)
+  effectCallbackReturn.stop = (opt) => {
     if (state === EffectStatus.STOP) return
     if (opt?.cleanup) cleanup()
     state = EffectStatus.STOP
     cleanupSet = null
     // 获取影响当前effect的依赖
-    const effectDeps = effectDepsMap.get(effectFn)
+    const effectDeps = effectDepsMap.get(callback)
     // 删除effect对应的依赖中的effect
     effectDeps?.forEach((dep) => {
-      dep.delete(effectFn)
+      dep.delete(callback)
     })
-    effectDepsMap.delete(effectFn)
+    effectDepsMap.delete(callback)
   }
-  effectFnReturn.__run__ = (cb) => {
+  effectCallbackReturn.__run__ = (cb) => {
     if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) {
       cb()
       return
@@ -208,30 +215,30 @@ const _effect = (effectFn: EffectFn, opt: EffectOpt): EffectHandle => {
     cb()
 
     if (opt.flush === 'sync') {
-      let cleanupFn = effectFn(onCleanup) ?? null
-      if (cleanupFn && !isPromise(cleanupFn)) {
-        onCleanup(cleanupFn)
-        cleanupFn = null
+      let cleanupCallback = callback(onCleanup) ?? null
+      if (cleanupCallback && !isPromise(cleanupCallback)) {
+        onCleanup(cleanupCallback)
+        cleanupCallback = null
       }
     } else {
       AutoAsyncTask.addTask(() => {
         if (state === EffectStatus.STOP) return
-        let cleanupFn = effectFn(onCleanup) ?? null
-        if (cleanupFn && !isPromise(cleanupFn)) {
-          onCleanup(cleanupFn)
-          cleanupFn = null
+        let cleanupCallback = callback(onCleanup) ?? null
+        if (cleanupCallback && !isPromise(cleanupCallback)) {
+          onCleanup(cleanupCallback)
+          cleanupCallback = null
         }
       }, effect)
     }
   }
-  effectFnReturn.pause = () => {
+  effectCallbackReturn.pause = () => {
     if (state === EffectStatus.STOP) return
     state = EffectStatus.PAUSE
   }
-  effectFnReturn.resume = () => {
+  effectCallbackReturn.resume = () => {
     if (state === EffectStatus.STOP) return
     state = EffectStatus.RUNNING
   }
-  effectReturnMap.set(effectFn, effectFnReturn)
-  return effectFnReturn
+  effectReturnMap.set(callback, effectCallbackReturn)
+  return effectCallbackReturn
 }
