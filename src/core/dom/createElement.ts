@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isReactive } from '../Dependency'
 import { isRef } from '../ref'
-import { effect, type StopFn } from '../effect'
+import { type StopFn } from '../effect'
+import { watch } from '../watch'
 import { isArray } from '../utils/shared'
 import BaseElement from './BaseElement'
 import { isCustomElement, isReservedKey } from './defineElement'
@@ -96,53 +97,68 @@ export const createElement = (
     isStop = false
     for (const key in props) {
       if (isCustomEle) {
-        if (el.obAttr.includes(key) && isRef(props[key])) {
-          const stop = effect(
-            () => {
-              setAttribute(el, key, props[key].value)
+        if (el.obAttr.includes(key) && isRef<string>(props[key])) {
+          const stop = watch(
+            props[key],
+            (value) => {
+              setAttribute(el, key, value)
             },
-            { flush: 'sync' }
+            {
+              deep: true
+            }
           )
           EffectStops.add(stop)
         }
       } else {
         if (!isReservedKey(key)) {
           if (key === 'class') {
-            if (isArray(props[key])) {
+            if (isArray<string>(props[key])) {
               if (isReactive(props[key])) {
-                const stop = effect(
-                  () => {
-                    el.className = props[key].join(' ')
+                const stop = watch(
+                  props[key],
+                  (value) => {
+                    el.className = value.join(' ')
                   },
-                  { flush: 'sync' }
+                  {
+                    deep: true
+                  }
                 )
                 EffectStops.add(stop)
-              } else if (isRef(props[key])) {
-                const stop = effect(
-                  () => {
-                    el.className = props[key].value
+              } else if (isRef<string[]>(props[key])) {
+                const stop = watch(
+                  props[key],
+                  (value) => {
+                    el.className = value.join(' ')
                   },
-                  { flush: 'sync' }
+                  {
+                    deep: true
+                  }
                 )
                 EffectStops.add(stop)
               }
             } else {
-              if (isRef(props[key])) {
-                const stop = effect(
-                  () => {
-                    setAttribute(el, key, props[key].value)
+              if (isRef<string>(props[key])) {
+                const stop = watch(
+                  props[key],
+                  (value) => {
+                    setAttribute(el, key, value)
                   },
-                  { flush: 'sync' }
+                  {
+                    deep: true
+                  }
                 )
                 EffectStops.add(stop)
               }
             }
           } else if (isRef(props[key])) {
-            const stop = effect(
-              () => {
-                setAttribute(el, key, props[key].value)
+            const stop = watch(
+              props[key],
+              (value) => {
+                setAttribute(el, key, String(value))
               },
-              { flush: 'sync' }
+              {
+                deep: true
+              }
             )
             EffectStops.add(stop)
           }
@@ -227,7 +243,7 @@ export const createElement = (
         }
         // 对于class
         else if (key === 'class') {
-          if (isArray(props[key])) {
+          if (isArray<string>(props[key])) {
             if (!isReactive(props[key])) {
               el.className = props[key].join(' ')
             }
