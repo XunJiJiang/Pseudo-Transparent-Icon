@@ -1,9 +1,9 @@
-import reactive from './reactive'
+import { reactive } from './reactive'
 import { isObject } from './utils/shared'
 
 type RefValue<T> = { value: T }
 
-interface CreateRef {
+export interface CreateRef {
   <T>(value: null): RefValue<T | null>
   <T>(value: T): RefValue<T>
 }
@@ -67,8 +67,6 @@ export type Ref<T> = RefImpl<T>
  * console.log(ref.value) // 1
  * ```
  */
-const ref: CreateRef = <T>(value: T | null) => {
+export const ref: CreateRef = <T>(value: T | null) => {
   return new RefImpl(value)
 }
-
-export default ref

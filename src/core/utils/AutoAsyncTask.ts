@@ -6,7 +6,7 @@ enum State {
   Done
 }
 
-export default class AutoAsyncTask {
+export class AutoAsyncTask {
   private static taskLists = [new Map<Func, Func>(), new Map<Func, Func>()]
   private static promise: Promise<void> | null = null
   private static state = State.Done
@@ -39,4 +39,8 @@ export default class AutoAsyncTask {
         if (this.taskLists[0].size) this.run()
       })
   }
+}
+
+export const nextTick = (task: Func, key?: Func) => {
+  AutoAsyncTask.addTask(task, key)
 }

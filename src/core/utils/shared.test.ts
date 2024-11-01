@@ -2,7 +2,14 @@
  * @vitest-environment jsdom
  */
 import { describe, test, expect } from 'vitest'
-import { isFunction, isArray, isObject, hasOwn, isHTMLElement } from './shared'
+import {
+  isFunction,
+  isArray,
+  isObject,
+  hasOwn,
+  isHTMLElement,
+  isPromise
+} from './shared'
 
 describe('shared utility functions', () => {
   test('isFunction 应该对函数返回 true', () => {
@@ -60,5 +67,26 @@ describe('shared utility functions', () => {
     expect(isHTMLElement({})).toBe(false)
     expect(isHTMLElement(null)).toBe(false)
     expect(isHTMLElement('string')).toBe(false)
+  })
+
+  test('isPromise 应该对 Promise 返回 true', () => {
+    const promise = new Promise(() => {})
+    expect(isPromise(promise)).toBe(true)
+  })
+
+  test('isPromise 应该对非 Promise 返回 false', () => {
+    expect(isPromise({})).toBe(false)
+    expect(isPromise(null)).toBe(false)
+    expect(isPromise('string')).toBe(false)
+  })
+
+  test('isAsyncFunction 应该对异步函数返回 true', () => {
+    const asyncFn = async () => {}
+    expect(isFunction(asyncFn)).toBe(true)
+  })
+
+  test('isAsyncFunction 应该对非异步函数返回 false', () => {
+    const fn = () => {}
+    expect(isFunction(fn)).toBe(true)
   })
 })

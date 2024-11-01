@@ -3,7 +3,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import AutoAsyncTask from './AutoAsyncTask'
+import { AutoAsyncTask, nextTick } from './AutoAsyncTask'
 
 describe('AutoAsyncTask', () => {
   beforeEach(() => {
@@ -15,7 +15,7 @@ describe('AutoAsyncTask', () => {
   it('添加并执行一个任务', async () => {
     const task = vi.fn()
 
-    AutoAsyncTask.addTask(task)
+    nextTick(task)
 
     await (AutoAsyncTask as any).promise
 
@@ -26,8 +26,8 @@ describe('AutoAsyncTask', () => {
     const task = vi.fn()
     const key = () => {}
 
-    AutoAsyncTask.addTask(task, key)
-    AutoAsyncTask.addTask(task, key)
+    nextTick(task, key)
+    nextTick(task, key)
 
     await (AutoAsyncTask as any).promise
 
@@ -38,8 +38,8 @@ describe('AutoAsyncTask', () => {
     const task1 = vi.fn()
     const task2 = vi.fn()
 
-    AutoAsyncTask.addTask(task1)
-    AutoAsyncTask.addTask(task2)
+    nextTick(task1)
+    nextTick(task2)
 
     await (AutoAsyncTask as any).promise
 
@@ -52,8 +52,8 @@ describe('AutoAsyncTask', () => {
     const key1 = () => {}
     const key2 = () => {}
 
-    AutoAsyncTask.addTask(task1, key1)
-    AutoAsyncTask.addTask(task2, key2)
+    nextTick(task1, key1)
+    nextTick(task2, key2)
 
     await (AutoAsyncTask as any).promise
 
@@ -66,8 +66,8 @@ describe('AutoAsyncTask', () => {
     const task2 = vi.fn()
     const key = () => {}
 
-    AutoAsyncTask.addTask(task1, key)
-    AutoAsyncTask.addTask(task2, key)
+    nextTick(task1, key)
+    nextTick(task2, key)
 
     await (AutoAsyncTask as any).promise
 
@@ -79,8 +79,8 @@ describe('AutoAsyncTask', () => {
     const task1 = vi.fn()
     const task2 = vi.fn()
 
-    AutoAsyncTask.addTask(() => {
-      AutoAsyncTask.addTask(task2)
+    nextTick(() => {
+      nextTick(task2)
       task1()
     })
 

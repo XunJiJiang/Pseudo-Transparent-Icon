@@ -1,8 +1,8 @@
 import { onBeforeMount } from './hooks/lifecycle/beforeMount'
 import { onMounted } from './hooks/lifecycle/mounted'
 import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
-import AutoAsyncTask from './utils/AutoAsyncTask'
-import { isPromise } from './utils/shared'
+import { nextTick } from './utils/AutoAsyncTask'
+import { isAsyncFunction, isFunction } from './utils/shared'
 
 // ABOUT: flush
 // 对于在setup函数中运行的effect
@@ -19,15 +19,19 @@ type EffectCleanupCallback = () => void
 // 如果传入异步函数，则不会将effect的返回值作为cleanup函数
 type OnCleanup = (cleanupCallback: EffectCleanupCallback) => void
 
-export type EffectCallback = (
+export type EffectCallback<T = void> = (
   onCleanup: OnCleanup
-) => Promise<unknown> | EffectCleanupCallback | void
+) => T extends true
+  ? Promise<unknown>
+  : T extends false
+    ? EffectCleanupCallback
+    : Promise<unknown> | EffectCleanupCallback | void
 
 export type StopFn = (opt?: { cleanup?: boolean }) => void
 
 export const SYMBOL_PRIVATE = Symbol('private')
 
-interface EffectHandle {
+export interface EffectHandle {
   (opt?: { cleanup?: boolean }): void
   stop: (opt?: { cleanup?: boolean }) => void
   pause: () => void
@@ -86,6 +90,18 @@ export const effect = (
   callback: EffectCallback,
   opt?: EffectOptions
 ): EffectHandle => {
+  return effectAboutFlush([callback], opt)
+}
+
+/**
+ * @param callback [进行依赖收集的函数, 不进行依赖收集的函数]
+ * @param opt
+ * @returns
+ */
+export const effectAboutFlush = (
+  [callback, callbackNoCollect]: [EffectCallback, EffectCallback?],
+  opt?: EffectOptions
+): EffectHandle => {
   const inSetup = hasSetupRunning()
   const flush = opt?.flush ?? 'post'
   opt = { flush }
@@ -117,10 +133,16 @@ export const effect = (
     }
     if (flush === 'post') {
       onMounted(() => {
-        const _ret = _effect(async (onCleanup) => {
-          const _ret = await callback(onCleanup)
-          return _ret
-        }, opt)
+        const _ret = _effect(
+          [
+            async (onCleanup) => {
+              const _ret = await callback(onCleanup)
+              return _ret
+            },
+            callbackNoCollect
+          ],
+          opt
+        )
         stopFn = _ret
         effectCallbackReturn.stop = _ret.stop
         effectCallbackReturn.__run__ = _ret.__run__
@@ -131,10 +153,16 @@ export const effect = (
     } else if (flush === 'pre') {
       let _stopFn: EffectCleanupCallback
       onBeforeMount(() => {
-        const _ret = _effect(async (onCleanup) => {
-          const _ret = await callback(onCleanup)
-          return _ret
-        }, opt)
+        const _ret = _effect(
+          [
+            async (onCleanup) => {
+              const _ret = await callback(onCleanup)
+              return _ret
+            },
+            callbackNoCollect
+          ],
+          opt
+        )
         _stopFn = _ret
         stopFn = _ret
         effectCallbackReturn.stop = _ret.stop
@@ -149,7 +177,7 @@ export const effect = (
 
     return effectCallbackReturn
   } else {
-    return _effect(callback, opt)
+    return _effect([callback, callbackNoCollect], opt)
   }
 }
 
@@ -160,10 +188,14 @@ enum EffectStatus {
 }
 
 const _effect = (
-  callback: EffectCallback,
+  [callback, callbackNoCollect]: [EffectCallback, EffectCallback?],
   opt: EffectOptions
 ): EffectHandle => {
   // const flush = opt.flush
+
+  const cbIsAsync = isAsyncFunction<EffectCallback<true>>(callback)
+  const cbNoCollIsAsync =
+    callbackNoCollect && isAsyncFunction(callbackNoCollect)
 
   effectDepsMap.set(callback, new Set())
   let state = EffectStatus.RUNNING
@@ -176,11 +208,18 @@ const _effect = (
     cleanupSet!.add(cleanupCallback)
   }
   let cleanupCallback = callback(onCleanup) ?? null
-  if (cleanupCallback && !isPromise(cleanupCallback)) {
+  if (isFunction(cleanupCallback) && !cbIsAsync) {
     onCleanup(cleanupCallback)
     cleanupCallback = null
   }
   currentEffectCallback = currentEffectCallbacks.pop() ?? null
+
+  if (callbackNoCollect) {
+    const cleanupCallback = callbackNoCollect(onCleanup)
+    if (isFunction(cleanupCallback) && !cbNoCollIsAsync) {
+      onCleanup(cleanupCallback)
+    }
+  }
 
   const cleanup = () => {
     if (state === EffectStatus.STOP) return
@@ -194,6 +233,7 @@ const _effect = (
     effectCallbackReturn.stop(opt)
   effectCallbackReturn.stop = (opt) => {
     if (state === EffectStatus.STOP) return
+    opt = { cleanup: true, ...(opt ?? {}) }
     if (opt?.cleanup) cleanup()
     state = EffectStatus.STOP
     cleanupSet = null
@@ -215,20 +255,30 @@ const _effect = (
     cb()
 
     if (opt.flush === 'sync') {
-      let cleanupCallback = callback(onCleanup) ?? null
-      if (cleanupCallback && !isPromise(cleanupCallback)) {
+      const cleanupCallback = callback(onCleanup)
+      if (isFunction(cleanupCallback) && !cbIsAsync) {
         onCleanup(cleanupCallback)
-        cleanupCallback = null
+      }
+      if (callbackNoCollect) {
+        const cleanupCallback = callbackNoCollect(onCleanup)
+        if (isFunction(cleanupCallback) && !cbNoCollIsAsync) {
+          onCleanup(cleanupCallback)
+        }
       }
     } else {
-      AutoAsyncTask.addTask(() => {
+      nextTick(() => {
         if (state === EffectStatus.STOP) return
-        let cleanupCallback = callback(onCleanup) ?? null
-        if (cleanupCallback && !isPromise(cleanupCallback)) {
+        const cleanupCallback = callback(onCleanup)
+        if (isFunction(cleanupCallback) && !cbIsAsync) {
           onCleanup(cleanupCallback)
-          cleanupCallback = null
         }
-      }, effect)
+        if (callbackNoCollect) {
+          const cleanupCallback = callbackNoCollect(onCleanup)
+          if (isFunction(cleanupCallback) && !cbNoCollIsAsync) {
+            onCleanup(cleanupCallback)
+          }
+        }
+      }, callback)
     }
   }
   effectCallbackReturn.pause = () => {

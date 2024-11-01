@@ -168,18 +168,21 @@ class Dependency<T extends object> {
 
         if (isArray(target)) this.distribute(cb)
         else this.distribute(cb, key)
-        return _ret
-      },
-      defineProperty: (target, key, descriptor) => {
-        let _ret = false
-        const cb = () => {
-          _ret = Reflect.defineProperty(target, key, descriptor)
-        }
 
-        if (isArray(target)) this.distribute(cb)
-        else this.distribute(cb, key)
         return _ret
       },
+      //TODO: 触发set和deleteProperty前都会触发defineProperty
+      // 导致两次触发依赖发布
+      // 先停止defineProperty的代理
+      // defineProperty: (target, key, descriptor) => {
+      //   let _ret = false
+      //   const cb = () => {
+      //     _ret = Reflect.defineProperty(target, key, descriptor)
+      //   }
+      //   if (isArray(target)) this.distribute(cb)
+      //   else this.distribute(cb, key)
+      //   return _ret
+      // },
       deleteProperty: (target, key) => {
         let _ret = false
         const cb = () => {
@@ -197,14 +200,14 @@ class Dependency<T extends object> {
   }
 
   private collect(key: string | symbol = SYMBOL_EFFECT) {
-    const currentEffectFn = getCurrentEffectCallback()
+    const currentEffectCallback = getCurrentEffectCallback()
 
-    if (currentEffectFn) {
+    if (currentEffectCallback) {
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
-      _dep.add(currentEffectFn)
+      _dep.add(currentEffectCallback)
 
-      const effectDeps = effectDepsMap.get(currentEffectFn)!
+      const effectDeps = effectDepsMap.get(currentEffectCallback)!
       effectDeps.add(_dep)
     }
   }
@@ -219,8 +222,8 @@ class Dependency<T extends object> {
 
     if (key === SYMBOL_EFFECT) {
       this._deps.forEach((dep) => {
-        dep.forEach((effectFn) => {
-          const effectReturn = effectReturnMap.get(effectFn)
+        dep.forEach((effectCallback) => {
+          const effectReturn = effectReturnMap.get(effectCallback)
           if (effectReturn) effectReturn.__run__(run, SYMBOL_PRIVATE)
           else run()
         })
@@ -228,8 +231,8 @@ class Dependency<T extends object> {
     } else {
       const _dep =
         this._deps.get(key) ?? this._deps.set(key, new Set()).get(key)!
-      _dep.forEach((effectFn) => {
-        const effectReturn = effectReturnMap.get(effectFn)
+      _dep.forEach((effectCallback) => {
+        const effectReturn = effectReturnMap.get(effectCallback)
         if (effectReturn) effectReturn.__run__(run, SYMBOL_PRIVATE)
         else run()
       })

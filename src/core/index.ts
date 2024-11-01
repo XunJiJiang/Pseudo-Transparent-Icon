@@ -1,25 +1,67 @@
-export { onBeforeMount } from './hooks/lifecycle/beforeMount'
+import { onBeforeMount } from './hooks/lifecycle/beforeMount'
 
-export { onMounted } from './hooks/lifecycle/mounted'
+import { onMounted } from './hooks/lifecycle/mounted'
 
-export { onUnmounted } from './hooks/lifecycle/unmounted'
+import { onUnmounted } from './hooks/lifecycle/unmounted'
 
-export { default as ref, isRef } from './ref'
+import { ref, isRef } from './ref'
 
-export { default as reactive } from './reactive'
+import { reactive } from './reactive'
 
-export { isReactive } from './Dependency'
+import { isReactive } from './Dependency'
 
-export { effect } from './effect'
+import { effect } from './effect'
 
-export { default as defineCustomElement } from './dom/defineElement'
+import { watch } from './watch'
 
-export { default as AutoAsyncTask } from './utils/AutoAsyncTask'
+import { defineCustomElement } from './dom/defineElement'
 
-export { default as useId } from './hooks/useId'
+import { nextTick } from './utils/AutoAsyncTask'
 
-export { isHTMLElement } from './utils/shared'
+import { default as useId } from './hooks/useId'
 
-export { createElement } from './dom/createElement'
+import { isHTMLElement } from './utils/shared'
 
-export { __jsx, h, Fragment } from './dom/jsx'
+import { createElement } from './dom/createElement'
+
+import { __jsx, h, Fragment } from './dom/jsx'
+
+export default {
+  onBeforeMount,
+  onMounted,
+  onUnmounted,
+  ref,
+  isRef,
+  reactive,
+  isReactive,
+  effect,
+  watch,
+  defineCustomElement,
+  nextTick,
+  useId,
+  isHTMLElement,
+  createElement,
+  __jsx,
+  h,
+  Fragment
+}
+
+export {
+  onBeforeMount,
+  onMounted,
+  onUnmounted,
+  ref,
+  isRef,
+  reactive,
+  isReactive,
+  effect,
+  watch,
+  defineCustomElement,
+  nextTick,
+  useId,
+  isHTMLElement,
+  createElement,
+  __jsx,
+  h,
+  Fragment
+}

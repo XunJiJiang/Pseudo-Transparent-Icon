@@ -3,7 +3,7 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect } from 'vitest'
-import reactive from './reactive'
+import { reactive } from './reactive'
 
 describe('reactive', () => {
   it('正确赋值', () => {

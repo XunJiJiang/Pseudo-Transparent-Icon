@@ -27,11 +27,11 @@ type DataType = Record<string | symbol, any>
 //   ...args: Parameters<T[keyof T]>
 // ) => ReturnType<T[keyof T]>
 
-interface EleCallback {
+export interface EleCallback {
   (this: BaseElement, context: { data: DataType }): void
 }
 
-interface EleAttributeChangedCallback {
+export interface EleAttributeChangedCallback {
   (
     this: BaseElement,
     change: {
@@ -90,7 +90,7 @@ const customElementNameSet = new Set<string>()
 export const isCustomElement = (name: string, el: Element): el is BaseElement =>
   customElementNameSet.has(name)
 
-const defineCustomElement = (
+export const defineCustomElement = (
   name: string,
   {
     style,
@@ -409,5 +409,3 @@ const defineCustomElement = (
     customElements.define(name, Ele, options)
   }
 }
-
-export default defineCustomElement
