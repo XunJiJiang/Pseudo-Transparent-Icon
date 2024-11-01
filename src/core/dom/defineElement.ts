@@ -79,9 +79,10 @@ const checkObservedAttributes = /*@__PURE__*/ (attrs: string[]) => {
 /** 保留键 */
 const reservedKeys = ['ref', 'expose']
 
-export const isReservedKey = (
-  key: string
-): key is (typeof reservedKeys)[number] => reservedKeys.includes(key)
+type ReservedKey = 'ref' | 'expose'
+
+export const isReservedKey = (key: string): key is ReservedKey =>
+  reservedKeys.includes(key)
 
 /** 记录自定义web组件名 */
 const customElementNameSet = new Set<string>()

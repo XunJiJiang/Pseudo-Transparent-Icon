@@ -3,6 +3,9 @@ import { effectAboutFlush } from './effect'
 import { isRef, Ref } from './ref'
 import { isArray } from './utils/shared'
 
+// TODO: watch类型声明问题
+// 当依赖是Ref时, callback的value和oldValue的类型是Ref<T>, 预期是T
+
 // ABOUT: flush
 // 对于在setup函数中运行的effect
 //       post: 初次在onMounted后运行, 之后异步运行 默认
@@ -102,7 +105,7 @@ const watchForAlone = <T>(
   return effectAboutFlush(
     [
       () => {
-        if (isRef(source)) {
+        if (isRef<T>(source)) {
           value.value = source.value as T
         } else if (typeof source === 'function') {
           value.value = source()
@@ -154,7 +157,7 @@ const watchForArray = <T>(
     [
       () => {
         sources.forEach((source, index) => {
-          if (isRef(source)) {
+          if (isRef<T>(source)) {
             value.value[index] = source.value as T
           } else if (typeof source === 'function') {
             value.value[index] = source()

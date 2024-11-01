@@ -23,11 +23,7 @@ const SYMBOL_REF = Symbol('ref')
  * console.log(isRef(ref)) // true
  * ```
  */
-export const isRef = <T = unknown>(
-  val: unknown
-): val is {
-  value: T
-} => {
+export const isRef = <T = unknown>(val: unknown): val is Ref<T> => {
   return (
     isObject(val) &&
     SYMBOL_REF in (val as RefImpl<T>) &&
