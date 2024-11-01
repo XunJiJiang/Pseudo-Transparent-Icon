@@ -90,7 +90,7 @@ export const effect = (
   callback: EffectCallback,
   opt?: EffectOptions
 ): EffectHandle => {
-  return effectAboutFlush([callback], opt)
+  return _effect([callback], opt)
 }
 
 /**
@@ -98,7 +98,7 @@ export const effect = (
  * @param opt
  * @returns
  */
-export const effectAboutFlush = (
+export const _effect = (
   [callback, callbackNoCollect]: [EffectCallback, EffectCallback?],
   opt?: EffectOptions
 ): EffectHandle => {
@@ -133,7 +133,7 @@ export const effectAboutFlush = (
     }
     if (flush === 'post') {
       onMounted(() => {
-        const _ret = _effect(
+        const _ret = effectBuild(
           [
             async (onCleanup) => {
               const _ret = await callback(onCleanup)
@@ -153,7 +153,7 @@ export const effectAboutFlush = (
     } else if (flush === 'pre') {
       let _stopFn: EffectCleanupCallback
       onBeforeMount(() => {
-        const _ret = _effect(
+        const _ret = effectBuild(
           [
             async (onCleanup) => {
               const _ret = await callback(onCleanup)
@@ -177,7 +177,7 @@ export const effectAboutFlush = (
 
     return effectCallbackReturn
   } else {
-    return _effect([callback, callbackNoCollect], opt)
+    return effectBuild([callback, callbackNoCollect], opt)
   }
 }
 
@@ -187,12 +187,10 @@ enum EffectStatus {
   STOP
 }
 
-const _effect = (
+const effectBuild = (
   [callback, callbackNoCollect]: [EffectCallback, EffectCallback?],
   opt: EffectOptions
 ): EffectHandle => {
-  // const flush = opt.flush
-
   const cbIsAsync = isAsyncFunction<EffectCallback<true>>(callback)
   const cbNoCollIsAsync =
     callbackNoCollect && isAsyncFunction(callbackNoCollect)

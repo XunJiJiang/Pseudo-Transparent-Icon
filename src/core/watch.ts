@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { effectAboutFlush } from './effect'
+import { _effect } from './effect'
 import { isRef, Ref } from './ref'
 import { isArray } from './utils/shared'
 
@@ -102,7 +102,7 @@ const watchForAlone = <T>(
 
   let isFirst = true
 
-  return effectAboutFlush(
+  return _effect(
     [
       () => {
         if (isRef<T>(source)) {
@@ -153,7 +153,7 @@ const watchForArray = <T>(
 
   let isFirst = true
 
-  return effectAboutFlush(
+  return _effect(
     [
       () => {
         sources.forEach((source, index) => {
