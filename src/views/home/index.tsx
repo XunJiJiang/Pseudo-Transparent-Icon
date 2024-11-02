@@ -16,7 +16,8 @@ export default defineCustomElement('v-home', {
   observedAttributes: ['data-status', 'd-test'],
   props: {
     style: {
-      default: ''
+      default: '',
+      type: String
     }
   },
   emit: {

@@ -25,7 +25,8 @@ export default defineCustomElement('v-sd-type', {
   observedAttributes: ['data-status'],
   props: {
     style: {
-      default: ''
+      default: '',
+      type: String
     }
   },
   emit: {

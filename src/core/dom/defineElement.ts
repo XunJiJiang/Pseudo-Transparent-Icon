@@ -18,13 +18,13 @@ import {
 import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
 import { hasOwn, isArray, notNull } from '../utils/shared'
 
-type Shared = Record<string | symbol, any>
+type Shared = Record<string, any>
 
-type Exposed = Record<string | symbol, any>
+type Exposed = Record<string, any>
 
-// export type DefineProps<T extends Record<string | symbol, any>> = T
+// export type DefineProps<T extends Record<string, any>> = T
 
-// export type DefineEmit<T extends Record<string | symbol, any>> = (
+// export type DefineEmit<T extends Record<string, any>> = (
 //   key: keyof T,
 //   ...args: Parameters<T[keyof T]>
 // ) => ReturnType<T[keyof T]>
@@ -45,25 +45,41 @@ export interface EleAttributeChangedCallback {
   ): void
 }
 
-type DefaultOptions<T extends string = string, K = any> = {
-  [key in T]: {
-    default?: K extends Func ? Func : any
-    required?: boolean
-  }
-}
+type BaseProps = Record<string, Constructors | (() => unknown)>
 
-type BaseProps = {
-  [key: string | symbol]: any
-}
+type BaseEmits = Record<string, Func>
 
-type BaseEmits = {
-  [key: string]: Func
-}
+type Constructors =
+  | StringConstructor
+  | NumberConstructor
+  | BooleanConstructor
+  | ArrayConstructor
+  | ObjectConstructor
+  | FunctionConstructor
+
+type ConstructorToType<C> = C extends StringConstructor
+  ? string
+  : C extends NumberConstructor
+    ? number
+    : C extends BooleanConstructor
+      ? boolean
+      : C extends ArrayConstructor
+        ? Array<unknown>
+        : C extends ObjectConstructor
+          ? object
+          : C extends FunctionConstructor
+            ? Func
+            : C extends () => Array<infer U>
+              ? U[]
+              : C extends () => infer U
+                ? U
+                : never
 
 type DefineProps<T extends BaseProps> = {
   [key in keyof T]: {
-    default?: T[key]
+    default?: ConstructorToType<T[key]>
     required?: boolean
+    type: T[key] | T[key][]
   }
 }
 
@@ -74,8 +90,8 @@ type DefineEmits<T extends BaseEmits> = {
   }
 }
 
-const checkPropsEmit = /*@__PURE__*/ <T extends string, K>(
-  opts: DefaultOptions<T, K>,
+const checkPropsEmit = <T extends BaseProps, K extends BaseEmits>(
+  opts: DefineProps<T> | DefineEmits<K>,
   ele: BaseElement
 ) => {
   for (const key in opts) {
@@ -88,7 +104,7 @@ const checkPropsEmit = /*@__PURE__*/ <T extends string, K>(
 }
 
 // 不能使用on-开头的属性
-const checkObservedAttributes = /*@__PURE__*/ (attrs: string[]) => {
+const checkObservedAttributes = (attrs: string[]) => {
   for (const attr of attrs) {
     if (/^(on-)/.test(attr)) {
       /*@__PURE__*/ console.error(
@@ -124,10 +140,11 @@ export const isCustomElement = (
   name: string
 ): _el is BaseElement => customElementNameSet.has(name)
 
+// TODO: B extends string
 export const defineCustomElement = <
-  A extends BaseProps,
-  B extends string,
-  C extends BaseEmits
+  P extends BaseProps,
+  E extends BaseEmits,
+  O extends string | never = never
 >(
   name: string,
   {
@@ -147,22 +164,20 @@ export const defineCustomElement = <
     shadow?: boolean
     setup: (
       props: {
-        [key in keyof A]: A[key]
-      } & {
-        [key in B]: string
-      },
+        [key in keyof P]: ConstructorToType<P[key]>
+      } & Record<O, string>,
       context: {
         expose: (methods: Exposed) => void
         share: (methods: Shared) => void
-        emit: <T extends keyof C & string>(
+        emit: <T extends keyof E & string>(
           key: T,
-          ...args: Parameters<C[T]>
-        ) => ReturnType<C[T]>
+          ...args: Parameters<E[T]>
+        ) => ReturnType<E[T]>
       }
     ) => Node | Node[] | void
-    props?: DefineProps<A>
-    emit?: DefineEmits<C>
-    observedAttributes?: B[]
+    props?: DefineProps<P>
+    emit?: DefineEmits<E>
+    observedAttributes?: O[]
     connected?: EleCallback
     disconnected?: EleCallback
     adopted?: EleCallback
@@ -190,10 +205,8 @@ export const defineCustomElement = <
 
   class Ele extends BaseElement<
     {
-      [key in keyof A]: A[key]
-    } & {
-      [key in B]: string
-    }
+      [key in keyof P]: ConstructorToType<P[key]>
+    } & Record<O, string>
   > {
     constructor() {
       super()
@@ -210,7 +223,7 @@ export const defineCustomElement = <
         this.$root = this
       }
 
-      /*@__PURE__*/ checkPropsEmit<string, Func>(emit ?? {}, this)
+      /*@__PURE__*/ checkPropsEmit(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
       /*@__PURE__*/ checkObservedAttributes(_observedAttributes)
 
@@ -238,10 +251,10 @@ export const defineCustomElement = <
       const attrs = Array.from(this.attributes)
       for (const attr of attrs) {
         const { name, value } = attr
-        if (isObservableAttr<B>(name, _observedAttributes)) {
+        if (isObservableAttr<O>(name, _observedAttributes)) {
           ;(
             this.$props as {
-              [key in B]: string
+              [key in O]: string
             }
           )[name] = value
         } else if (reservedKeys.includes(name)) {
@@ -263,7 +276,9 @@ export const defineCustomElement = <
           if (key in propData) {
             this.$props[key] = propData[key]
           } else if (!required && 'default' in _props[key] && notNull(def)) {
-            this.$props[key] = def
+            this.$props[key] = def as ({
+              [key in keyof P]: ConstructorToType<P[key]>
+            } & { [key in O]: string })[Extract<keyof P, string>]
           } else {
             /*@__PURE__*/ console.error(
               (() => {
@@ -284,10 +299,10 @@ export const defineCustomElement = <
       }
 
       // 包装父组件暴露的方法
-      const emitFn = <T extends keyof C & string>(
+      const emitFn = <T extends keyof E & string>(
         key: T,
-        ...args: Parameters<C[T]>
-      ): ReturnType<C[T]> => {
+        ...args: Parameters<E[T]>
+      ): ReturnType<E[T]> => {
         if (
           emit &&
           (hasOwn(this.$emitMethods, key) || !emit[key].required) &&
@@ -332,7 +347,7 @@ export const defineCustomElement = <
             })()
           )
 
-          return void 0 as ReturnType<C[typeof key]>
+          return void 0 as ReturnType<E[typeof key]>
         } else {
           /*@__PURE__*/ console.error(
             (() => {
@@ -352,7 +367,7 @@ export const defineCustomElement = <
             })()
           )
         }
-        return void 0 as ReturnType<C[typeof key]>
+        return void 0 as ReturnType<E[typeof key]>
       }
 
       const exposeData = (methods: Exposed) => {
@@ -450,11 +465,11 @@ export const defineCustomElement = <
       restore()
     }
 
-    attributeChangedCallback(name: B, oldValue: string, newValue: string) {
+    attributeChangedCallback(name: O, oldValue: string, newValue: string) {
       const { restore } = setComponentIns(this)
       ;(
         this.$props as {
-          [key in B]: string
+          [key in O]: string
         }
       )[name] = newValue
       attributeChanged?.call(

@@ -16,7 +16,8 @@ export default defineCustomElement('c-page', {
   observedAttributes: ['data-index', 'data-status'],
   props: {
     style: {
-      default: ''
+      default: '',
+      type: String
     }
   },
   emit: {

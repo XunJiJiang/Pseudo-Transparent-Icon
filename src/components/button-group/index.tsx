@@ -102,16 +102,26 @@ export default defineCustomElement('c-button-group', {
   },
   props: {
     title: {
-      default: ''
+      default: '',
+      type: String
     },
     content: {
-      required: true
+      required: true,
+      type: Array as () => {
+        label: string
+        value: string
+        style?: string
+        // 以下为单个按钮的类型，仅在 type 为 independent 时生效
+        butType?: 'switch' | 'button'
+        click?: () => void
+      }[]
     },
     type: {
-      default: 'independent'
+      default: 'independent',
+      type: String as () => 'radio' | 'checkbox' | 'independent'
     }
   },
-  setup({ content, type, title }: ButtonGroupProps, { emit }) {
+  setup({ content, type, title }, { emit }) {
     const id = useId()
     const butRefs = content.map(() => ref<HTMLInputElement>(null))
     let prevIndex = -1

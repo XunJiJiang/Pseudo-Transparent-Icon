@@ -10,13 +10,16 @@ export type CardProps = {
 export default defineCustomElement('c-card', {
   props: {
     title: {
-      default: ''
+      default: '',
+      type: String
     },
     footer: {
-      default: ''
+      default: '',
+      type: String
     },
     'no-padding': {
-      default: false
+      default: false,
+      type: Boolean
     }
   },
   style: css,
