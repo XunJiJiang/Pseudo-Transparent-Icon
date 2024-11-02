@@ -14,7 +14,7 @@ export type CButtonProps = {
 export default defineCustomElement('c-button', {
   style: css,
   observedAttributes: ['style', 'data-type', 'aria-label'],
-  emit: {
+  emits: {
     click: {
       required: true,
       type: Function as unknown as () => (e: Event) => void

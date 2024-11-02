@@ -20,7 +20,7 @@ export default defineCustomElement('v-home', {
       type: String
     }
   },
-  emit: {
+  emits: {
     next: {
       required: true,
       type: Function as unknown as () => (

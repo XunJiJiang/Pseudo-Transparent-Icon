@@ -161,7 +161,7 @@ export const defineCustomElement = <
     shadow = true,
     setup,
     props,
-    emit,
+    emits,
     observedAttributes,
     connected,
     disconnected,
@@ -185,7 +185,7 @@ export const defineCustomElement = <
       }
     ) => Node | Node[] | void
     props?: DefineProps<P>
-    emit?: DefineEmits<E>
+    emits?: DefineEmits<E>
     observedAttributes?: O[]
     connected?: EleCallback
     disconnected?: EleCallback
@@ -232,7 +232,7 @@ export const defineCustomElement = <
         this.$root = this
       }
 
-      /*@__PURE__*/ checkPropsEmit(emit ?? {}, this)
+      /*@__PURE__*/ checkPropsEmit(emits ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
       /*@__PURE__*/ checkObservedAttributes(_observedAttributes)
 
@@ -313,13 +313,13 @@ export const defineCustomElement = <
         ...args: Parameters<FuncConstructorToType<E[T]>>
       ): ReturnType<FuncConstructorToType<E[T]>> => {
         if (
-          emit &&
-          (hasOwn(this.$emitMethods, key) || !emit[key].required) &&
-          hasOwn(emit, key)
+          emits &&
+          (hasOwn(this.$emitMethods, key) || !emits[key].required) &&
+          hasOwn(emits, key)
         ) {
           const emitMethods = this.$emitMethods
 
-          const _emit = emit
+          const _emit = emits
 
           if (typeof emitMethods[key] === 'function') {
             const fn = emitMethods[key]
@@ -361,12 +361,12 @@ export const defineCustomElement = <
           /*@__PURE__*/ console.error(
             (() => {
               const parentName = this.$parentComponent?.localName ?? ''
-              if (!emit) {
+              if (!emits) {
                 return `${this.localName} 未定义任何 emit`
-              } else if (!hasOwn(emit, key)) {
+              } else if (!hasOwn(emits, key)) {
                 return `${this.localName} 未定义 emit: ${key}`
               } else if (
-                emit[key].required &&
+                emits[key].required &&
                 !hasOwn(this.$emitMethods, key)
               ) {
                 return `在 ${parentName} 中创建的 ${this.localName} 的 on-${key} 属性为空, 而该值为必传`

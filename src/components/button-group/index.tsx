@@ -95,7 +95,7 @@ const typeMap: TypeMap = {
 
 export default defineCustomElement('c-button-group', {
   style: css,
-  emit: {
+  emits: {
     change: {
       required: true,
       type: Function as unknown as () => (

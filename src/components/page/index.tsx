@@ -20,7 +20,7 @@ export default defineCustomElement('c-page', {
       type: String
     }
   },
-  emit: {
+  emits: {
     scroll: {
       required: true,
       type: Function as unknown as () => (scrollTop: number) => void

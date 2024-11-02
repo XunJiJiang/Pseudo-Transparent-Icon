@@ -29,7 +29,7 @@ export default defineCustomElement('v-sd-type', {
       type: String
     }
   },
-  emit: {
+  emits: {
     next: {
       required: true,
       type: Function as unknown as () => (
