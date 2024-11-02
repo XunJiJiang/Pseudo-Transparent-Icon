@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 .c-button {
   position: relative;
   border: 1px solid #00000000;
@@ -21,22 +23,22 @@
   margin: 0 $margin $margin;
 
   &.disabled {
-    background-color: scale-color($bg-blue, $lightness: 25%);
-    color: scale-color(#fff, $lightness: -10%);
+    background-color: color.scale($bg-blue, $lightness: 25%);
+    color: color.scale(#fff, $lightness: -10%);
     cursor: not-allowed;
   }
 
   &:not(.disabled):hover {
-    background-color: scale-color($bg-blue, $lightness: 10%);
+    background-color: color.scale($bg-blue, $lightness: 10%);
   }
 
   &:not(.disabled):active {
-    background-color: scale-color($bg-blue, $lightness: -5%);
+    background-color: color.scale($bg-blue, $lightness: -5%);
   }
 
   @supports (-webkit-touch-callout: none) {
     &:not(.disabled):hover {
-      background-color: scale-color($bg-blue, $lightness: -10%);
+      background-color: color.scale($bg-blue, $lightness: -10%);
     }
 
     &:not(.disabled):hover:not(:active) {
@@ -58,7 +60,7 @@
     color 0.1s;
 
   &.disabled {
-    color: scale-color($fg-blue, $lightness: -50%, $saturation: -50%);
+    color: color.scale($fg-blue, $lightness: -50%, $saturation: -50%);
     cursor: not-allowed;
   }
 
@@ -87,8 +89,8 @@
     background-color: #00000000;
 
     &.disabled {
-      background-color: scale-color(#00000000, $lightness: 25%);
-      color: scale-color($fg-blue, $lightness: 50%);
+      background-color: color.scale(#00000000, $lightness: 25%);
+      color: color.scale($fg-blue, $lightness: 50%);
     }
 
     &:not(.disabled):hover {
