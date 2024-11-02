@@ -252,7 +252,9 @@ export type EventListeners = {
   handles: EventListener[]
 }
 
-export default class BaseElement<T extends object = object> extends HTMLElement {
+export default class BaseElement<
+  T extends object = object
+> extends HTMLElement {
   static events = events
 
   get obAttr(): string[] {

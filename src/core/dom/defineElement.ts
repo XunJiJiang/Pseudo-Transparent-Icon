@@ -16,7 +16,7 @@ import {
   runBeforeMount
 } from '../hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
-import { hasOwn, isArray } from '../utils/shared'
+import { hasOwn, isArray, notNull } from '../utils/shared'
 
 type Shared = Record<string | symbol, any>
 
@@ -119,8 +119,10 @@ export const isReservedKey = (key: string): key is ReservedKey =>
 const customElementNameSet = new Set<string>()
 
 /** 是否是自定义web组件 */
-export const isCustomElement = (el: Element, name: string): el is BaseElement =>
-  customElementNameSet.has(name)
+export const isCustomElement = (
+  _el: Element,
+  name: string
+): _el is BaseElement => customElementNameSet.has(name)
 
 export const defineCustomElement = <
   A extends BaseProps,
@@ -252,7 +254,35 @@ export const defineCustomElement = <
         // }
       }
 
-      // TODO: 此处的key的类型声明存在问题
+      // 从父组件的暴露中获取props定义的属性
+      if (props) {
+        const _props = props
+        const propData = this.$propData
+        for (const key in _props) {
+          const { default: def, required } = _props[key]
+          if (key in propData) {
+            this.$props[key] = propData[key]
+          } else if (!required && 'default' in _props[key] && notNull(def)) {
+            this.$props[key] = def
+          } else {
+            /*@__PURE__*/ console.error(
+              (() => {
+                if (
+                  !required &&
+                  (!('default' in _props[key]) || !notNull(def))
+                ) {
+                  return `${this.localName}: ${key} 为非必须属性, 但未设置有效默认值。`
+                } else if (required && !propData[key]) {
+                  return `${this.localName}: ${key} 为必须属性, 但未传递值。`
+                } else {
+                  return `${this.localName}: 未知错误`
+                }
+              })()
+            )
+          }
+        }
+      }
+
       // 包装父组件暴露的方法
       const emitFn = <T extends keyof C & string>(
         key: T,
@@ -302,7 +332,7 @@ export const defineCustomElement = <
             })()
           )
 
-          return undefined as ReturnType<C[typeof key]>
+          return void 0 as ReturnType<C[typeof key]>
         } else {
           /*@__PURE__*/ console.error(
             (() => {
