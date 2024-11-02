@@ -28,3 +28,5 @@ export const isAsyncFunction = <T = (...args: unknown[]) => Promise<unknown>>(
   isFunction(fn) &&
   Symbol.toStringTag in fn &&
   fn[Symbol.toStringTag] === 'AsyncFunction'
+
+export const notNull = <T>(val: T): val is NonNullable<T> => val != null

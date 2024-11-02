@@ -8,7 +8,8 @@ import {
   isObject,
   hasOwn,
   isHTMLElement,
-  isPromise
+  isPromise,
+  notNull
 } from './shared'
 
 describe('shared utility functions', () => {
@@ -88,5 +89,19 @@ describe('shared utility functions', () => {
   test('isAsyncFunction 应该对非异步函数返回 false', () => {
     const fn = () => {}
     expect(isFunction(fn)).toBe(true)
+  })
+
+  test('notNull 应该对非 null 或 undefined 返回 true', () => {
+    expect(notNull(0)).toBe(true)
+    expect(notNull('')).toBe(true)
+    expect(notNull({})).toBe(true)
+    expect(notNull([])).toBe(true)
+    expect(notNull(false)).toBe(true)
+    expect(notNull(true)).toBe(true)
+    expect(notNull(NaN)).toBe(true)
+    expect(notNull(Symbol())).toBe(true)
+    expect(notNull(() => {})).toBe(true)
+    expect(notNull(null)).toBe(false)
+    expect(notNull(undefined)).toBe(false)
   })
 })
