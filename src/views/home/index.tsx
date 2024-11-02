@@ -22,17 +22,29 @@ export default defineCustomElement('v-home', {
   },
   emit: {
     next: {
-      default: (a?: number) => {
-        return a ?? 0
-      },
-      required: true
+      required: true,
+      type: Function as unknown as () => (
+        index?: number,
+        style?: string
+      ) => void
+    },
+    scroll: {
+      required: true,
+      type: Function as unknown as () => (scrollTop: number) => void
     }
   },
   setup({ style }, { emit, share }) {
     const cPageRef = ref<BaseElement>(null)
     share({ cPageRef })
     return (
-      <c-page ref={cPageRef} data-index="0" on-scroll="scroll" style={style}>
+      <c-page
+        ref={cPageRef}
+        data-index="0"
+        on-scroll={(scrollTop: number) => {
+          emit('scroll', scrollTop)
+        }}
+        style={style}
+      >
         <div slot="default" class="root">
           <c-card>
             <div slot="default" class="card">

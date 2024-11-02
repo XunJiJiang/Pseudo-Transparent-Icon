@@ -97,7 +97,14 @@ export default defineCustomElement('c-button-group', {
   style: css,
   emit: {
     change: {
-      required: true
+      required: true,
+      type: Function as unknown as () => (
+        index: number,
+        value: {
+          label: string
+          value: string
+        }
+      ) => void
     }
   },
   props: {

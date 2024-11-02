@@ -31,13 +31,25 @@ export default defineCustomElement('v-sd-type', {
   },
   emit: {
     next: {
-      required: true
+      required: true,
+      type: Function as unknown as () => (
+        index?: number,
+        style?: string
+      ) => void
     },
     scroll: {
-      required: true
+      required: true,
+      type: Function as unknown as () => (scrollTop: number) => void
     },
     change: {
-      required: true
+      required: true,
+      type: Function as unknown as () => (
+        index: number,
+        value: {
+          label: string
+          value: string
+        }
+      ) => void
     }
   },
   setup({ style }, { emit, share }) {

@@ -47,8 +47,6 @@ export interface EleAttributeChangedCallback {
 
 type BaseProps = Record<string, Constructors | (() => unknown)>
 
-type BaseEmits = Record<string, Func>
-
 type Constructors =
   | StringConstructor
   | NumberConstructor
@@ -83,10 +81,21 @@ type DefineProps<T extends BaseProps> = {
   }
 }
 
+type BaseEmits = Record<string, FunctionConstructor | (() => Func)>
+
+type FuncConstructorToType<C> = C extends FunctionConstructor
+  ? Func
+  : C extends () => infer U
+    ? U extends Func
+      ? U
+      : never
+    : never
+
 type DefineEmits<T extends BaseEmits> = {
   [key in keyof T]: {
-    default?: T[key]
+    default?: FuncConstructorToType<T[key]>
     required?: boolean
+    type: T[key] | T[key][]
   }
 }
 
@@ -171,8 +180,8 @@ export const defineCustomElement = <
         share: (methods: Shared) => void
         emit: <T extends keyof E & string>(
           key: T,
-          ...args: Parameters<E[T]>
-        ) => ReturnType<E[T]>
+          ...args: Parameters<FuncConstructorToType<E[T]>>
+        ) => ReturnType<FuncConstructorToType<E[T]>>
       }
     ) => Node | Node[] | void
     props?: DefineProps<P>
@@ -301,8 +310,8 @@ export const defineCustomElement = <
       // 包装父组件暴露的方法
       const emitFn = <T extends keyof E & string>(
         key: T,
-        ...args: Parameters<E[T]>
-      ): ReturnType<E[T]> => {
+        ...args: Parameters<FuncConstructorToType<E[T]>>
+      ): ReturnType<FuncConstructorToType<E[T]>> => {
         if (
           emit &&
           (hasOwn(this.$emitMethods, key) || !emit[key].required) &&
@@ -347,7 +356,7 @@ export const defineCustomElement = <
             })()
           )
 
-          return void 0 as ReturnType<E[typeof key]>
+          return void 0 as ReturnType<FuncConstructorToType<E[typeof key]>>
         } else {
           /*@__PURE__*/ console.error(
             (() => {
@@ -367,7 +376,7 @@ export const defineCustomElement = <
             })()
           )
         }
-        return void 0 as ReturnType<E[typeof key]>
+        return void 0 as ReturnType<FuncConstructorToType<E[typeof key]>>
       }
 
       const exposeData = (methods: Exposed) => {

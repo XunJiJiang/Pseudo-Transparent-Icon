@@ -16,10 +16,8 @@ export default defineCustomElement('c-button', {
   observedAttributes: ['style', 'data-type', 'aria-label'],
   emit: {
     click: {
-      default: (e: Event): void => {
-        console.warn('c-button: 未设置点击事件', e)
-      },
-      required: true
+      required: true,
+      type: Function as unknown as () => (e: Event) => void
     }
   },
   setup(

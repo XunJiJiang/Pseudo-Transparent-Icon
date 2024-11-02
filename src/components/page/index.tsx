@@ -22,9 +22,8 @@ export default defineCustomElement('c-page', {
   },
   emit: {
     scroll: {
-      default: (scrollTop: number) => {
-        console.warn('c-page: 未设置滚动事件', scrollTop)
-      }
+      required: true,
+      type: Function as unknown as () => (scrollTop: number) => void
     }
   },
   setup({ style, ...props }, { emit, share }) {

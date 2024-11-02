@@ -82,7 +82,10 @@ export default defineCustomElement('l-index', {
     }
 
     const views: [string, () => BaseElement][] = [
-      ['首页', () => <v-home on-next={handle.next} />],
+      [
+        '首页',
+        () => <v-home on-next={handle.next} on-scroll={handle.scroll} />
+      ],
       [
         '选择设备类型',
         () => (
