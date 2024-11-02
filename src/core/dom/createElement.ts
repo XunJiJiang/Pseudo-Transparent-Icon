@@ -18,9 +18,6 @@ import { isCustomElement, isReservedKey } from './defineElement'
 //   return true
 // }
 
-// TODO: 重写remove appendChild等方法, 尽量不用FinalizationRegistry
-// 仅重写remove, 同时不允许外部直接添加和删除元素
-
 const setAttribute = (el: Element, key: string, value: any) => {
   if (value === null || value === undefined) {
     el.removeAttribute(key)

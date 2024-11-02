@@ -1,13 +1,13 @@
 import css from './index.scss?raw'
 import { defineCustomElement, onMounted, ref } from 'xj-web-core/index'
 
-type PageProps = {
+export type PageProps = {
   style: string
   'data-index': string
   'data-status': string
 }
 
-type PageEmit = {
+export type PageEmit = {
   scroll: (scrollTop: number) => void
 }
 
@@ -21,13 +21,15 @@ export default defineCustomElement('c-page', {
   },
   emit: {
     scroll: {
-      default: () => {}
+      default: (scrollTop: number) => {
+        console.warn('c-page: 未设置滚动事件', scrollTop)
+      }
     }
   },
-  setup({ style, ...props }: PageProps, { emit, share }) {
+  setup({ style, ...props }, { emit, share }) {
     const pageRootRef = ref<HTMLDivElement>(null)
     const scroll = (e: Event) => {
-      emit<PageEmit>('scroll', (e.target as HTMLElement).scrollTop)
+      emit('scroll', (e.target as HTMLElement).scrollTop)
     }
     onMounted(() => {
       pageRootRef.value?.classList.add(`page-${props['data-index'] || '1'}`)

@@ -16,11 +16,14 @@ export default defineCustomElement('c-button', {
   observedAttributes: ['style', 'data-type', 'aria-label'],
   emit: {
     click: {
-      default: () => {}
+      default: (e: Event): void => {
+        console.warn('c-button: 未设置点击事件', e)
+      },
+      required: true
     }
   },
   setup(
-    { style, 'data-type': dataType, 'aria-label': ariaLabel }: CButtonProps,
+    { style, 'data-type': dataType, 'aria-label': ariaLabel },
     { emit, expose }
   ) {
     const buttonRef = ref<HTMLButtonElement>(null)

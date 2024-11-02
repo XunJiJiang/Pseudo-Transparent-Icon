@@ -1,7 +1,7 @@
 import css from './index.scss?raw'
 import { defineCustomElement, useId, ref } from 'xj-web-core/index'
 
-type ButtonGroupProps = {
+export type ButtonGroupProps = {
   type: 'radio' | 'checkbox' | 'independent'
   title?: string
   content: {
@@ -14,7 +14,7 @@ type ButtonGroupProps = {
   }[]
 }
 
-type ButtonGroupEmit = {
+export type ButtonGroupEmit = {
   change: (
     index: number,
     value: {
@@ -102,7 +102,7 @@ export default defineCustomElement('c-button-group', {
   },
   props: {
     title: {
-      default: null
+      default: ''
     },
     content: {
       required: true
@@ -119,7 +119,7 @@ export default defineCustomElement('c-button-group', {
     const change = (_e: Event, i: string) => {
       const butRef = butRefs[Number(i)]
       if (!butRef.value) return
-      emit<ButtonGroupEmit>('change', Number(i), content[Number(i)])
+      emit('change', Number(i), content[Number(i)])
       if (type === 'radio') {
         butRefs[prevIndex]?.value?.classList.remove('checked')
         butRef.value.classList.add('checked')
@@ -130,11 +130,7 @@ export default defineCustomElement('c-button-group', {
     }
 
     return (
-      <c-card
-        no-padding="true"
-        footer="如果你能看到这个那就是我忘了删了。"
-        title={title}
-      >
+      <c-card no-padding="true" footer="如果你能看到这个" title={title}>
         <div slot="default" class="button-group">
           <div class="button-group-content">
             {content.map(({ label, style }, i) =>

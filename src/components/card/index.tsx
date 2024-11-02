@@ -1,7 +1,7 @@
 import css from './index.scss?raw'
 import { defineCustomElement } from 'xj-web-core/index'
 
-type CardProps = {
+export type CardProps = {
   title?: string
   footer?: string
   'no-padding'?: boolean
@@ -10,17 +10,17 @@ type CardProps = {
 export default defineCustomElement('c-card', {
   props: {
     title: {
-      default: null
+      default: ''
     },
     footer: {
-      default: null
+      default: ''
     },
     'no-padding': {
       default: false
     }
   },
   style: css,
-  setup({ title, footer, 'no-padding': noPadding }: CardProps) {
+  setup({ title, footer, 'no-padding': noPadding }) {
     return (
       <>
         {title ? <header class="header">{title}</header> : ''}

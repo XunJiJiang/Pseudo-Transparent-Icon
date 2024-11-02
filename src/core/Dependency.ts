@@ -119,44 +119,7 @@ class Dependency<T extends object> {
           this._isProxy.push(key)
         }
 
-        // if (isArray(target)) collect()
-        // else
         collect(key)
-
-        // if (
-        //   typeof _value === 'function' &&
-        //   isArray(target) &&
-        //   NOT_PURE_ARR_FUNC_KEY.includes(String(key))
-        // ) {
-        //   // return function (...args: Parameters<typeof _value>) {
-        //   //   let result: unknown
-        //   //   distribute(() => {
-        //   //     result = _value.apply(target, args)
-        //   //   })
-        //   //   return result
-        //   // }
-        //   // TODO: 未测试
-        //   return new Proxy(_value, {
-        //     apply: (target, thisArg, argArray) => {
-        //       collect()
-        //       let result: unknown
-        //       distribute(() => {
-        //         result = Reflect.apply(target, thisArg, argArray)
-        //       })
-        //       return result
-        //     },
-        //     get: (target, key, receiver) => {
-        //       if (key === SYMBOL_DEPENDENCY) return this
-
-        //       if (BIND_THIS_FUNC_KEY.includes(String(key))) {
-        //         return Reflect.get(target, key, receiver)
-        //       }
-
-        //       collect()
-        //       return Reflect.get(target, key, receiver)
-        //     }
-        //   })
-        // }
 
         return _ret
       },

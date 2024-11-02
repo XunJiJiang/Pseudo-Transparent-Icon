@@ -3,12 +3,12 @@ import css from './index.scss?raw'
 import { defineCustomElement, effect, reactive, ref } from 'xj-web-core/index'
 import BaseElement from 'xj-web-core/dom/BaseElement'
 
-type SelectDeviceTypeProps = {
+export type SelectDeviceTypeProps = {
   'data-status': string
   style: string
 }
 
-type SelectDeviceTypeEmit = {
+export type SelectDeviceTypeEmit = {
   next: () => void
   scroll: (scrollTop: number) => void
   change: (
@@ -39,7 +39,7 @@ export default defineCustomElement('v-sd-type', {
       required: true
     }
   },
-  setup({ style }: SelectDeviceTypeProps, { emit, share }) {
+  setup({ style }, { emit, share }) {
     const cPageRef = ref<BaseElement>(null)
 
     const devices = reactive([
@@ -111,7 +111,7 @@ export default defineCustomElement('v-sd-type', {
       }
       butExpose.value?.setStatus('normal')
       const { index, val } = nowDevice.value
-      emit<SelectDeviceTypeEmit>('change', index, val)
+      emit('change', index, val)
     })
 
     share({
@@ -119,13 +119,12 @@ export default defineCustomElement('v-sd-type', {
       cPageRef
     })
 
-    // TODO: 当完成绑定属性后，style,devices赋值
     return (
       <c-page
         ref={cPageRef}
         data-index="1"
         on-scroll={(scrollTop: number) => {
-          emit<SelectDeviceTypeEmit>('scroll', scrollTop)
+          emit('scroll', scrollTop)
         }}
         style={style}
       >
@@ -177,7 +176,7 @@ export default defineCustomElement('v-sd-type', {
           <c-button
             expose={butExpose}
             on-click={() => {
-              emit<SelectDeviceTypeEmit>('next')
+              emit('next')
             }}
             data-type="default"
             aria-label="完成设备选择"
