@@ -1,6 +1,11 @@
 output=$("npm.cmd" run format-check)
 
 if echo "$output" | grep -i "warn"; then
-  echo "代码格式化检查包含警告，提交已取消。"
-  exit 1
+echo "代码格式化检查包含警告，提交已取消。"
+exit 1
+fi
+
+if echo "$output" | grep -i "error"; then
+echo "代码格式化检查包含错误，提交已取消。"
+exit 1
 fi
