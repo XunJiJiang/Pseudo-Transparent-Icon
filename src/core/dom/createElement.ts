@@ -95,15 +95,9 @@ export const createElement = (
     for (const key in props) {
       if (isCustomEle) {
         if (el.obAttr.includes(key) && isRef<string>(props[key])) {
-          const stop = watch(
-            props[key],
-            (value) => {
-              setAttribute(el, key, value)
-            },
-            {
-              deep: true
-            }
-          )
+          const stop = watch(props[key], (value) => {
+            setAttribute(el, key, value)
+          })
           EffectStops.add(stop)
         }
       } else {
@@ -117,46 +111,34 @@ export const createElement = (
                     el.className = value.join(' ')
                   },
                   {
-                    deep: true
+                    deep: 1
                   }
                 )
                 EffectStops.add(stop)
-              } else if (isRef<string[]>(props[key])) {
+              } else if (isRef(props[key])) {
                 const stop = watch(
                   props[key],
                   (value) => {
                     el.className = value.join(' ')
                   },
                   {
-                    deep: true
+                    deep: 1
                   }
                 )
                 EffectStops.add(stop)
               }
             } else {
               if (isRef<string>(props[key])) {
-                const stop = watch(
-                  props[key],
-                  (value) => {
-                    setAttribute(el, key, value)
-                  },
-                  {
-                    deep: true
-                  }
-                )
+                const stop = watch(props[key], (value) => {
+                  setAttribute(el, key, value)
+                })
                 EffectStops.add(stop)
               }
             }
           } else if (isRef(props[key])) {
-            const stop = watch(
-              props[key],
-              (value) => {
-                setAttribute(el, key, String(value))
-              },
-              {
-                deep: true
-              }
-            )
+            const stop = watch(props[key], (value) => {
+              setAttribute(el, key, String(value))
+            })
             EffectStops.add(stop)
           }
         }
