@@ -1,35 +1,67 @@
-export { onBeforeCreate } from './hooks/lifecycle/beforeCreate'
+import { onBeforeMount } from './hooks/lifecycle/beforeMount'
 
-export { onCreated } from './hooks/lifecycle/created'
+import { onMounted } from './hooks/lifecycle/mounted'
 
-export { onBeforeMount } from './hooks/lifecycle/beforeMount'
+import { onUnmounted } from './hooks/lifecycle/unmounted'
 
-export { onMounted } from './hooks/lifecycle/mounted'
+import { ref, isRef } from './ref'
 
-export { onUnmounted } from './hooks/lifecycle/unmounted'
+import { reactive } from './reactive'
 
-export { default as ref } from './ref'
+import { isReactive } from './Dependency'
 
-export { default as refTemplate } from './dom/refTemplate'
+import { effect } from './effect'
 
-export { default as exposeTemplate } from './dom/exposeTemplate'
+import { watch } from './watch'
 
-export { default as expose } from './dom/exposeData'
+import { defineCustomElement } from './dom/defineElement'
 
-export { default as reactive } from './reactive'
+import { nextTick } from './utils/AutoAsyncTask'
 
-export { effect, isRef, isReactive } from './Dependency'
+import { default as useId } from './hooks/useId'
 
-export { default as defineCustomElement } from './dom/defineElement'
+import { isHTMLElement } from './utils/shared'
 
-export { getInstance } from './dom/fixComponentIns'
+import { createElement } from './dom/createElement'
 
-export { default as AutoAsyncTask } from './utils/AutoAsyncTask'
+import { __jsx, h, Fragment } from './dom/jsx'
 
-export { default as useId } from './hooks/useId'
+export default {
+  onBeforeMount,
+  onMounted,
+  onUnmounted,
+  ref,
+  isRef,
+  reactive,
+  isReactive,
+  effect,
+  watch,
+  defineCustomElement,
+  nextTick,
+  useId,
+  isHTMLElement,
+  createElement,
+  __jsx,
+  h,
+  Fragment
+}
 
-export { isHTMLElement } from './utils/shared'
-
-export { createElement } from './dom/createElement'
-
-export { __jsx, h, Fragment } from './dom/jsx'
+export {
+  onBeforeMount,
+  onMounted,
+  onUnmounted,
+  ref,
+  isRef,
+  reactive,
+  isReactive,
+  effect,
+  watch,
+  defineCustomElement,
+  nextTick,
+  useId,
+  isHTMLElement,
+  createElement,
+  __jsx,
+  h,
+  Fragment
+}

@@ -8,25 +8,19 @@
  */
 
 import { Func } from '@type/function'
-import BaseElement, { SYMBOL_CLEAR_REF } from './BaseElement'
+import BaseElement, { SYMBOL_INIT } from './BaseElement'
 import { setComponentIns } from './fixComponentIns'
-import { exposeData } from './exposeData'
-import { shareData } from './sharedData'
 import { startSetupRunning } from '../hooks/lifecycle/verifySetup'
-import {
-  clearBeforeCreate,
-  runBeforeCreate
-} from '../hooks/lifecycle/beforeCreate'
-import { clearCreated, runCreated } from '../hooks/lifecycle/created'
 import {
   clearBeforeMount,
   runBeforeMount
 } from '../hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
-import { runUnmounted } from '../hooks/lifecycle/unmounted'
-import { hasOwn, isArray } from '../utils/shared'
+import { hasOwn, isArray, notNull } from '../utils/shared'
 
-type DataType = Record<string | symbol, any>
+type Shared = Record<string | symbol, any>
+
+type Exposed = Record<string | symbol, any>
 
 // export type DefineProps<T extends Record<string | symbol, any>> = T
 
@@ -35,11 +29,11 @@ type DataType = Record<string | symbol, any>
 //   ...args: Parameters<T[keyof T]>
 // ) => ReturnType<T[keyof T]>
 
-interface EleCallback {
-  (this: BaseElement, context: { data: DataType }): void
+export interface EleCallback {
+  (this: BaseElement, context: { data: Shared }): void
 }
 
-interface EleAttributeChangedCallback {
+export interface EleAttributeChangedCallback {
   (
     this: BaseElement,
     change: {
@@ -47,13 +41,35 @@ interface EleAttributeChangedCallback {
       oldValue: string
       newValue: string
     },
-    context: { data: DataType }
+    context: { data: Shared }
   ): void
 }
 
 type DefaultOptions<T extends string = string, K = any> = {
   [key in T]: {
     default?: K extends Func ? Func : any
+    required?: boolean
+  }
+}
+
+type BaseProps = {
+  [key: string | symbol]: any
+}
+
+type BaseEmits = {
+  [key: string]: Func
+}
+
+type DefineProps<T extends BaseProps> = {
+  [key in keyof T]: {
+    default?: T[key]
+    required?: boolean
+  }
+}
+
+type DefineEmits<T extends BaseEmits> = {
+  [key in keyof T]: {
+    default?: T[key]
     required?: boolean
   }
 }
@@ -84,148 +100,39 @@ const checkObservedAttributes = /*@__PURE__*/ (attrs: string[]) => {
   }
 }
 
+const isObservableAttr = <T extends string>(
+  key: string,
+  observedAttributes: T[]
+): key is T => {
+  return observedAttributes.includes(key as T)
+}
+
 /** 保留键 */
 const reservedKeys = ['ref', 'expose']
+
+type ReservedKey = 'ref' | 'expose'
+
+export const isReservedKey = (key: string): key is ReservedKey =>
+  reservedKeys.includes(key)
 
 /** 记录自定义web组件名 */
 const customElementNameSet = new Set<string>()
 
 /** 是否是自定义web组件 */
-export const isCustomElement = (name: string) => customElementNameSet.has(name)
+export const isCustomElement = (
+  _el: Element,
+  name: string
+): _el is BaseElement => customElementNameSet.has(name)
 
-const beforeRemove = (ele: Node, root: BaseElement) => {
-  if (ele instanceof Element) {
-    const nodeRefAttr = ele.attributes.getNamedItem('ref')
-    const nodeExposeAttr = ele.attributes.getNamedItem('expose')
-    if (nodeRefAttr) {
-      const refName = nodeRefAttr.value
-      if (ele === root.$defineRefs[refName]) delete root.$defineRefs[refName]
-      if (refName in root.$refs) {
-        if (root.$refs[refName].value === ele) root.$refs[refName].value = null
-      }
-    }
-
-    if (nodeExposeAttr) {
-      if (ele instanceof BaseElement) {
-        const exposeName = nodeExposeAttr.value
-        if (ele.$exposedData === root.$defineExposes[exposeName])
-          delete root.$defineExposes[exposeName]
-        if (exposeName in root.$exposes) {
-          if (root.$exposes[exposeName].value === ele.$exposedData)
-            root.$exposes[exposeName].value = null
-        }
-      }
-    }
-
-    if (ele instanceof BaseElement) {
-      ele.__destroy__(SYMBOL_CLEAR_REF)
-    }
-
-    const childNodes = Array.from(ele.childNodes)
-    childNodes.forEach((child) => {
-      beforeRemove(child, root)
-    })
-  }
-}
-
-const beforeAppend = (ele: Node, root: BaseElement) => {
-  if (ele instanceof Element) {
-    const nodeRefAttr = ele.attributes.getNamedItem('ref')
-    const nodeExposeAttr = ele.attributes.getNamedItem('expose')
-    if (nodeRefAttr) {
-      const refName = nodeRefAttr.value
-      if (root.$defineRefs[refName]) {
-        /*@__PURE__*/ console.warn(
-          `${root.localName}: ref 属性 ${refName} 已存在引用，创建同名引用会导致上一个引用被丢弃。`
-        )
-      }
-
-      root.$defineRefs[refName] = ele
-      if (refName in root.$refs) {
-        root.$refs[refName].value = ele
-      }
-    }
-
-    if (nodeExposeAttr) {
-      if (ele instanceof BaseElement) {
-        const exposeName = nodeExposeAttr.value
-        root.$defineExposes[exposeName] = ele.$exposedData
-        if (exposeName in root.$exposes) {
-          root.$exposes[exposeName].value = ele.$exposedData
-        }
-      } else {
-        /*@__PURE__*/ console.error(
-          `${root.localName}: expose 属性只能用于自定义组件, 此处错误的使用在 ${ele.localName} 上。`
-        )
-      }
-    }
-
-    replaceMethods(ele, root)
-  }
-}
-
-const replaceMethods = (ele: Element, root: BaseElement) => {
-  if (ele instanceof BaseElement) return
-
-  const nodeRemove = ele.remove.bind(ele)
-  const nodeAppend = ele.appendChild.bind(ele)
-  const nodeRemoveChild = ele.removeChild.bind(ele)
-  const nodePrepend = ele.prepend.bind(ele)
-  const nodeInsertBefore = ele.insertBefore.bind(ele)
-  const nodeReplaceChild = ele.replaceChild.bind(ele)
-
-  /** 恢复原方法 */
-  const restore = () => {
-    ele.remove = nodeRemove
-    ele.appendChild = nodeAppend
-    ele.removeChild = nodeRemoveChild
-    ele.prepend = nodePrepend
-    ele.insertBefore = nodeInsertBefore
-    ele.replaceChild = nodeReplaceChild
-  }
-
-  ele.remove = () => {
-    beforeRemove(ele, root)
-    restore()
-    nodeRemove()
-  }
-  ele.appendChild = <T extends Node>(node: T): T => {
-    beforeAppend(node, root)
-    return nodeAppend(node)
-  }
-  ele.removeChild = <T extends Node>(node: T): T => {
-    beforeRemove(node, root)
-    restore()
-    return nodeRemoveChild(node)
-  }
-  ele.prepend = (...nodes: (Node | string)[]) => {
-    nodes.forEach((node) => {
-      if (typeof node !== 'string') {
-        beforeAppend(node, root)
-      }
-    })
-    nodePrepend(...nodes)
-  }
-  ele.insertBefore = <T extends Node>(
-    newNode: T,
-    referenceNode: Node | null
-  ): T => {
-    beforeAppend(newNode, root)
-    return nodeInsertBefore(newNode, referenceNode)
-  }
-  ele.replaceChild = <T extends Node>(newNode: Node, oldNode: T): T => {
-    beforeRemove(oldNode, root)
-    restore()
-    beforeAppend(newNode, root)
-    return nodeReplaceChild(newNode, oldNode)
-  }
-}
-
-const defineCustomElement = (
+export const defineCustomElement = <
+  A extends BaseProps,
+  B extends string,
+  C extends BaseEmits
+>(
   name: string,
   {
     style,
-    // shadow = true,
+    shadow = true,
     setup,
     props,
     emit,
@@ -237,21 +144,25 @@ const defineCustomElement = (
     // ...rest
   }: {
     style?: string | ((props: any) => string)
-    // shadow?: boolean
+    shadow?: boolean
     setup: (
-      props: any,
+      props: {
+        [key in keyof A]: A[key]
+      } & {
+        [key in B]: string
+      },
       context: {
-        expose: (methods: DataType) => void
-        share: (methods: DataType) => void
-        emit: <T extends Record<string, Func> = Record<string, Func>>(
-          key: keyof T & string,
-          ...args: Parameters<T[typeof key]>
-        ) => ReturnType<T[typeof key]>
+        expose: (methods: Exposed) => void
+        share: (methods: Shared) => void
+        emit: <T extends keyof C & string>(
+          key: T,
+          ...args: Parameters<C[T]>
+        ) => ReturnType<C[T]>
       }
     ) => Node | Node[] | void
-    props?: DefaultOptions
-    emit?: DefaultOptions<string, Func>
-    observedAttributes?: string[]
+    props?: DefineProps<A>
+    emit?: DefineEmits<C>
+    observedAttributes?: B[]
     connected?: EleCallback
     disconnected?: EleCallback
     adopted?: EleCallback
@@ -264,8 +175,26 @@ const defineCustomElement = (
     return () => {}
   }
 
-  // const _shadow = shadow
-  class Ele extends BaseElement {
+  const _shadow = shadow
+
+  if (style && !shadow) {
+    const styleEle = document.createElement('style')
+    if (typeof style === 'string') styleEle.textContent = style
+    else if (typeof style === 'function') {
+      /*@__PURE__*/ console.error(
+        `${name}: 当不使用shadow时, style只能是string类型。`
+      )
+    }
+    document.body.appendChild(styleEle)
+  }
+
+  class Ele extends BaseElement<
+    {
+      [key in keyof A]: A[key]
+    } & {
+      [key in B]: string
+    }
+  > {
     constructor() {
       super()
       // 设置当前组件实例, 并返回父组件实例
@@ -275,11 +204,11 @@ const defineCustomElement = (
       const _observedAttributes = observedAttributes || []
 
       // TODO: 在解决 "不使用Shadow Root的元素绑定数据时外部会获取到子组件内容" 的问题前, 强制使用Shadow Root
-      // if (_shadow) {
-      //   this.$root = this.attachShadow({ mode: 'open' })
-      // } else {
-      //   this.$root = this
-      // }
+      if (_shadow) {
+        this.$root = this.attachShadow({ mode: 'open' })
+      } else {
+        this.$root = this
+      }
 
       /*@__PURE__*/ checkPropsEmit<string, Func>(emit ?? {}, this)
       /*@__PURE__*/ checkPropsEmit(props ?? {}, this)
@@ -290,6 +219,10 @@ const defineCustomElement = (
     }
 
     static get observedAttributes() {
+      return observedAttributes || []
+    }
+
+    get obAttr() {
       return observedAttributes || []
     }
 
@@ -305,8 +238,12 @@ const defineCustomElement = (
       const attrs = Array.from(this.attributes)
       for (const attr of attrs) {
         const { name, value } = attr
-        if (_observedAttributes.includes(name)) {
-          this.$props[name] = value
+        if (isObservableAttr<B>(name, _observedAttributes)) {
+          ;(
+            this.$props as {
+              [key in B]: string
+            }
+          )[name] = value
         } else if (reservedKeys.includes(name)) {
           continue
         }
@@ -317,12 +254,40 @@ const defineCustomElement = (
         // }
       }
 
-      // TODO: 此处的key的类型声明存在问题
+      // 从父组件的暴露中获取props定义的属性
+      if (props) {
+        const _props = props
+        const propData = this.$propData
+        for (const key in _props) {
+          const { default: def, required } = _props[key]
+          if (key in propData) {
+            this.$props[key] = propData[key]
+          } else if (!required && 'default' in _props[key] && notNull(def)) {
+            this.$props[key] = def
+          } else {
+            /*@__PURE__*/ console.error(
+              (() => {
+                if (
+                  !required &&
+                  (!('default' in _props[key]) || !notNull(def))
+                ) {
+                  return `${this.localName}: ${key} 为非必须属性, 但未设置有效默认值。`
+                } else if (required && !propData[key]) {
+                  return `${this.localName}: ${key} 为必须属性, 但未传递值。`
+                } else {
+                  return `${this.localName}: 未知错误`
+                }
+              })()
+            )
+          }
+        }
+      }
+
       // 包装父组件暴露的方法
-      const emitFn = <T extends Record<string, Func> = Record<string, Func>>(
-        key: keyof T & string,
-        ...args: Parameters<T[typeof key]>
-      ): ReturnType<T[typeof key]> => {
+      const emitFn = <T extends keyof C & string>(
+        key: T,
+        ...args: Parameters<C[T]>
+      ): ReturnType<C[T]> => {
         if (
           emit &&
           (hasOwn(this.$emitMethods, key) || !emit[key].required) &&
@@ -330,7 +295,7 @@ const defineCustomElement = (
         ) {
           const emitMethods = this.$emitMethods
 
-          const _emit = emit as DefaultOptions<keyof T & string, Func>
+          const _emit = emit
 
           if (typeof emitMethods[key] === 'function') {
             const fn = emitMethods[key]
@@ -367,7 +332,7 @@ const defineCustomElement = (
             })()
           )
 
-          return undefined as ReturnType<T[typeof key]>
+          return void 0 as ReturnType<C[typeof key]>
         } else {
           /*@__PURE__*/ console.error(
             (() => {
@@ -387,26 +352,30 @@ const defineCustomElement = (
             })()
           )
         }
-        return undefined as ReturnType<T[typeof key]>
+        return void 0 as ReturnType<C[typeof key]>
       }
 
-      // 从父组件的暴露中获取props定义的属性
-      if (props) {
-        const _props = props
-        const propData = this.$propData
-        for (const key in _props) {
-          const { default: def, required } = _props[key]
-          if (key in propData) {
-            this.$props[key] = propData[key]
-          } else if (!required && 'default' in _props[key]) {
-            this.$props[key] = def
-          } else {
-            /*@__PURE__*/ console.error(
-              (() => {
-                // TODO:
-              })()
+      const exposeData = (methods: Exposed) => {
+        for (const key in methods) {
+          if (key in this.$exposedData) {
+            /*@__PURE__*/ console.warn(
+              `${this.localName} 重复暴露 ${key} 属性，旧的值将被覆盖。`
             )
           }
+          const _val = methods[key]
+          this.$exposedData[key] = _val
+        }
+      }
+
+      const shareData = (attrs: Shared) => {
+        for (const key in attrs) {
+          if (key in this.$sharedData) {
+            /*@__PURE__*/ console.warn(
+              `${this.localName} 重复暴露 ${key} 属性，旧的值将被覆盖。`
+            )
+          }
+          const _val = attrs[key]
+          this.$sharedData[key] = _val
         }
       }
 
@@ -419,20 +388,8 @@ const defineCustomElement = (
           emit: emitFn
         }) || {}
 
-      if (setupData instanceof Node) {
-        // TODO:
-      }
-
-      // Lifecycle: beforeCreate 调用时机
-      runBeforeCreate()
-
       setupEnd()
 
-      clearBeforeCreate()
-      // Lifecycle: created 调用时机
-      runCreated()
-
-      clearCreated()
       // Lifecycle: beforeMount 调用时机
       runBeforeMount(this)
 
@@ -449,7 +406,7 @@ const defineCustomElement = (
       }
 
       // 创建 style 标签
-      if (style) {
+      if (style && _shadow) {
         const styleEle = document.createElement('style')
         if (typeof style === 'string') styleEle.textContent = style
         else if (typeof style === 'function')
@@ -460,45 +417,8 @@ const defineCustomElement = (
       // 由于规定effect需要在组件创建开始，onMount 运行前就要创建，而目前使用startSetupRunning来限制在setup中运行
       // 所以这里需要先模拟为在setup内
 
-      // 获取定义了ref属性的元素
-      const refEles = Array.from(shadow.querySelectorAll('[ref]'))
-      refEles.forEach((ele: Element) => {
-        const refName = ele.getAttribute('ref')
-        replaceMethods(ele, this)
-        if (!refName) return
-        this.$defineRefs[refName] = ele
-        if (refName in this.$refs) {
-          this.$refs[refName].value = ele
-        }
-      })
-
-      // 获取定义了expose属性的元素
-      const exposeEles = Array.from(shadow.querySelectorAll('[expose]'))
-      // 使用exposeTemplate声明的元素
-      exposeEles.forEach((ele: Element) => {
-        const exposeName = ele.getAttribute('expose')
-        if (!exposeName) {
-          return /*@__PURE__*/ console.error(
-            `${this.localName}: expose 属性不能为空。`
-          )
-        } else if (!(ele instanceof BaseElement)) {
-          return /*@__PURE__*/ console.error(
-            `${this.localName}: expose 属性只能用于自定义组件。`
-          )
-        }
-        this.$defineExposes[exposeName] = ele.$exposedData
-        if (exposeName in this.$exposes) {
-          this.$exposes[exposeName].value = this.$defineExposes[exposeName]
-        }
-      })
-
-      const exposeTemplates = /*@__PURE__*/ Object.entries(this.$exposes)
-      /*@__PURE__*/ exposeTemplates.forEach(([key, value]) => {
-        if (value) return
-        console.error(
-          `${this.localName}: 尝试使用exposeTemplate获取${key}, 但没有在任何自定义组将上定义[expose=${key}]。`
-        )
-      })
+      // TODO: 在移除全部对shadow.querySelectorAll的使用后，即可放开shadow选项
+      // 则修改样式绑定的方式
 
       // WARN: 由于暂时没有多文档支持, 所以暂时不需要考虑多文档的情况
       clearBeforeMount(this)
@@ -514,13 +434,11 @@ const defineCustomElement = (
     disconnectedCallback() {
       const { restore } = setComponentIns(this)
       clearMounted(this)
-
-      // Lifecycle: unmounted 调用时机
-      runUnmounted()
       disconnected?.call(this, {
         data: this.$sharedData
       })
       restore()
+      super.__init__(SYMBOL_INIT)
     }
 
     adoptedCallback() {
@@ -532,9 +450,13 @@ const defineCustomElement = (
       restore()
     }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    attributeChangedCallback(name: B, oldValue: string, newValue: string) {
       const { restore } = setComponentIns(this)
-      this.$props[name] = newValue
+      ;(
+        this.$props as {
+          [key in B]: string
+        }
+      )[name] = newValue
       attributeChanged?.call(
         this,
         { name, oldValue, newValue },
@@ -544,58 +466,6 @@ const defineCustomElement = (
       )
       restore()
     }
-
-    remove() {
-      const { restore } = setComponentIns(this)
-      if (this.$parentComponent) beforeRemove(this, this.$parentComponent)
-      super.remove()
-      restore()
-    }
-
-    appendChild<T extends Node>(node: T): T {
-      const { restore } = setComponentIns(this)
-      beforeAppend(node, this)
-      const _ret = super.appendChild(node)
-      restore()
-      return _ret
-    }
-
-    removeChild<T extends Node>(node: T): T {
-      const { restore } = setComponentIns(this)
-      beforeRemove(node, this)
-      const _ret = super.removeChild(node)
-      restore()
-      return _ret
-    }
-
-    prepend(...nodes: (Node | string)[]) {
-      const { restore } = setComponentIns(this)
-      nodes.forEach((node) => {
-        if (typeof node !== 'string') {
-          beforeAppend(node, this)
-        }
-      })
-      const _ret = super.prepend(...nodes)
-      restore()
-      return _ret
-    }
-
-    insertBefore<T extends Node>(newNode: T, referenceNode: Node | null): T {
-      const { restore } = setComponentIns(this)
-      beforeAppend(newNode, this)
-      const _ret = super.insertBefore(newNode, referenceNode)
-      restore()
-      return _ret
-    }
-
-    replaceChild<T extends Node>(newNode: Node, oldNode: T): T {
-      const { restore } = setComponentIns(this)
-      beforeRemove(oldNode, this)
-      beforeAppend(newNode, this)
-      const _ret = super.replaceChild(newNode, oldNode)
-      restore()
-      return _ret
-    }
   }
 
   return () => {
@@ -603,5 +473,3 @@ const defineCustomElement = (
     customElements.define(name, Ele, options)
   }
 }
-
-export default defineCustomElement

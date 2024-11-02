@@ -1,14 +1,13 @@
-// import refTemplate from 'xj-web-core/refTemplate'
 import css from './index.scss?raw'
-import { defineCustomElement, onMounted, refTemplate } from 'xj-web-core/index'
+import { defineCustomElement, onMounted, ref } from 'xj-web-core/index'
 
-type PageProps = {
+export type PageProps = {
   style: string
   'data-index': string
   'data-status': string
 }
 
-type PageEmit = {
+export type PageEmit = {
   scroll: (scrollTop: number) => void
 }
 
@@ -22,17 +21,18 @@ export default defineCustomElement('c-page', {
   },
   emit: {
     scroll: {
-      default: () => {}
+      default: (scrollTop: number) => {
+        console.warn('c-page: 未设置滚动事件', scrollTop)
+      }
     }
   },
-  setup({ style, ...props }: PageProps, { emit }) {
-    const pageRootRef = refTemplate('c-page-ref')
+  setup({ style, ...props }, { emit, share }) {
+    const pageRootRef = ref<HTMLDivElement>(null)
     const scroll = (e: Event) => {
-      emit<PageEmit>('scroll', (e.target as HTMLElement).scrollTop)
+      emit('scroll', (e.target as HTMLElement).scrollTop)
     }
     onMounted(() => {
       pageRootRef.value?.classList.add(`page-${props['data-index'] || '1'}`)
-      pageRootRef.value?.setAttribute('style', style as string)
 
       pageRootRef.value?.addEventListener('scroll', scroll)
 
@@ -41,10 +41,15 @@ export default defineCustomElement('c-page', {
       }
     })
 
+    share({
+      pageRootRef,
+      'data-index': props['data-index']
+    })
+
     return (
-      <div ref="c-page-ref" class="c-page">
+      <div ref={pageRootRef} class="c-page" style={style}>
         <main>
-          <slot name="default"></slot>
+          <slot name="default" />
         </main>
       </div>
     )
@@ -54,12 +59,12 @@ export default defineCustomElement('c-page', {
       if (!CLASS_LIST.includes(newValue)) {
         throw /*@__PURE__*/ new Error('data-status 属性值不合法')
       }
-      this.$defineRefs['c-page-ref']?.setAttribute(
+      data.pageRootRef.value?.setAttribute(
         'class',
         `c-page ${newValue} page-${data['data-index'] || '1'}`
       )
       if (newValue.includes('enter')) {
-        this.$defineRefs['c-page-ref']?.scrollTo(0, 0)
+        data.pageRootRef.value?.scrollTo(0, 0)
       }
     }
   }

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import ref from './ref'
+import { ref } from './ref'
+
+/**
+ * @vitest-environment jsdom
+ */
 
 describe('ref', () => {
   it('传入number', () => {

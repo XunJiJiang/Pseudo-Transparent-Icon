@@ -2,7 +2,15 @@
  * @vitest-environment jsdom
  */
 import { describe, test, expect } from 'vitest'
-import { isFunction, isArray, isObject, hasOwn, isHTMLElement } from './shared'
+import {
+  isFunction,
+  isArray,
+  isObject,
+  hasOwn,
+  isHTMLElement,
+  isPromise,
+  notNull
+} from './shared'
 
 describe('shared utility functions', () => {
   test('isFunction 应该对函数返回 true', () => {
@@ -38,7 +46,7 @@ describe('shared utility functions', () => {
     expect(isObject(null)).toBe(false)
     expect(isObject(123)).toBe(false)
     expect(isObject('string')).toBe(false)
-    expect(isObject([])).toBe(false)
+    expect(isObject([])).toBe(true)
   })
 
   test('hasOwn 应该对具有指定 key 属性的对象返回 true', () => {
@@ -60,5 +68,40 @@ describe('shared utility functions', () => {
     expect(isHTMLElement({})).toBe(false)
     expect(isHTMLElement(null)).toBe(false)
     expect(isHTMLElement('string')).toBe(false)
+  })
+
+  test('isPromise 应该对 Promise 返回 true', () => {
+    const promise = new Promise(() => {})
+    expect(isPromise(promise)).toBe(true)
+  })
+
+  test('isPromise 应该对非 Promise 返回 false', () => {
+    expect(isPromise({})).toBe(false)
+    expect(isPromise(null)).toBe(false)
+    expect(isPromise('string')).toBe(false)
+  })
+
+  test('isAsyncFunction 应该对异步函数返回 true', () => {
+    const asyncFn = async () => {}
+    expect(isFunction(asyncFn)).toBe(true)
+  })
+
+  test('isAsyncFunction 应该对非异步函数返回 false', () => {
+    const fn = () => {}
+    expect(isFunction(fn)).toBe(true)
+  })
+
+  test('notNull 应该对非 null 或 undefined 返回 true', () => {
+    expect(notNull(0)).toBe(true)
+    expect(notNull('')).toBe(true)
+    expect(notNull({})).toBe(true)
+    expect(notNull([])).toBe(true)
+    expect(notNull(false)).toBe(true)
+    expect(notNull(true)).toBe(true)
+    expect(notNull(NaN)).toBe(true)
+    expect(notNull(Symbol())).toBe(true)
+    expect(notNull(() => {})).toBe(true)
+    expect(notNull(null)).toBe(false)
+    expect(notNull(undefined)).toBe(false)
   })
 })

@@ -1,19 +1,14 @@
 import { type CButtonExpose } from '@components/button'
 import css from './index.scss?raw'
-import {
-  defineCustomElement,
-  effect,
-  reactive,
-  ref,
-  exposeTemplate
-} from 'xj-web-core/index'
+import { defineCustomElement, effect, reactive, ref } from 'xj-web-core/index'
+import BaseElement from 'xj-web-core/dom/BaseElement'
 
-type SelectDeviceTypeProps = {
+export type SelectDeviceTypeProps = {
   'data-status': string
   style: string
 }
 
-type SelectDeviceTypeEmit = {
+export type SelectDeviceTypeEmit = {
   next: () => void
   scroll: (scrollTop: number) => void
   change: (
@@ -44,7 +39,9 @@ export default defineCustomElement('v-sd-type', {
       required: true
     }
   },
-  setup({ style }: SelectDeviceTypeProps, { emit, share }) {
+  setup({ style }, { emit, share }) {
+    const cPageRef = ref<BaseElement>(null)
+
     const devices = reactive([
       {
         label: 'iphone 12 - 15',
@@ -99,7 +96,7 @@ export default defineCustomElement('v-sd-type', {
         value: 'ipad-mini'
       }
     ])
-    const butExpose = exposeTemplate<CButtonExpose>('c-button-expose')
+    const butExpose = ref<CButtonExpose>(null)
     const nowDevice = ref<{
       index: number
       val: {
@@ -114,20 +111,20 @@ export default defineCustomElement('v-sd-type', {
       }
       butExpose.value?.setStatus('normal')
       const { index, val } = nowDevice.value
-      emit<SelectDeviceTypeEmit>('change', index, val)
+      emit('change', index, val)
     })
 
     share({
-      nowDevice
+      nowDevice,
+      cPageRef
     })
 
-    // TODO: 当完成绑定属性后，style,devices赋值
     return (
       <c-page
-        ref="c-page-ref"
+        ref={cPageRef}
         data-index="1"
         on-scroll={(scrollTop: number) => {
-          emit<SelectDeviceTypeEmit>('scroll', scrollTop)
+          emit('scroll', scrollTop)
         }}
         style={style}
       >
@@ -136,10 +133,10 @@ export default defineCustomElement('v-sd-type', {
             <div slot="default" class="card">
               <div class="header-icon">
                 <span>
-                  <c-icon name="mobile" size="3.6rem"></c-icon>
+                  <c-icon name="mobile" size="3.6rem" />
                 </span>
                 <span>
-                  <c-icon name="tablet" size="3.6rem"></c-icon>
+                  <c-icon name="tablet" size="3.6rem" />
                 </span>
               </div>
               <div class="content">
@@ -152,7 +149,7 @@ export default defineCustomElement('v-sd-type', {
                     href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon?tab=readme-ov-file#创建的图标在旋转后无法对齐"
                     target="_blank"
                   >
-                    <c-icon name="github-fill" size="0.8rem"></c-icon>
+                    <c-icon name="github-fill" size="0.8rem" />
                     &nbsp; 为什么会这样?
                   </a>
                 </p>
@@ -175,11 +172,11 @@ export default defineCustomElement('v-sd-type', {
                 val
               }
             }}
-          ></c-button-group>
+          />
           <c-button
-            expose="c-button-expose"
+            expose={butExpose}
             on-click={() => {
-              emit<SelectDeviceTypeEmit>('next')
+              emit('next')
             }}
             data-type="default"
             aria-label="完成设备选择"
@@ -192,7 +189,7 @@ export default defineCustomElement('v-sd-type', {
   },
   attributeChanged({ name, newValue }, { data }) {
     if (name === 'data-status') {
-      this.$defineRefs['c-page-ref']?.setAttribute('data-status', newValue)
+      data.cPageRef.value?.setAttribute('data-status', newValue)
       if (newValue.includes('enter')) {
         data.nowDevice.value = null
       }

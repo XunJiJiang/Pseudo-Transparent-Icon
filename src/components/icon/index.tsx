@@ -14,7 +14,7 @@ export default defineCustomElement('c-icon', {
       <i
         class={`iconfont icon-${props.name}`}
         style={`font-size: ${props.size}; ${props.style}`}
-      ></i>
+      />
     )
   },
   connected() {}

@@ -1,7 +1,7 @@
 import css from './index.scss?raw'
-import { defineCustomElement, refTemplate, useId } from 'xj-web-core/index'
+import { defineCustomElement, useId, ref } from 'xj-web-core/index'
 
-type ButtonGroupProps = {
+export type ButtonGroupProps = {
   type: 'radio' | 'checkbox' | 'independent'
   title?: string
   content: {
@@ -14,7 +14,7 @@ type ButtonGroupProps = {
   }[]
 }
 
-type ButtonGroupEmit = {
+export type ButtonGroupEmit = {
   change: (
     index: number,
     value: {
@@ -32,10 +32,14 @@ const createItem = (
   opt: {
     event: (e: Event) => void
     style?: string
+    // TODO: 完善RefType后修改
+    ref: {
+      value: HTMLInputElement | null
+    }
   }
 ) => {
   return (
-    <label ref={id} for={id} class="button-item" style={opt.style}>
+    <label ref={opt.ref} for={id} class="button-item" style={opt.style}>
       <input
         type={type}
         id={id}
@@ -48,7 +52,7 @@ const createItem = (
       <span class="button-item-inner">
         <span class="button-item-label">{value}</span>
         <span class="button-item-icon">
-          <c-icon name="check" size="1rem"></c-icon>
+          <c-icon name="check" size="1rem" />
         </span>
       </span>
     </label>
@@ -63,6 +67,10 @@ type TypeMap = {
     opt: {
       event: (e: Event) => void
       style?: string
+      // TODO: 完善RefType后修改
+      ref: {
+        value: HTMLInputElement | null
+      }
     }
   ) => string
 }
@@ -94,7 +102,7 @@ export default defineCustomElement('c-button-group', {
   },
   props: {
     title: {
-      default: null
+      default: ''
     },
     content: {
       required: true
@@ -105,15 +113,13 @@ export default defineCustomElement('c-button-group', {
   },
   setup({ content, type, title }: ButtonGroupProps, { emit }) {
     const id = useId()
-    const butRefs = content.map((_, i) =>
-      refTemplate('button-group::' + i + id)
-    )
+    const butRefs = content.map(() => ref<HTMLInputElement>(null))
     let prevIndex = -1
 
     const change = (_e: Event, i: string) => {
       const butRef = butRefs[Number(i)]
       if (!butRef.value) return
-      emit<ButtonGroupEmit>('change', Number(i), content[Number(i)])
+      emit('change', Number(i), content[Number(i)])
       if (type === 'radio') {
         butRefs[prevIndex]?.value?.classList.remove('checked')
         butRef.value.classList.add('checked')
@@ -124,11 +130,7 @@ export default defineCustomElement('c-button-group', {
     }
 
     return (
-      <c-card
-        no-padding="true"
-        footer="如果你能看到这个那就是我忘了删了。"
-        title={title}
-      >
+      <c-card no-padding="true" footer="如果你能看到这个" title={title}>
         <div slot="default" class="button-group">
           <div class="button-group-content">
             {content.map(({ label, style }, i) =>
@@ -138,7 +140,8 @@ export default defineCustomElement('c-button-group', {
                 label,
                 {
                   event: (event: Event) => change(event, i.toString()),
-                  style
+                  style,
+                  ref: butRefs[i]
                 }
               )
             )}

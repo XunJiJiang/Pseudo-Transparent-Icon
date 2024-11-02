@@ -1,4 +1,5 @@
-import BaseElement from 'xj-web-core/dom/BaseElement'
+import { getCurrentComponent } from '../../dom/fixComponentIns'
+import BaseElement from '../../dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
@@ -10,13 +11,20 @@ import {
 // 此时同步函数未执行完毕，而callbackSet已经清空
 // 因此可以复用callbackSet
 
-const callbackSet = new Set<LifecycleCallback>()
+const callbackMap = new WeakMap<BaseElement, Set<LifecycleCallback>>()
 
 export const onBeforeMount: LifecycleFn = (callback) => {
   if (!hasSetupRunning()) {
     return /*@__PURE__*/ console.error('onBeforeMount 必须在 setup 函数中调用')
   }
-  callbackSet.add(callback)
+  const ele = getCurrentComponent()
+  if (!ele) {
+    return /*@__PURE__*/ console.error('onMounted 必须在 setup 函数中调用')
+  }
+  if (!callbackMap.has(ele)) {
+    callbackMap.set(ele, new Set())
+  }
+  callbackMap.get(ele)!.add(callback)
 }
 
 // 同理，可以复用
@@ -25,7 +33,8 @@ export const onBeforeMount: LifecycleFn = (callback) => {
 const clearFnMap = new WeakMap<BaseElement, Set<() => void>>()
 
 export const runBeforeMount = (ele: BaseElement) => {
-  callbackSet.forEach((cb) => {
+  const callbackSet = callbackMap.get(ele)
+  callbackSet?.forEach((cb) => {
     const clearFn = cb()
     if (clearFn) {
       if (!clearFnMap.has(ele)) {
@@ -34,7 +43,7 @@ export const runBeforeMount = (ele: BaseElement) => {
       clearFnMap.get(ele)!.add(clearFn)
     }
   })
-  callbackSet.clear()
+  callbackSet?.clear()
 }
 
 export const clearBeforeMount = (ele: BaseElement) => {

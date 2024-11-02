@@ -5,30 +5,37 @@ import {
   defineCustomElement,
   effect,
   onMounted,
-  ref,
-  refTemplate
+  reactive,
+  ref
 } from 'xj-web-core/index'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
+// TODO: 需要单独导出一个interface, 而不暴露BaseElement
 import BaseElement from 'xj-web-core/dom/BaseElement'
 
 type BgColorType = 'pure' | 'vague'
 
-const setBodyBgColor = (type: BgColorType) => {
+const bgColorType = ref<BgColorType>('pure')
+
+effect(() => {
   document.body.classList.remove('pure')
   document.body.classList.remove('vague')
-  document.body.classList.add(type)
-}
-
-// const COMPONENT_MAX_WIDTH = 'calc(360px + 1.6rem + 1.6rem)'
+  document.body.classList.add(bgColorType.value)
+})
 
 export default defineCustomElement('l-index', {
   style: css,
   setup() {
-    const lIndexRef = refTemplate('l-index-ref')
-    const headerRef = refTemplate('header-ref')
-    const backSpanRef = refTemplate('back-span-ref')
-    const titleSpanRef = refTemplate('title-span-ref')
+    const lIndexRef = ref<HTMLDivElement>(null)
+    const headerRef = ref<HTMLHeadElement>(null)
+    const backSpanRef = ref<HTMLSpanElement>(null)
+    const titleSpanRef = ref<HTMLSpanElement>(null)
+    /** 当前下标 */
+    const index = ref(0)
+    const pageList: string[] = []
+    const lIndexStyle = ref(`--root-width: 0px;`)
+    const backSpanClass = reactive(['back-span'])
+    const titleSpanClass = reactive(['title-span'])
 
     const handle = {
       ...throttling(
@@ -67,33 +74,19 @@ export default defineCustomElement('l-index', {
       },
       scroll(scrollTop: number) {
         if (scrollTop < 16) {
-          setBodyBgColor('pure')
-          setLIndexBgColor('pure')
+          bgColorType.value = 'pure'
         } else {
-          setBodyBgColor('vague')
-          setLIndexBgColor('vague')
+          bgColorType.value = 'vague'
         }
       }
     }
 
-    const views: [
-      {
-        value: HTMLElement | null
-      },
-      string,
-      () => BaseElement
-    ][] = [
+    const views: [string, () => BaseElement][] = [
+      ['首页', () => <v-home on-next={handle.next} />],
       [
-        refTemplate('v-home-ref'),
-        '首页',
-        () => <v-home ref="v-home-ref" on-next={handle.next} />
-      ],
-      [
-        refTemplate('v-sd-type-ref'),
         '选择设备类型',
         () => (
           <v-sd-type
-            ref="v-sd-type-ref"
             on-next={handle.next}
             on-scroll={handle.scroll}
             on-change={handle.deviceChange}
@@ -102,17 +95,10 @@ export default defineCustomElement('l-index', {
       ]
     ]
 
-    /** 当前下标 */
-    const index = ref(0)
-
-    const pageList: string[] = []
-
     const resize = throttling(() => {
-      lIndexRef.value?.setAttribute(
-        'style',
-        `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
-      )
+      lIndexStyle.value = `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
     })
+
     onMounted(() => {
       resize()
 
@@ -130,6 +116,8 @@ export default defineCustomElement('l-index', {
 
     let nowELe: HTMLElement | null = null
 
+    // const titleSpanClass = reactive(['title-span'])
+
     effect((onCleanup) => {
       if (!backSpanRef.value || !titleSpanRef.value) return
 
@@ -137,7 +125,7 @@ export default defineCustomElement('l-index', {
 
       handle.scroll(0)
 
-      const newEle = views[index.value][2]()
+      const newEle = views[index.value][1]()
 
       let oldEle = nowELe
       nowELe = newEle
@@ -158,30 +146,27 @@ export default defineCustomElement('l-index', {
         oldEle = null
       }, 500)
 
-      let nowTitle = views[index.value][1]
-      const prevTitle = prevIndex >= 0 ? views[prevIndex][1] : views[0][1]
-
-      titleSpanRef.value.classList.remove('add')
-      titleSpanRef.value.classList.remove('reduce')
+      let nowTitle = views[index.value][0]
+      const prevTitle = prevIndex >= 0 ? views[prevIndex][0] : views[0][0]
 
       if (isPrev && isPrev !== null) {
         // reduce
         titleSpanRef.value.innerHTML = `
-        <span>${nowTitle}</span>
-        <span>${prevTitle}</span>
+          <span>${nowTitle}</span>
+          <span>${prevTitle}</span>
         `
-        titleSpanRef.value.classList.add('reduce')
+        titleSpanClass[1] = 'reduce'
       } else if (isPrev !== null) {
         // add
         titleSpanRef.value.innerHTML = `
-        <span>${prevTitle}</span>
-        <span>${nowTitle}</span>
+          <span>${prevTitle}</span>
+          <span>${nowTitle}</span>
         `
-        titleSpanRef.value.classList.add('add')
+        titleSpanClass[1] = 'add'
       }
 
       onCleanup(() => {
-        if (!backSpanRef.value || !titleSpanRef.value) return
+        if (!backSpanRef.value) return
 
         prevIndex = nowIndex
 
@@ -196,9 +181,6 @@ export default defineCustomElement('l-index', {
 
         nowTitle = pageList[pageList.length - 1] ?? ''
 
-        backSpanRef.value.classList.remove('add')
-        backSpanRef.value.classList.remove('reduce')
-
         let stringWidth = 0
 
         if (!isPrev && isPrev !== null) {
@@ -207,7 +189,7 @@ export default defineCustomElement('l-index', {
             fontSize: '1rem',
             fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
           })
-          backSpanRef.value.classList.add('add')
+          backSpanClass[1] = 'add'
           backSpanRef.value.innerHTML = `
               <span>${nowTitle}</span>
               <span>${prevTitle}</span>
@@ -219,7 +201,7 @@ export default defineCustomElement('l-index', {
             fontSize: '1rem',
             fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
           })
-          backSpanRef.value.classList.add('reduce')
+          backSpanClass[1] = 'reduce'
           backSpanRef.value.innerHTML = `
               <span>${nowTitle}</span>
               <span>${prevTitle}</span>
@@ -238,12 +220,6 @@ export default defineCustomElement('l-index', {
         }
       })
     })
-
-    const setLIndexBgColor = (type: BgColorType) => {
-      lIndexRef.value?.classList.remove('pure')
-      lIndexRef.value?.classList.remove('vague')
-      lIndexRef.value?.classList.add(type)
-    }
 
     /** 记录每次页面变化下标的差 */
     const pageIndexChangeList: number[] = []
@@ -270,11 +246,10 @@ export default defineCustomElement('l-index', {
     }
 
     return (
-      <div id="l-index" ref="l-index-ref">
-        <header ref="header-ref" class="hide">
-          <span ref="back-root-ref" class="back">
+      <div id="l-index" ref={lIndexRef} style={lIndexStyle} class={bgColorType}>
+        <header ref={headerRef} class="hide">
+          <span class="back">
             <c-button
-              ref="back-but-ref"
               on-click={() => {
                 handle.prev()
               }}
@@ -292,13 +267,13 @@ export default defineCustomElement('l-index', {
                     transform: translate(0, -50%);
                     line-height: 1.5rem;
                   "
-                ></c-icon>
-                <span ref="back-span-ref" class="back-span"></span>
+                />
+                <span ref={backSpanRef} class={backSpanClass} />
               </span>
             </c-button>
           </span>
-          <span ref="title-root-ref" class="title">
-            <span ref="title-span-ref" class="title-span"></span>
+          <span class="title">
+            <span ref={titleSpanRef} class={titleSpanClass} />
           </span>
         </header>
       </div>

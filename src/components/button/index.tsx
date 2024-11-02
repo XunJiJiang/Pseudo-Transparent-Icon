@@ -1,11 +1,5 @@
 import css from './index.scss?raw'
-import {
-  defineCustomElement,
-  getInstance,
-  onMounted,
-  ref,
-  refTemplate
-} from 'xj-web-core/index'
+import { defineCustomElement, onMounted, ref } from 'xj-web-core/index'
 
 export type CButtonExpose = {
   setStatus: (status: 'disabled' | 'normal') => void
@@ -22,20 +16,19 @@ export default defineCustomElement('c-button', {
   observedAttributes: ['style', 'data-type', 'aria-label'],
   emit: {
     click: {
-      default: () => {}
+      default: (e: Event): void => {
+        console.warn('c-button: 未设置点击事件', e)
+      },
+      required: true
     }
   },
   setup(
-    { style, 'data-type': dataType, 'aria-label': ariaLabel }: CButtonProps,
+    { style, 'data-type': dataType, 'aria-label': ariaLabel },
     { emit, expose }
   ) {
-    const buttonRef = refTemplate('c-button-ref')
+    const buttonRef = ref<HTMLButtonElement>(null)
     onMounted(() => {
-      const { $defineRefs } = getInstance()
-      const button = $defineRefs['c-button-ref']
-      button?.setAttribute('data-type', (dataType as string) ?? 'default')
-
-      if (style) button?.setAttribute('style', style as string)
+      const button = buttonRef.value
 
       const touchstart = () => {
         button?.classList.add('touch-active')
@@ -70,15 +63,17 @@ export default defineCustomElement('c-button', {
 
     return (
       <button
-        ref="c-button-ref"
+        ref={buttonRef}
         class="c-button"
         aria-label={ariaLabel}
+        data-type={dataType}
+        style={style}
         on-click={(e: Event) => {
           if (status.value === 'disabled') return
           emit('click', e)
         }}
       >
-        <slot name="default"></slot>
+        <slot name="default" />
       </button>
     )
   }

@@ -45,8 +45,7 @@ export default defineConfig({
   },
   server: {
     host: true,
-    port: 3000,
-    open: true
+    port: 3000
   },
   preview: {
     port: 8080
@@ -56,7 +55,7 @@ export default defineConfig({
     // 仅测试src/core内的文件
     coverage: {
       include: ['src/core/**'],
-      exclude: ['src/core/index.ts']
+      exclude: ['src/core/index.ts', '**/*.test.ts']
     }
   },
   esbuild: {
