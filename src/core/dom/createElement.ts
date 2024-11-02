@@ -71,7 +71,7 @@ export const createElement = (
 
   const el = document.createElement(tag) as XJ.Element<HTMLElement>
 
-  const isCustomEle = isCustomElement(tag, el)
+  const isCustomEle = isCustomElement(el, tag)
   const component = el as XJ.Element<BaseElement>
 
   const EffectStops: Set<StopFn> = new Set()

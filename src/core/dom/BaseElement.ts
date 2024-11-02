@@ -252,7 +252,7 @@ export type EventListeners = {
   handles: EventListener[]
 }
 
-export default class BaseElement extends HTMLElement {
+export default class BaseElement<T extends object = object> extends HTMLElement {
   static events = events
 
   get obAttr(): string[] {
@@ -260,7 +260,7 @@ export default class BaseElement extends HTMLElement {
   }
 
   /** 整合observedAttributes和从父组件获取的数据 */
-  $props: Record<string, any> = {}
+  $props = {} as T
 
   /** 当前组件给原生生命周期事件共享的数据 */
   $sharedData: Record<string, any> = {}
@@ -292,7 +292,7 @@ export default class BaseElement extends HTMLElement {
       return false
     }
 
-    this.$props = {}
+    this.$props = {} as T
     this.$sharedData = {}
 
     this.$exposedData = {}

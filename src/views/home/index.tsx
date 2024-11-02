@@ -2,12 +2,12 @@ import BaseElement from 'xj-web-core/dom/BaseElement'
 import css from './index.scss?raw'
 import { defineCustomElement, ref } from 'xj-web-core/index'
 
-type HomeProps = {
+export type HomeProps = {
   style: string
   'data-status': string
 }
 
-type HomeEmit = {
+export type HomeEmit = {
   next: (index?: number, style?: string) => void
 }
 
@@ -21,10 +21,13 @@ export default defineCustomElement('v-home', {
   },
   emit: {
     next: {
+      default: (a?: number) => {
+        return a ?? 0
+      },
       required: true
     }
   },
-  setup({ style }: HomeProps, { emit, share }) {
+  setup({ style }, { emit, share }) {
     const cPageRef = ref<BaseElement>(null)
     share({ cPageRef })
     return (
@@ -65,7 +68,7 @@ export default defineCustomElement('v-home', {
           </c-card>
           <c-button
             on-click={() => {
-              emit<HomeEmit>('next')
+              emit('next')
             }}
             data-type="default"
             aria-label="开始"

@@ -18,7 +18,9 @@ import {
 import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
 import { hasOwn, isArray } from '../utils/shared'
 
-type DataType = Record<string | symbol, any>
+type Shared = Record<string | symbol, any>
+
+type Exposed = Record<string | symbol, any>
 
 // export type DefineProps<T extends Record<string | symbol, any>> = T
 
@@ -28,7 +30,7 @@ type DataType = Record<string | symbol, any>
 // ) => ReturnType<T[keyof T]>
 
 export interface EleCallback {
-  (this: BaseElement, context: { data: DataType }): void
+  (this: BaseElement, context: { data: Shared }): void
 }
 
 export interface EleAttributeChangedCallback {
@@ -39,13 +41,35 @@ export interface EleAttributeChangedCallback {
       oldValue: string
       newValue: string
     },
-    context: { data: DataType }
+    context: { data: Shared }
   ): void
 }
 
 type DefaultOptions<T extends string = string, K = any> = {
   [key in T]: {
     default?: K extends Func ? Func : any
+    required?: boolean
+  }
+}
+
+type BaseProps = {
+  [key: string | symbol]: any
+}
+
+type BaseEmits = {
+  [key: string]: Func
+}
+
+type DefineProps<T extends BaseProps> = {
+  [key in keyof T]: {
+    default?: T[key]
+    required?: boolean
+  }
+}
+
+type DefineEmits<T extends BaseEmits> = {
+  [key in keyof T]: {
+    default?: T[key]
     required?: boolean
   }
 }
@@ -76,6 +100,13 @@ const checkObservedAttributes = /*@__PURE__*/ (attrs: string[]) => {
   }
 }
 
+const isObservableAttr = <T extends string>(
+  key: string,
+  observedAttributes: T[]
+): key is T => {
+  return observedAttributes.includes(key as T)
+}
+
 /** 保留键 */
 const reservedKeys = ['ref', 'expose']
 
@@ -88,10 +119,14 @@ export const isReservedKey = (key: string): key is ReservedKey =>
 const customElementNameSet = new Set<string>()
 
 /** 是否是自定义web组件 */
-export const isCustomElement = (name: string, el: Element): el is BaseElement =>
+export const isCustomElement = (el: Element, name: string): el is BaseElement =>
   customElementNameSet.has(name)
 
-export const defineCustomElement = (
+export const defineCustomElement = <
+  A extends BaseProps,
+  B extends string,
+  C extends BaseEmits
+>(
   name: string,
   {
     style,
@@ -109,19 +144,23 @@ export const defineCustomElement = (
     style?: string | ((props: any) => string)
     shadow?: boolean
     setup: (
-      props: any,
+      props: {
+        [key in keyof A]: A[key]
+      } & {
+        [key in B]: string
+      },
       context: {
-        expose: (methods: DataType) => void
-        share: (methods: DataType) => void
-        emit: <T extends Record<string, Func> = Record<string, Func>>(
-          key: keyof T & string,
-          ...args: Parameters<T[typeof key]>
-        ) => ReturnType<T[typeof key]>
+        expose: (methods: Exposed) => void
+        share: (methods: Shared) => void
+        emit: <T extends keyof C & string>(
+          key: T,
+          ...args: Parameters<C[T]>
+        ) => ReturnType<C[T]>
       }
     ) => Node | Node[] | void
-    props?: DefaultOptions
-    emit?: DefaultOptions<string, Func>
-    observedAttributes?: string[]
+    props?: DefineProps<A>
+    emit?: DefineEmits<C>
+    observedAttributes?: B[]
     connected?: EleCallback
     disconnected?: EleCallback
     adopted?: EleCallback
@@ -147,7 +186,13 @@ export const defineCustomElement = (
     document.body.appendChild(styleEle)
   }
 
-  class Ele extends BaseElement {
+  class Ele extends BaseElement<
+    {
+      [key in keyof A]: A[key]
+    } & {
+      [key in B]: string
+    }
+  > {
     constructor() {
       super()
       // 设置当前组件实例, 并返回父组件实例
@@ -191,8 +236,12 @@ export const defineCustomElement = (
       const attrs = Array.from(this.attributes)
       for (const attr of attrs) {
         const { name, value } = attr
-        if (_observedAttributes.includes(name)) {
-          this.$props[name] = value
+        if (isObservableAttr<B>(name, _observedAttributes)) {
+          ;(
+            this.$props as {
+              [key in B]: string
+            }
+          )[name] = value
         } else if (reservedKeys.includes(name)) {
           continue
         }
@@ -205,10 +254,10 @@ export const defineCustomElement = (
 
       // TODO: 此处的key的类型声明存在问题
       // 包装父组件暴露的方法
-      const emitFn = <T extends Record<string, Func> = Record<string, Func>>(
-        key: keyof T & string,
-        ...args: Parameters<T[typeof key]>
-      ): ReturnType<T[typeof key]> => {
+      const emitFn = <T extends keyof C & string>(
+        key: T,
+        ...args: Parameters<C[T]>
+      ): ReturnType<C[T]> => {
         if (
           emit &&
           (hasOwn(this.$emitMethods, key) || !emit[key].required) &&
@@ -216,7 +265,7 @@ export const defineCustomElement = (
         ) {
           const emitMethods = this.$emitMethods
 
-          const _emit = emit as DefaultOptions<keyof T & string, Func>
+          const _emit = emit
 
           if (typeof emitMethods[key] === 'function') {
             const fn = emitMethods[key]
@@ -253,7 +302,7 @@ export const defineCustomElement = (
             })()
           )
 
-          return undefined as ReturnType<T[typeof key]>
+          return undefined as ReturnType<C[typeof key]>
         } else {
           /*@__PURE__*/ console.error(
             (() => {
@@ -273,30 +322,10 @@ export const defineCustomElement = (
             })()
           )
         }
-        return undefined as ReturnType<T[typeof key]>
+        return void 0 as ReturnType<C[typeof key]>
       }
 
-      // 从父组件的暴露中获取props定义的属性
-      if (props) {
-        const _props = props
-        const propData = this.$propData
-        for (const key in _props) {
-          const { default: def, required } = _props[key]
-          if (key in propData) {
-            this.$props[key] = propData[key]
-          } else if (!required && 'default' in _props[key]) {
-            this.$props[key] = def
-          } else {
-            /*@__PURE__*/ console.error(
-              (() => {
-                // TODO:
-              })()
-            )
-          }
-        }
-      }
-
-      const exposeData = (methods: DataType) => {
+      const exposeData = (methods: Exposed) => {
         for (const key in methods) {
           if (key in this.$exposedData) {
             /*@__PURE__*/ console.warn(
@@ -308,7 +337,7 @@ export const defineCustomElement = (
         }
       }
 
-      const shareData = (attrs: DataType) => {
+      const shareData = (attrs: Shared) => {
         for (const key in attrs) {
           if (key in this.$sharedData) {
             /*@__PURE__*/ console.warn(
@@ -391,9 +420,13 @@ export const defineCustomElement = (
       restore()
     }
 
-    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+    attributeChangedCallback(name: B, oldValue: string, newValue: string) {
       const { restore } = setComponentIns(this)
-      this.$props[name] = newValue
+      ;(
+        this.$props as {
+          [key in B]: string
+        }
+      )[name] = newValue
       attributeChanged?.call(
         this,
         { name, oldValue, newValue },

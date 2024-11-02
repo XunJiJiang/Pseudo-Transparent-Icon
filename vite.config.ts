@@ -55,7 +55,7 @@ export default defineConfig({
     // 仅测试src/core内的文件
     coverage: {
       include: ['src/core/**'],
-      exclude: ['src/core/index.ts']
+      exclude: ['src/core/index.ts', '**/*.test.ts']
     }
   },
   esbuild: {
