@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isReactive } from './Dependency'
 import { _effect } from './effect'
 import { isRef, Ref } from './ref'
 import { isArray } from './utils/shared'
@@ -227,7 +228,7 @@ export const watch: Watch = <T>(
     ...(options ?? {})
   }
 
-  if (isArray(source)) {
+  if (!isReactive(source) && isArray(source)) {
     return watchForArray(source, callback as WatchCallbackArray<T>, opt)
   } else {
     return watchForAlone(source, callback as WatchCallback<T>, opt)
