@@ -60,6 +60,7 @@ type WatchSources<T> = {
 interface WatchOptions {
   deep: boolean | number // 默认：false
   flush: 'pre' | 'post' | 'sync' // 默认：'post'
+  sync: boolean // 默认：false 是否启用同步模式 该模式下, 同步修改的依赖的回调会在下一个微任务内同步执行
 }
 
 interface WatchHandle {
@@ -147,7 +148,8 @@ const watchForAlone = <T>(
       }
     ],
     {
-      flush: options.flush
+      flush: options.flush,
+      sync: options.sync
     }
   )
 }
@@ -207,7 +209,8 @@ const watchForArray = <T>(
       }
     ],
     {
-      flush: options.flush
+      flush: options.flush,
+      sync: options.sync
     }
   )
 }
@@ -220,6 +223,7 @@ export const watch: Watch = <T>(
   const opt: WatchOptions = {
     deep: false,
     flush: 'post',
+    sync: false,
     ...(options ?? {})
   }
 

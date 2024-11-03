@@ -21,7 +21,7 @@ import { isArray, isObject } from './utils/shared'
 /** 无key的依赖key */
 const SYMBOL_EFFECT = Symbol('effect')
 /** 被代理标志 */
-const SYMBOL_DEPENDENCY = Symbol('dependency')
+export const SYMBOL_DEPENDENCY = Symbol('dependency')
 
 /** 函数上非纯函数的属性 */
 // const NOT_PURE_ARR_FUNC_KEY = [

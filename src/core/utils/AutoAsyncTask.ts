@@ -51,31 +51,57 @@ enum STATE {
 
 export class AutoAsyncTask {
   private static tasks = new Map<Func, Func>()
+  public static syncTasks = [new Map<Func, Func>(), new Map<Func, Func>()]
   private static state = STATE.Done
 
-  static addTask(task: Func, key?: Func) {
+  static addTask(task: Func, key?: Func | null) {
     if (this.tasks.has(key ?? task)) this.tasks.delete(key ?? task)
     this.tasks.set(key ?? task, task)
     if (this.state !== STATE.Running) this.run()
   }
 
+  static addSyncTask(task: Func, key?: Func | null) {
+    const tests =
+      this.state === STATE.Running ? this.syncTasks[1] : this.syncTasks[0]
+    if (tests.has(key ?? task)) tests.delete(key ?? task)
+    tests.set(key ?? task, task)
+    if (this.state !== STATE.Running) this.run()
+  }
+
   private static run() {
     if (this.state !== STATE.Done) return
+    const taskList = this.syncTasks[0]
     this.state = STATE.Pending
 
-    Promise.resolve().then(() => {
-      this.state = STATE.Running
-      const tasks = Array.from(this.tasks.values())
-      this.tasks.clear()
-      tasks.push(() => {
-        this.state = STATE.Done
-        if (this.tasks.size) this.run()
+    Promise.resolve()
+      .then(() => {
+        this.state = STATE.Running
+        const tasks = Array.from(this.tasks.values())
+        this.tasks.clear()
+        tasks.push(() => {
+          this.state = STATE.Done
+          if (this.tasks.size) this.run()
+        })
+        idleTask(tasks)
+
+        taskList.forEach((task, key, map) => {
+          task()
+          map.delete(key)
+        })
       })
-      idleTask(tasks)
-    })
+      .finally(() => {
+        this.state = STATE.Done
+        this.syncTasks.reverse()
+        if (this.syncTasks[0].size) this.run()
+      })
   }
 }
 
-export const nextTick = (task: Func, key?: Func) => {
-  AutoAsyncTask.addTask(task, key)
+export const nextTick = (
+  task: Func,
+  key?: Func | null,
+  { sync = false } = {}
+) => {
+  if (sync) AutoAsyncTask.addSyncTask(task, key)
+  else AutoAsyncTask.addTask(task, key)
 }

@@ -40,7 +40,8 @@ export interface EffectHandle {
 }
 
 type EffectOptions = {
-  flush?: 'pre' | 'sync' | 'post'
+  flush?: 'pre' | 'sync' | 'post' // 默认：'post'
+  sync?: boolean // 默认：false 是否启用同步模式 该模式下, 同步修改的依赖的回调会在下一个微任务内同步执行
 }
 
 let currentEffectCallback: EffectCallback | null = null
@@ -104,7 +105,10 @@ export const _effect = (
 ): EffectHandle => {
   const inSetup = hasSetupRunning()
   const flush = opt?.flush ?? 'post'
-  opt = { flush }
+  opt = {
+    flush,
+    sync: opt?.sync ?? false
+  }
 
   if (inSetup && flush !== 'sync') {
     let stopFn: StopFn | null = null
@@ -264,19 +268,25 @@ const effectBuild = (
         }
       }
     } else {
-      nextTick(() => {
-        if (state === EffectStatus.STOP) return
-        const cleanupCallback = callback(onCleanup)
-        if (isFunction(cleanupCallback) && !cbIsAsync) {
-          onCleanup(cleanupCallback)
-        }
-        if (callbackNoCollect) {
-          const cleanupCallback = callbackNoCollect(onCleanup)
-          if (isFunction(cleanupCallback) && !cbNoCollIsAsync) {
+      nextTick(
+        () => {
+          if (state === EffectStatus.STOP) return
+          const cleanupCallback = callback(onCleanup)
+          if (isFunction(cleanupCallback) && !cbIsAsync) {
             onCleanup(cleanupCallback)
           }
+          if (callbackNoCollect) {
+            const cleanupCallback = callbackNoCollect(onCleanup)
+            if (isFunction(cleanupCallback) && !cbNoCollIsAsync) {
+              onCleanup(cleanupCallback)
+            }
+          }
+        },
+        callback,
+        {
+          sync: opt.sync
         }
-      }, callback)
+      )
     }
   }
   effectCallbackReturn.pause = () => {
