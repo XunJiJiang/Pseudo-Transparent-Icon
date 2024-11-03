@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { ref } from './ref'
+import { Ref, ref } from './ref'
 import { reactive } from './reactive'
 import { watch } from './watch'
 import { AutoAsyncTask, nextTick } from './utils/AutoAsyncTask'
@@ -145,6 +145,25 @@ describe('watch', () => {
       [{ value: 0 }],
       expect.any(Function)
     )
+  })
+
+  it('观察多个数组', async () => {
+    const source1 = ref([0])
+    const source2 = ref(['string-1'])
+    const callback = vi.fn()
+
+    const source: [Ref<number[]>, Ref<string[]>] = [source1, source2]
+
+    watch(source, ([v1, v2]) => {
+      callback([v1, v2])
+    })
+
+    source1.value = [2]
+    source2.value = ['string-2']
+
+    await wait()
+
+    expect(callback).toHaveBeenCalledWith([[2], ['string-2']])
   })
 
   it('单层深度观察', async () => {

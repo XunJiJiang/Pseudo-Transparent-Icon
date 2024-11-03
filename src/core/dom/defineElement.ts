@@ -356,7 +356,7 @@ export const defineCustomElement = <
             })()
           )
 
-          return void 0 as ReturnType<FuncConstructorToType<E[typeof key]>>
+          return void 0 as ReturnType<FuncConstructorToType<E[T]>>
         } else {
           /*@__PURE__*/ console.error(
             (() => {
@@ -376,7 +376,7 @@ export const defineCustomElement = <
             })()
           )
         }
-        return void 0 as ReturnType<FuncConstructorToType<E[typeof key]>>
+        return void 0 as ReturnType<FuncConstructorToType<E[T]>>
       }
 
       const exposeData = (methods: Exposed) => {

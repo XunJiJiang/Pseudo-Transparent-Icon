@@ -4,8 +4,8 @@ import { isObject } from './utils/shared'
 type RefValue<T> = { value: T }
 
 export interface CreateRef {
-  <T>(value: null): RefValue<T | null>
-  <T>(value: T): RefValue<T>
+  <T>(value: null): Ref<T | null>
+  <T>(value: T): Ref<T>
 }
 
 // 外部类型声明，将一个数据的类型转为ref类型
@@ -34,17 +34,17 @@ export const isRef = <T = unknown>(val: unknown): val is Ref<T> => {
 class RefImpl<T> {
   private [SYMBOL_REF] = true
 
-  #value: RefValue<T | null>
+  #value: RefValue<T>
 
-  constructor(value: T | null) {
+  constructor(value: T) {
     this.#value = reactive({ value })
   }
 
-  get value(): T | null {
+  get value(): T {
     return this.#value.value
   }
 
-  set value(value: T | null) {
+  set value(value: T) {
     this.#value.value = value
   }
 }

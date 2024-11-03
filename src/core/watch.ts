@@ -3,8 +3,7 @@ import { _effect } from './effect'
 import { isRef, Ref } from './ref'
 import { isArray } from './utils/shared'
 
-// TODO: watch类型声明问题
-// 当依赖是Ref时, callback的value和oldValue的类型是Ref<T>, 预期是T
+// TODO: 大量使用 as
 
 // ABOUT: flush
 // 对于在setup函数中运行的effect
@@ -28,9 +27,21 @@ export interface Watch {
   ): WatchHandle
 }
 
+type WatchSourceRef<T> = T extends Ref<infer R> ? R : T
+
+type WatchSourceRefs<T> = {
+  [K in keyof T]: WatchSourceRef<T[K]>
+}
+
 type WatchCallback<T> = (
-  value: T,
-  oldValue: T,
+  value: WatchSourceRef<T>,
+  oldValue: WatchSourceRef<T>,
+  onCleanup: (cleanupFn: () => void) => void
+) => void
+
+type WatchCallbackArray<T> = (
+  value: WatchSourceRefs<T>,
+  oldValue: WatchSourceRefs<T>,
   onCleanup: (cleanupFn: () => void) => void
 ) => void
 
@@ -40,7 +51,11 @@ type WatchSource<T> =
   | (() => T) // getter 返回值必须依赖于响应式对象 当返回值为基础数据类型时, 新旧值才会不同
   | T extends object // 响应式对象
   ? T
-  : never // 响应式对象
+  : never
+
+type WatchSources<T> = {
+  [K in keyof T & number]: WatchSource<T[K]>
+} & any[]
 
 interface WatchOptions {
   deep: boolean | number // 默认：false
@@ -48,13 +63,12 @@ interface WatchOptions {
 }
 
 interface WatchHandle {
-  (): void // 可调用，与 `stop` 相同
-  pause: () => void
+  (opt?: { cleanup?: boolean }): void
+  pause: (opt?: { cleanup?: boolean }) => void
   resume: () => void
   stop: () => void
 }
 
-// 使用类似深拷贝的写法
 const deepTraverse = <T>(value: T, deep: number | true): T => {
   const map = new WeakMap()
 
@@ -93,11 +107,11 @@ const watchForAlone = <T>(
   options: WatchOptions
 ): WatchHandle => {
   const value: {
-    oldValue: T
-    value: T
+    oldValue: WatchSourceRef<T>
+    value: WatchSourceRef<T>
   } = {
-    oldValue: undefined as T,
-    value: undefined as T
+    oldValue: undefined as WatchSourceRef<T>,
+    value: undefined as WatchSourceRef<T>
   }
 
   let isFirst = true
@@ -106,11 +120,11 @@ const watchForAlone = <T>(
     [
       () => {
         if (isRef<T>(source)) {
-          value.value = source.value as T
+          value.value = source.value as WatchSourceRef<T>
         } else if (typeof source === 'function') {
           value.value = source()
         } else {
-          value.value = source
+          value.value = source as WatchSourceRef<T>
         }
 
         if (
@@ -139,16 +153,16 @@ const watchForAlone = <T>(
 }
 
 const watchForArray = <T>(
-  sources: WatchSource<T>[],
-  callback: WatchCallback<T[]>,
+  sources: WatchSources<T>,
+  callback: WatchCallbackArray<T>,
   options: WatchOptions
 ): WatchHandle => {
   const value: {
-    oldValue: T[]
-    value: T[]
+    oldValue: WatchSources<T>
+    value: WatchSources<T>
   } = {
-    oldValue: [],
-    value: []
+    oldValue: [] as WatchSources<T>,
+    value: [] as WatchSources<T>
   }
 
   let isFirst = true
@@ -181,7 +195,11 @@ const watchForArray = <T>(
         }
       },
       (onCleanup) => {
-        callback(value.value, value.oldValue, onCleanup)
+        callback(
+          value.value as WatchSourceRefs<T>,
+          value.oldValue as WatchSourceRefs<T>,
+          onCleanup
+        )
         value.oldValue = []
         for (const item of value.value) {
           value.oldValue.push(item)
@@ -195,8 +213,8 @@ const watchForArray = <T>(
 }
 
 export const watch: Watch = <T>(
-  source: WatchSource<T> | WatchSource<T>[],
-  callback: WatchCallback<T> | WatchCallback<T[]>,
+  source: WatchSource<T> | WatchSources<T>,
+  callback: WatchCallback<T> | WatchCallbackArray<T>,
   options?: Partial<WatchOptions>
 ): WatchHandle => {
   const opt: WatchOptions = {
@@ -206,7 +224,7 @@ export const watch: Watch = <T>(
   }
 
   if (isArray(source)) {
-    return watchForArray(source, callback as WatchCallback<T[]>, opt)
+    return watchForArray(source, callback as WatchCallbackArray<T>, opt)
   } else {
     return watchForAlone(source, callback as WatchCallback<T>, opt)
   }

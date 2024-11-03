@@ -92,6 +92,9 @@ export const createElement = (
   el.__startEffects__ = () => {
     if (!isStop) return
     isStop = false
+
+    // 自定义元素observe属性绑定
+    // 原生元素响应式属性绑定
     for (const key in props) {
       if (isCustomEle) {
         if (el.obAttr.includes(key) && isRef<string>(props[key])) {
@@ -103,8 +106,8 @@ export const createElement = (
       } else {
         if (!isReservedKey(key)) {
           if (key === 'class') {
-            if (isArray<string>(props[key])) {
-              if (isReactive(props[key])) {
+            if (isReactive(props[key])) {
+              if (isArray<string>(props[key])) {
                 const stop = watch(
                   props[key],
                   (value) => {
@@ -115,16 +118,12 @@ export const createElement = (
                   }
                 )
                 EffectStops.add(stop)
-              } else if (isRef(props[key])) {
-                const stop = watch(
-                  props[key],
-                  (value) => {
-                    el.className = value.join(' ')
-                  },
-                  {
-                    deep: 1
-                  }
-                )
+              }
+            } else if (isRef(props[key])) {
+              if (isArray<string>(props[key].value)) {
+                const stop = watch(props[key], (value) => {
+                  setAttribute(el, key, value)
+                })
                 EffectStops.add(stop)
               }
             } else {
@@ -158,6 +157,10 @@ export const createElement = (
     elRemove()
   }
 
+  // 事件绑定
+  // 自定义组件属性绑定
+  // 原生组件静态属性绑定
+  // ref和expose属性绑定
   for (const key in props) {
     // 处理事件绑定
     if (key.startsWith('on-')) {
@@ -192,7 +195,6 @@ export const createElement = (
         }
         // 对于observe属性
         else if (el.obAttr.includes(key)) {
-          // 值是ref, 监听ref的变化, 自动更新属性值
           if (!isRef(props[key])) {
             setAttribute(el, key, props[key])
           }
@@ -231,9 +233,7 @@ export const createElement = (
               setAttribute(el, key, props[key])
             }
           }
-        }
-        // 值是ref, 监听ref的变化, 自动更新属性值
-        else if (!isRef(props[key])) {
+        } else if (!isRef(props[key])) {
           setAttribute(el, key, props[key])
         }
       }
