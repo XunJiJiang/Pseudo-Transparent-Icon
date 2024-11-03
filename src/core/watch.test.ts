@@ -97,7 +97,7 @@ describe('watch', () => {
 
     source.value.nested.nested.nested.nested.nested.value = 1
 
-    await wait()
+    await wait(50)
 
     expect(callback).toHaveBeenCalledWith(
       {

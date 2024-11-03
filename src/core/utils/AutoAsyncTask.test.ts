@@ -1,23 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { AutoAsyncTask, nextTick } from './AutoAsyncTask'
+import { describe, it, expect, vi } from 'vitest'
+import { nextTick } from './AutoAsyncTask'
+import { createWait } from '../../../tests/utils/wait'
+
+const wait30 = createWait(30)
 
 describe('AutoAsyncTask', () => {
-  beforeEach(() => {
-    // Clear the taskLists map and reset the promise before each test
-    ;(AutoAsyncTask as any).taskLists.forEach((t) => t.clear())
-    ;(AutoAsyncTask as any).promise = null
-  })
-
   it('添加并执行一个任务', async () => {
     const task = vi.fn()
 
     nextTick(task)
 
-    await (AutoAsyncTask as any).promise
+    await wait30()
 
     expect(task).toHaveBeenCalled()
   })
@@ -29,7 +25,7 @@ describe('AutoAsyncTask', () => {
     nextTick(task, key)
     nextTick(task, key)
 
-    await (AutoAsyncTask as any).promise
+    await wait30()
 
     expect(task).toHaveBeenCalledTimes(1)
   })
@@ -41,7 +37,7 @@ describe('AutoAsyncTask', () => {
     nextTick(task1)
     nextTick(task2)
 
-    await (AutoAsyncTask as any).promise
+    await wait30()
 
     expect(task1).toHaveBeenCalled()
   })
@@ -55,7 +51,7 @@ describe('AutoAsyncTask', () => {
     nextTick(task1, key1)
     nextTick(task2, key2)
 
-    await (AutoAsyncTask as any).promise
+    await wait30()
 
     expect(task1).toHaveBeenCalled()
     expect(task2).toHaveBeenCalled()
@@ -69,28 +65,68 @@ describe('AutoAsyncTask', () => {
     nextTick(task1, key)
     nextTick(task2, key)
 
-    await (AutoAsyncTask as any).promise
+    await wait30()
 
     expect(task1).not.toHaveBeenCalled()
     expect(task2).toHaveBeenCalled()
   })
 
-  it('在执行任务期间添加任务，会放到下一次执行', async () => {
+  // TODO: 没找到vitest中测试函数运行顺序的方法
+  it('在执行任务期间添加任务，会在当前任务队列完成后执行', async () => {
     const task1 = vi.fn()
     const task2 = vi.fn()
+    const task3 = vi.fn()
 
     nextTick(() => {
-      nextTick(task2)
+      nextTick(task3)
       task1()
     })
 
-    await (AutoAsyncTask as any).promise
+    nextTick(() => {
+      task2()
+    })
+
+    await wait30()
+  })
+
+  // 当多个函数且函数执行时间超过帧时间时，会分批执行
+  it('当多个函数且函数执行时间较长，会分批执行', async () => {
+    const task1 = vi.fn()
+    const task2 = vi.fn()
+    const task3 = vi.fn()
+
+    const wait = createWait(20)
+
+    nextTick(() => {
+      const timeout = Date.now() + 10
+      task1()
+      while (Date.now() < timeout) {
+        //
+      }
+    })
+
+    nextTick(() => {
+      const timeout = Date.now() + 10
+      task2()
+      while (Date.now() < timeout) {
+        //
+      }
+    })
+
+    nextTick(() => {
+      task3()
+    })
+
+    await wait()
 
     expect(task1).toHaveBeenCalled()
-    expect(task2).not.toHaveBeenCalled()
 
-    setTimeout(() => {
-      expect(task2).toHaveBeenCalled()
-    })
+    await wait()
+
+    expect(task2).toHaveBeenCalled()
+
+    await wait()
+
+    expect(task3).toHaveBeenCalled()
   })
 })
