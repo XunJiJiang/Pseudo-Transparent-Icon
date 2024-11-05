@@ -36,6 +36,13 @@ export interface EffectHandle {
   stop: (opt?: { cleanup?: boolean }) => void
   pause: () => void
   resume: () => void
+}
+
+export interface EffectHandleHasRun {
+  (opt?: { cleanup?: boolean }): void
+  stop: (opt?: { cleanup?: boolean }) => void
+  pause: () => void
+  resume: () => void
   __run__: (cb: () => void, privateSymbol: typeof SYMBOL_PRIVATE) => void
 }
 
@@ -57,7 +64,7 @@ const currentEffectCallbacks: EffectCallback[] = []
  */
 export const effectDepsMap = new Map<EffectCallback, Set<Set<EffectCallback>>>()
 
-export const effectReturnMap = new WeakMap<EffectCallback, EffectHandle>()
+export const effectReturnMap = new WeakMap<EffectCallback, EffectHandleHasRun>()
 
 /**
  * 创建副作用函数
@@ -120,11 +127,6 @@ export const _effect = (
         `自定义组件内effect的stop方法只能在onMounted生命周期运行后调用`
       )
     }
-    effectCallbackReturn.__run__ = () => {
-      console.warn(
-        `自定义组件内effect的run方法只能在onMounted生命周期运行后调用`
-      )
-    }
     effectCallbackReturn.pause = () => {
       console.warn(
         `自定义组件内effect的pause方法只能在onMounted生命周期运行后调用`
@@ -149,7 +151,6 @@ export const _effect = (
         )
         stopFn = _ret
         effectCallbackReturn.stop = _ret.stop
-        effectCallbackReturn.__run__ = _ret.__run__
         effectCallbackReturn.pause = _ret.pause
         effectCallbackReturn.resume = _ret.resume
         return _ret
@@ -170,7 +171,6 @@ export const _effect = (
         _stopFn = _ret
         stopFn = _ret
         effectCallbackReturn.stop = _ret.stop
-        effectCallbackReturn.__run__ = _ret.__run__
         effectCallbackReturn.pause = _ret.pause
         effectCallbackReturn.resume = _ret.resume
       })
@@ -194,7 +194,7 @@ enum EffectStatus {
 const effectBuild = (
   [callback, callbackNoCollect]: [EffectCallback, EffectCallback?],
   opt: EffectOptions
-): EffectHandle => {
+): EffectHandleHasRun => {
   const cbIsAsync = isAsyncFunction<EffectCallback<true>>(callback)
   const cbNoCollIsAsync =
     callbackNoCollect && isAsyncFunction(callbackNoCollect)
@@ -231,7 +231,7 @@ const effectBuild = (
     })
   }
 
-  const effectCallbackReturn: EffectHandle = (opt) =>
+  const effectCallbackReturn: EffectHandleHasRun = (opt) =>
     effectCallbackReturn.stop(opt)
   effectCallbackReturn.stop = (opt) => {
     if (state === EffectStatus.STOP) return
