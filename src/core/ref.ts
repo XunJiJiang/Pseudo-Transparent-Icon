@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reactive, reactive } from './reactive'
 import { isObject } from './utils/shared'
 
@@ -29,7 +30,7 @@ export const isRef = <T = unknown>(val: unknown): val is Ref<T> => {
   )
 }
 
-class RefImpl<T> {
+class RefImpl<T = any, S = T> {
   private [SYMBOL_REF] = true
 
   #value: Reactive<{
@@ -40,16 +41,25 @@ class RefImpl<T> {
     this.#value = reactive({ value })
   }
 
-  get value(): T extends object ? Reactive<T> : T {
+  get value(): Reactive<{
+    value: T
+  }>['value'] {
     return this.#value.value
   }
 
-  set value(value: T) {
-    this.#value.value = value as T extends object ? Reactive<T> : T
+  set value(value: S) {
+    this.#value.value = value as Reactive<{
+      value: T
+    }>['value']
   }
 }
 
-export type Ref<T> = RefImpl<T>
+// export interface Ref<T = any, S = T> {
+//   get value(): T
+//   set value(_: S)
+// }
+
+export type Ref<T = any, S = T> = RefImpl<T, S>
 
 /**
  * 创建Ref
