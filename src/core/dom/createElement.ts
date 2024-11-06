@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isReactive } from '../Dependency'
-import { isRef } from '../ref'
+import { isRef, Ref } from '../ref'
 import { type StopFn } from '../effect'
 import { watch } from '../watch'
 import { isArray } from '../utils/shared'
 import BaseElement from './BaseElement'
 import { isCustomElement, isReservedKey } from './defineElement'
+import { Reactive } from 'xj-web-core/reactive'
 
 // const eventCheck = /*#__PURE__*/ (
 //   _key: EventHandlers,
@@ -26,7 +27,7 @@ const setAttribute = (el: Element, key: string, value: any) => {
   }
 }
 
-export type ChildType = string | Node
+export type ChildType = string | Node | Ref<unknown> | Reactive<unknown[]>
 
 const isXJElement = <T extends Element = Element>(
   el: any
@@ -76,11 +77,17 @@ export const createElement = (
   let isStop = true
   const childNodes = isCustomEle ? el.$root?.childNodes : el.childNodes
 
+  const textNodeEffects = new Set<() => void>()
+  const textNodeEffectsStops = new Set<StopFn>()
+
   el.__stopEffects__ = () => {
     if (isStop) return
     isStop = true
     EffectStops.forEach((stop) => stop())
     EffectStops.clear()
+
+    textNodeEffectsStops.forEach((stop) => stop())
+    textNodeEffectsStops.clear()
 
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
@@ -106,29 +113,26 @@ export const createElement = (
       } else {
         if (!isReservedKey(key)) {
           if (key === 'class') {
-            if (isReactive(props[key])) {
+            if (isReactive<string[]>(props[key])) {
               if (isArray<string>(props[key])) {
                 const stop = watch(
                   props[key],
                   (value) => {
                     el.className = value.join(' ')
                   },
-                  {
-                    deep: 1
-                  }
+                  { deep: 1 }
                 )
                 EffectStops.add(stop)
               }
             } else if (isRef(props[key])) {
+              console.log('bgColorType.value', props[key].value)
               if (isArray<string>(props[key].value)) {
                 const stop = watch(props[key], (value) => {
                   setAttribute(el, key, value)
                 })
                 EffectStops.add(stop)
-              }
-            } else {
-              if (isRef<string>(props[key])) {
-                const stop = watch(props[key], (value) => {
+              } else {
+                const stop = watch(props[key] as Ref<string>, (value) => {
                   setAttribute(el, key, value)
                 })
                 EffectStops.add(stop)
@@ -143,6 +147,9 @@ export const createElement = (
         }
       }
     }
+
+    textNodeEffects.forEach((effect) => effect())
+
     childNodes.forEach((child) => {
       if (isXJElement(child)) {
         child.__startEffects__()
@@ -244,7 +251,41 @@ export const createElement = (
     if (child instanceof Node) {
       el.appendChild(child)
     } else {
-      el.appendChild(document.createTextNode(child))
+      const childEl = (() => {
+        if (isRef(child)) {
+          const childEl = document.createTextNode(String(child.value))
+          textNodeEffects.add(() => {
+            textNodeEffectsStops.add(
+              watch(
+                child,
+                (value) => {
+                  childEl.nodeValue = String(value)
+                },
+                { deep: true }
+              )
+            )
+          })
+          return childEl
+        }
+        if (isReactive(child)) {
+          const childEl = document.createTextNode(String(child))
+          textNodeEffects.add(() => {
+            textNodeEffectsStops.add(
+              watch(
+                child as Reactive<unknown[]>,
+                (value) => {
+                  childEl.nodeValue = String(value)
+                },
+                { deep: true }
+              )
+            )
+          })
+          return childEl
+        }
+        return document.createTextNode(String(child))
+      })()
+
+      el.appendChild(childEl)
     }
   })
 
