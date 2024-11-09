@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isReactive } from './Dependency'
 import { _effect } from './effect'
+import { Reactive } from './reactive'
 import { isRef, Ref } from './ref'
 import { isArray } from './utils/shared'
 
@@ -18,45 +19,36 @@ import { isArray } from './utils/shared'
 export interface Watch {
   <T>(
     source: WatchSource<T>,
-    callback: WatchCallback<T>,
+    callback: WatchCallback<T, T>,
     options?: Partial<WatchOptions>
   ): WatchHandle
-  <T>(
-    sources: WatchSource<T>[],
-    callback: WatchCallback<T[]>,
+  <T extends Readonly<MultiWatchSources>>(
+    sources: readonly [...T] | T,
+    callback: WatchCallback<WatchSourceRefs<T>, WatchSourceRefs<T>>,
     options?: Partial<WatchOptions>
   ): WatchHandle
 }
 
-type WatchSourceRef<T> = T extends Ref<infer R> ? R : T
+type WatchSourceRef<T> =
+  T extends WatchSource<infer V> ? V : T extends object ? T : T
 
 type WatchSourceRefs<T> = {
   [K in keyof T]: WatchSourceRef<T[K]>
 }
 
-type WatchCallback<T> = (
-  value: WatchSourceRef<T>,
-  oldValue: WatchSourceRef<T>,
+type WatchCallback<V = any, OV = any> = (
+  value: V,
+  oldValue: OV,
   onCleanup: (cleanupFn: () => void) => void
-) => void
+) => any
 
-type WatchCallbackArray<T> = (
-  value: WatchSourceRefs<T>,
-  oldValue: WatchSourceRefs<T>,
-  onCleanup: (cleanupFn: () => void) => void
-) => void
+type MultiWatchSources = WatchSource<any>[]
 
 // 初次运行时, oldValue 与 value 相同
 type WatchSource<T> =
-  | Ref<T> // ref 自动解ref 当ref为基础数据类型时, 新旧值才会不同
-  | (() => T) // getter 返回值必须依赖于响应式对象 当返回值为基础数据类型时, 新旧值才会不同
-  | T extends object // 响应式对象
-  ? T
-  : never
-
-type WatchSources<T> = {
-  [K in keyof T & number]: WatchSource<T[K]>
-} & any[]
+  | Ref<T, any> // ref 自动解ref 当ref为基础数据类型时, 新旧值才会不同
+  | (() => T extends object ? Reactive<T> : T) // getter 返回值必须依赖于响应式对象 当返回值为基础数据类型时, 新旧值才会不同
+  | (T extends object ? Reactive<T> : never)
 
 interface WatchOptions {
   deep: boolean | number // 默认：false
@@ -71,10 +63,11 @@ interface WatchHandle {
   stop: () => void
 }
 
+/** 深度遍历响应式值使得effect可以获取深度依赖 */
 const deepTraverse = <T>(value: T, deep: number | true): T => {
   const map = new WeakMap()
 
-  const _deepTraverse = (value: T, deep: number | true) => {
+  const _deepTraverse = <T>(value: T, deep: number | true) => {
     if (value && value instanceof Node) {
       return value
     }
@@ -84,16 +77,13 @@ const deepTraverse = <T>(value: T, deep: number | true): T => {
     if (typeof value !== 'object' || value === null) return value
     if (map.has(value)) return map.get(value)
 
-    const result: { [key: string]: any } = isArray(value) ? [] : {}
+    const result: T = (isArray(value) ? [] : {}) as T
 
     map.set(value, result)
 
     for (const key in value) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {
-        result[key] = _deepTraverse(
-          (value as { [key: string]: any })[key],
-          deep === true ? true : deep - 1
-        )
+        result[key] = _deepTraverse(value[key], deep === true ? true : deep - 1)
       }
     }
 
@@ -103,30 +93,41 @@ const deepTraverse = <T>(value: T, deep: number | true): T => {
   return _deepTraverse(value, deep)
 }
 
-const watchForAlone = <T>(
-  source: WatchSource<T>,
-  callback: WatchCallback<T>,
+type WatchAloneCallback<T> = T extends () => infer R
+  ? WatchCallback<WatchSourceRef<R>, WatchSourceRef<R>>
+  : WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>
+
+// TODO: watchForAlone any太多了
+const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
+  source: T,
+  callback: WatchAloneCallback<T>,
   options: WatchOptions
 ): WatchHandle => {
   const value: {
-    oldValue: WatchSourceRef<T>
-    value: WatchSourceRef<T>
+    value: Parameters<WatchAloneCallback<T>>[0]
+    oldValue: Parameters<WatchAloneCallback<T>>[1]
   } = {
-    oldValue: undefined as WatchSourceRef<T>,
-    value: undefined as WatchSourceRef<T>
+    value: null,
+    oldValue: null
   }
 
   let isFirst = true
+
+  options.deep = isReactive(source)
+    ? options.deep === false
+      ? 1
+      : options.deep
+    : options.deep
 
   return _effect(
     [
       () => {
         if (isRef<T>(source)) {
-          value.value = source.value as WatchSourceRef<T>
+          value.value = source.value
         } else if (typeof source === 'function') {
           value.value = source()
         } else {
-          value.value = source as WatchSourceRef<T>
+          value.value = source
         }
 
         if (
@@ -155,31 +156,37 @@ const watchForAlone = <T>(
   )
 }
 
-const watchForArray = <T>(
-  sources: WatchSources<T>,
-  callback: WatchCallbackArray<T>,
+const watchForArray = <T extends Readonly<MultiWatchSources>>(
+  sources: readonly [...T],
+  callback: WatchCallback<WatchSourceRefs<T>, WatchSourceRefs<T>>,
   options: WatchOptions
 ): WatchHandle => {
   const value: {
-    oldValue: WatchSources<T>
-    value: WatchSources<T>
+    value: [...WatchSourceRefs<T>]
+    oldValue: [...WatchSourceRefs<T>]
   } = {
-    oldValue: [] as WatchSources<T>,
-    value: [] as WatchSources<T>
+    value: [] as [...WatchSourceRefs<T>],
+    oldValue: [] as [...WatchSourceRefs<T>]
   }
 
   let isFirst = true
+
+  options.deep = sources.some((source) => isReactive(source))
+    ? options.deep === false
+      ? 1
+      : options.deep
+    : options.deep
 
   return _effect(
     [
       () => {
         sources.forEach((source, index) => {
-          if (isRef<T>(source)) {
-            value.value[index] = source.value as T
+          if (isRef(source)) {
+            value.value[index] = source.value as WatchSourceRef<T[typeof index]>
           } else if (typeof source === 'function') {
-            value.value[index] = source()
+            value.value[index] = source() as WatchSourceRef<T[typeof index]>
           } else {
-            value.value[index] = source
+            value.value[index] = source as WatchSourceRef<T[typeof index]>
           }
 
           if (
@@ -198,12 +205,8 @@ const watchForArray = <T>(
         }
       },
       (onCleanup) => {
-        callback(
-          value.value as WatchSourceRefs<T>,
-          value.oldValue as WatchSourceRefs<T>,
-          onCleanup
-        )
-        value.oldValue = []
+        callback(value.value, value.oldValue, onCleanup)
+        value.oldValue = [] as [...WatchSourceRefs<T>]
         for (const item of value.value) {
           value.oldValue.push(item)
         }
@@ -216,11 +219,58 @@ const watchForArray = <T>(
   )
 }
 
-export const watch: Watch = <T>(
-  source: WatchSource<T> | WatchSources<T>,
-  callback: WatchCallback<T> | WatchCallbackArray<T>,
+type WatchAloneSource<T> =
+  T extends Readonly<MultiWatchSources>
+    ? T extends Array<any>
+      ? T extends Reactive<any>
+        ? T
+        : never
+      : never
+    : T
+
+// export function watch<T>(
+//   // TODO: 此处source应该是T, 但会导致数组类型的source不能获取指定下标的类型
+//   // 这个理论上和数组类型的source无关
+//   // 可能是因为T没有限制类型导致包括数组类型
+//   source: WatchAloneSource<T>,
+//   callback: WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>,
+//   options?: Partial<WatchOptions>
+// ): WatchHandle
+export function watch<T extends Reactive<any>>(
+  source: T,
+  callback: WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>,
   options?: Partial<WatchOptions>
-): WatchHandle => {
+): WatchHandle
+export function watch<T extends Ref<any>>(
+  source: T,
+  callback: WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>,
+  options?: Partial<WatchOptions>
+): WatchHandle
+export function watch<T extends () => any>(
+  source: T,
+  callback: WatchCallback<
+    WatchSourceRef<ReturnType<T>>,
+    WatchSourceRef<ReturnType<T>>
+  >,
+  options?: Partial<WatchOptions>
+): WatchHandle
+export function watch<T extends Readonly<MultiWatchSources>>(
+  sources: readonly [...T],
+  callback: WatchCallback<WatchSourceRefs<T>, WatchSourceRefs<T>>,
+  options?: Partial<WatchOptions>
+): WatchHandle
+export function watch<T>(
+  source: T extends Readonly<MultiWatchSources>
+    ? readonly [...T]
+    : // TODO: 此处source应该是T, 但会导致数组类型的source不能获取指定下标的类型
+      WatchAloneSource<T>,
+  callback:
+    | WatchAloneCallback<T>
+    | WatchCallback<WatchSourceRefs<T>, WatchSourceRefs<T>>,
+  options?: Partial<WatchOptions>
+): WatchHandle {
+  if (new.target) throw new Error('watch: must be called directly')
+
   const opt: WatchOptions = {
     deep: false,
     flush: 'post',
@@ -229,8 +279,19 @@ export const watch: Watch = <T>(
   }
 
   if (!isReactive(source) && isArray(source)) {
-    return watchForArray(source, callback as WatchCallbackArray<T>, opt)
+    return watchForArray(
+      source as readonly WatchSource<unknown>[],
+      callback as WatchCallback<
+        WatchSourceRefs<unknown>,
+        WatchSourceRefs<unknown>
+      >,
+      opt
+    )
   } else {
-    return watchForAlone(source, callback as WatchCallback<T>, opt)
+    return watchForAlone(
+      source as WatchSource<unknown>,
+      callback as WatchAloneCallback<unknown>,
+      opt
+    )
   }
 }

@@ -5,20 +5,94 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { Ref, ref } from './ref'
+import { ref } from './ref'
 import { reactive } from './reactive'
 import { watch } from './watch'
 import { AutoAsyncTask, nextTick } from './utils/AutoAsyncTask'
 import { wait } from '../../tests/utils/wait'
+import { deepClone } from '../../tests/utils/deepClone'
 
 describe('watch', () => {
+  it('浅层观察reactive', async () => {
+    const source = reactive({ count: 0, nested: { value: 0 } })
+    const source2 = ref({
+      value: 'string'
+    })
+    const source3 = () => source2.value
+    const callback = vi.fn()
+    watch([source, source3], ([v1, v2], oldV) => {
+      callback(deepClone([[v1, v2], oldV]))
+    })
+
+    expect(callback).toHaveBeenNthCalledWith(1, [
+      [
+        {
+          count: 0,
+          nested: {
+            value: 0
+          }
+        },
+        {
+          value: 'string'
+        }
+      ],
+      [
+        {
+          count: 0,
+          nested: {
+            value: 0
+          }
+        },
+        {
+          value: 'string'
+        }
+      ]
+    ])
+
+    source.count = 1
+    source.nested.value = 1
+
+    await wait()
+
+    expect(callback).toHaveBeenNthCalledWith(2, [
+      [
+        {
+          count: 1,
+          nested: {
+            value: 1
+          }
+        },
+        {
+          value: 'string'
+        }
+      ],
+      [
+        {
+          count: 0,
+          nested: {
+            value: 1
+          }
+        },
+        {
+          value: 'string'
+        }
+      ]
+    ])
+  })
+
   it('观察引用并使用新值和旧值调用回调', () => {
     const source = ref(0)
     const callback = vi.fn()
 
-    watch(source, callback, {
-      flush: 'sync'
-    })
+    watch(
+      source,
+      (v, ov, cb) => {
+        callback(v, ov, cb)
+      },
+      {
+        flush: 'sync'
+      }
+    )
 
     source.value = 1
 
@@ -28,7 +102,12 @@ describe('watch', () => {
   it('观察 getter 函数并使用新值和旧值调用回调', async () => {
     const callback = vi.fn()
     const state = reactive({ count: 0 })
-    watch(() => state.count, callback)
+    watch(
+      () => state.count,
+      (v) => {
+        callback(v)
+      }
+    )
 
     state.count = 1
 
@@ -44,7 +123,9 @@ describe('watch', () => {
     const source2 = ref(1)
     const callback = vi.fn()
 
-    watch([source1, source2], callback)
+    watch([source1, source2], (v, ov, cb) => {
+      callback(v, ov, cb)
+    })
 
     source1.value = 2
     source2.value = 3
@@ -64,7 +145,13 @@ describe('watch', () => {
     const source = ref({ nested: { value: 0 } })
     const callback = vi.fn()
 
-    watch(source, callback, { deep: true })
+    watch(
+      source,
+      (v, ov, cb) => {
+        callback(v, ov, cb)
+      },
+      { deep: true }
+    )
 
     source.value.nested.value = 1
 
@@ -93,7 +180,13 @@ describe('watch', () => {
     })
     const callback = vi.fn()
 
-    watch(source, callback, { deep: true })
+    watch(
+      source,
+      (v, ov, cb) => {
+        callback(v, ov, cb)
+      },
+      { deep: true }
+    )
 
     source.value.nested.nested.nested.nested.nested.value = 1
 
@@ -131,12 +224,18 @@ describe('watch', () => {
   })
 
   it('深度观察数组', async () => {
-    const source = ref([{ value: 0 }])
+    const source = reactive([{ value: 0 }])
     const callback = vi.fn()
 
-    watch(source, callback, { deep: true })
+    watch(
+      source,
+      (v, ov, cb) => {
+        callback(v, ov, cb)
+      },
+      { deep: true }
+    )
 
-    source.value[0].value = 1
+    source[0].value = 1
 
     await wait()
 
@@ -152,9 +251,7 @@ describe('watch', () => {
     const source2 = ref(['string-1'])
     const callback = vi.fn()
 
-    const source: [Ref<number[]>, Ref<string[]>] = [source1, source2]
-
-    watch(source, ([v1, v2]) => {
+    watch([source1, source2], ([v1, v2]) => {
       callback([v1, v2])
     })
 
@@ -175,7 +272,13 @@ describe('watch', () => {
     })
     const callback = vi.fn()
 
-    watch(source, callback, { deep: 1 })
+    watch(
+      source,
+      (v, oldV, onCleanup) => {
+        callback(v, oldV, onCleanup)
+      },
+      { deep: 1 }
+    )
 
     source.nested.value = 1
     source.value = 1
@@ -213,11 +316,16 @@ describe('watch', () => {
     const source3 = reactive({
       value: 0
     })
-    const source4 = vi.fn()
-    source4.mockReturnValue(source3)
+    const source4 = () => source3
     const callback = vi.fn()
 
-    watch([source1, source2, source4], callback, { deep: 2 })
+    watch(
+      [source1, source2, source4],
+      ([v1, v2, v3], [ov1, ov2, ov3], cb) => {
+        callback([v1, v2, v3], [ov1, ov2, ov3], cb)
+      },
+      { deep: 2 }
+    )
 
     source1.value.value = 1
     source2.value = {

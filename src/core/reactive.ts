@@ -1,10 +1,13 @@
 import Dependency, { SYMBOL_DEPENDENCY } from './Dependency'
-/**
- * TODO: 当传入的值是dep实例时，是直接返回还是根据dep实例的值返回一个新的dep实例？
- */
+// TODO: 当传入的值是dep实例时，是直接返回还是根据dep实例的值返回一个新的dep实例？
+// TODO: 不进行响应式的类
 
 export type Reactive<T extends object> = {
-  [key in keyof T]: T[key] extends object ? Reactive<T[key]> : T[key]
+  [key in keyof T]: T[key] extends object
+    ? T[key] extends Node
+      ? T[key]
+      : Reactive<T[key]>
+    : T[key]
 } & {
   [SYMBOL_DEPENDENCY]: Dependency<T>
 }
