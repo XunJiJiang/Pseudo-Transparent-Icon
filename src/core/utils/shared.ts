@@ -4,8 +4,9 @@ export const isFunction = <T = (...args: unknown[]) => unknown>(
   fn: unknown
 ): fn is T => typeof fn === 'function'
 
-export const isArray = <T = unknown>(arr: unknown): arr is T[] =>
-  Array.isArray(arr)
+export const isArray = <T extends unknown[] = unknown[]>(
+  arr: unknown
+): arr is T => Array.isArray(arr)
 
 export const isObject = (val: unknown): val is object => {
   return val !== null && typeof val === 'object'
@@ -31,3 +32,12 @@ export const isAsyncFunction = <T = (...args: unknown[]) => Promise<unknown>>(
 
 export const notNull = <T>(val: T | void | null): val is NonNullable<T> =>
   val != null
+
+/**
+ * 当前函数是否是通过new关键字调用
+ * @param target new.target
+ * @returns
+ */
+export const isNewCall = /*@__PURE__*/ (target: unknown): boolean => {
+  return target !== undefined
+}

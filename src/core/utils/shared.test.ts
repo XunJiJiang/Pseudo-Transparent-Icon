@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, test, expect } from 'vitest'
+import { describe, test, expect, vi } from 'vitest'
 import {
   isFunction,
   isArray,
@@ -9,7 +9,8 @@ import {
   hasOwn,
   isHTMLElement,
   isPromise,
-  notNull
+  notNull,
+  isNewCall
 } from './shared'
 
 describe('shared utility functions', () => {
@@ -103,5 +104,16 @@ describe('shared utility functions', () => {
     expect(notNull(() => {})).toBe(true)
     expect(notNull(null)).toBe(false)
     expect(notNull(undefined)).toBe(false)
+  })
+
+  test('isNewCall', () => {
+    const callback = vi.fn()
+    function Foo() {
+      callback(isNewCall(new.target))
+    }
+    new Foo()
+    Foo()
+    expect(callback).toHaveBeenNthCalledWith(1, true)
+    expect(callback).toHaveBeenNthCalledWith(2, false)
   })
 })
