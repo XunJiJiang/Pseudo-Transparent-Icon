@@ -1,4 +1,4 @@
-.root {
+.root[data-v-sd-type] {
   display: flex;
   flex-direction: column;
   & .card {

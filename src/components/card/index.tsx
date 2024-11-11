@@ -23,14 +23,21 @@ export default defineCustomElement('c-card', {
     }
   },
   style: css,
-  setup({ title, footer, 'no-padding': noPadding }) {
+  setup({ title, footer, 'no-padding': noPadding }, { slot }) {
     return (
       <>
-        {title ? <header class="header">{title}</header> : ''}
+        {title ? (
+          <header data-c-card class="header">
+            {title}
+          </header>
+        ) : (
+          ''
+        )}
         <div
+          data-c-card
           class={`card${footer ? ' has-footer' : ''}${noPadding ? ' no-padding' : ''}`}
         >
-          <slot name="default">
+          {/* <slot name="default">
             <div class="default">
               <div class="header-icon">
                 <span>
@@ -58,9 +65,16 @@ export default defineCustomElement('c-card', {
                 </p>
               </div>
             </div>
-          </slot>
+          </slot> */}
+          {slot.default()}
         </div>
-        {footer ? <footer class="footer">{footer}</footer> : ''}
+        {footer ? (
+          <footer data-c-card class="footer">
+            {footer}
+          </footer>
+        ) : (
+          ''
+        )}
       </>
     )
   }

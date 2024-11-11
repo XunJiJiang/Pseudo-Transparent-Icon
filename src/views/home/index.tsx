@@ -45,7 +45,7 @@ export default defineCustomElement('v-home', {
         }}
         style={style}
       >
-        <div slot="default" class="root">
+        <div data-v-home slot="default" class="root">
           <c-card>
             <div slot="default" class="card">
               <div class="header-icon">

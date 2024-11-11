@@ -27,13 +27,12 @@ export default defineCustomElement('l-index', {
   style: css,
   setup() {
     const lIndexRef = ref<HTMLDivElement>(null)
-    const headerRef = ref<HTMLHeadElement>(null)
-    const backSpanRef = ref<HTMLSpanElement>(null)
-    const titleSpanRef = ref<HTMLSpanElement>(null)
     /** 当前下标 */
     const index = ref(0)
     const pageList: string[] = []
     const lIndexStyle = ref(`--root-width: 0px;`)
+    const backStyle = ref(`width: 0px;`)
+    const headerClass = reactive(['hide'])
     const backSpanClass = reactive(['back-span'])
     const titleSpanClass = reactive(['title-span'])
 
@@ -95,12 +94,30 @@ export default defineCustomElement('l-index', {
             on-change={handle.deviceChange}
           />
         )
+      ],
+      [
+        '首页',
+        () => <v-home on-next={handle.next} on-scroll={handle.scroll} />
+      ],
+      [
+        '选择设备类型',
+        () => (
+          <v-sd-type
+            on-next={handle.next}
+            on-scroll={handle.scroll}
+            on-change={handle.deviceChange}
+          />
+        )
       ]
     ]
 
     const resize = throttling(() => {
       lIndexStyle.value = `--root-width: ${lIndexRef.value?.offsetWidth || 0}px;`
     })
+
+    const titleSpan = [ref(''), ref('')]
+
+    const backSpan = [ref(''), ref('')]
 
     onMounted(() => {
       resize()
@@ -122,8 +139,6 @@ export default defineCustomElement('l-index', {
     // const titleSpanClass = reactive(['title-span'])
 
     effect((onCleanup) => {
-      if (!backSpanRef.value || !titleSpanRef.value) return
-
       const nowIndex = index.value
 
       handle.scroll(0)
@@ -154,23 +169,17 @@ export default defineCustomElement('l-index', {
 
       if (isPrev && isPrev !== null) {
         // reduce
-        titleSpanRef.value.innerHTML = `
-          <span>${nowTitle}</span>
-          <span>${prevTitle}</span>
-        `
+        titleSpan[0].value = nowTitle
+        titleSpan[1].value = prevTitle
         titleSpanClass[1] = 'reduce'
       } else if (isPrev !== null) {
         // add
-        titleSpanRef.value.innerHTML = `
-          <span>${prevTitle}</span>
-          <span>${nowTitle}</span>
-        `
+        titleSpan[0].value = prevTitle
+        titleSpan[1].value = nowTitle
         titleSpanClass[1] = 'add'
       }
 
       onCleanup(() => {
-        if (!backSpanRef.value) return
-
         prevIndex = nowIndex
 
         const prevTitle = nowTitle
@@ -192,11 +201,9 @@ export default defineCustomElement('l-index', {
             fontSize: '1rem',
             fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
           })
+          backSpan[0].value = nowTitle
+          backSpan[1].value = prevTitle
           backSpanClass[1] = 'add'
-          backSpanRef.value.innerHTML = `
-              <span>${nowTitle}</span>
-              <span>${prevTitle}</span>
-            `
         } else if (isPrev !== null) {
           const prevTitle = pageList.pop() ?? ''
           const nowTitle = pageList[pageList.length - 1] ?? ''
@@ -204,22 +211,17 @@ export default defineCustomElement('l-index', {
             fontSize: '1rem',
             fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
           })
+          backSpan[0].value = nowTitle
+          backSpan[1].value = prevTitle
           backSpanClass[1] = 'reduce'
-          backSpanRef.value.innerHTML = `
-              <span>${nowTitle}</span>
-              <span>${prevTitle}</span>
-            `
         }
 
-        backSpanRef.value.setAttribute(
-          'style',
-          `width: calc(${stringWidth}px + 1.2rem);`
-        )
+        backStyle.value = `width: calc(${stringWidth}px + 1.2rem);`
 
         if (pageList.length === 0) {
-          headerRef.value?.classList.add('hide')
+          headerClass[0] = 'hide'
         } else {
-          headerRef.value?.classList.remove('hide')
+          headerClass[0] = ''
         }
       })
     })
@@ -249,8 +251,14 @@ export default defineCustomElement('l-index', {
     }
 
     return (
-      <div id="l-index" ref={lIndexRef} style={lIndexStyle} class={bgColorType}>
-        <header ref={headerRef} class="hide">
+      <div
+        data-l-index
+        id="l-index"
+        ref={lIndexRef}
+        style={lIndexStyle}
+        class={bgColorType}
+      >
+        <header class={headerClass}>
           <span class="back">
             <c-button
               on-click={() => {
@@ -271,12 +279,18 @@ export default defineCustomElement('l-index', {
                     line-height: 1.5rem;
                   "
                 />
-                <span ref={backSpanRef} class={backSpanClass} />
+                <span class={backSpanClass} style={backStyle}>
+                  <span>{backSpan[0]}</span>
+                  <span>{backSpan[1]}</span>
+                </span>
               </span>
             </c-button>
           </span>
           <span class="title">
-            <span ref={titleSpanRef} class={titleSpanClass} />
+            <span class={titleSpanClass}>
+              <span>{titleSpan[0]}</span>
+              <span>{titleSpan[1]}</span>
+            </span>
           </span>
         </header>
       </div>

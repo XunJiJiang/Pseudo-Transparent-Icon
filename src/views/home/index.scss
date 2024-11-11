@@ -1,7 +1,7 @@
 @media (prefers-color-scheme: light) {
 }
 
-.root {
+.root[data-v-home] {
   display: flex;
   flex-direction: column;
   width: calc(100% - $scrollbar-width);

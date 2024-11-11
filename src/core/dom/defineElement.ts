@@ -17,6 +17,7 @@ import {
 } from '../hooks/lifecycle/beforeMount'
 import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
 import { hasOwn, isArray, notNull } from '../utils/shared'
+import { type HTMLElementTag, HTMLExtends } from '../utils/HTMLExtends'
 
 type Shared = Record<string, any>
 
@@ -99,6 +100,12 @@ type DefineEmits<T extends BaseEmits> = {
   }
 }
 
+type DefineSlot<T extends boolean> = T extends false
+  ? Record<string, () => Node[]>
+  : void
+
+const customElementRegistry = window.customElements
+
 const checkPropsEmit = <T extends BaseProps, K extends BaseEmits>(
   opts: DefineProps<T> | DefineEmits<K>,
   ele: BaseElement
@@ -140,25 +147,38 @@ type ReservedKey = 'ref' | 'expose'
 export const isReservedKey = (key: string): key is ReservedKey =>
   reservedKeys.includes(key)
 
+type CustomElementOption = {
+  extends: HTMLElementTag | null
+  shadow: boolean
+}
+
 /** 记录自定义web组件名 */
-const customElementNameSet = new Set<string>()
+const customElementNameMap = new Map<string, CustomElementOption>()
 
 /** 是否是自定义web组件 */
 export const isCustomElement = (
   _el: Element,
   name: string
-): _el is BaseElement => customElementNameSet.has(name)
+): _el is BaseElement => customElementNameMap.has(name)
+
+/** 获取自定义组件的配置 */
+export const getCustomElementOption = (
+  name: string
+): CustomElementOption | undefined => {
+  return customElementNameMap.get(name)
+}
 
 // TODO: B extends string
 export const defineCustomElement = <
   P extends BaseProps,
   E extends BaseEmits,
-  O extends string | never = never
+  O extends string | never = never,
+  Shadow extends boolean = false
 >(
   name: string,
   {
     style,
-    shadow = true,
+    shadow = false as Shadow,
     setup,
     props,
     emits,
@@ -170,7 +190,7 @@ export const defineCustomElement = <
     // ...rest
   }: {
     style?: string | ((props: any) => string)
-    shadow?: boolean
+    shadow?: Shadow
     setup: (
       props: {
         [key in keyof P]: ConstructorToType<P[key]>
@@ -182,6 +202,7 @@ export const defineCustomElement = <
           key: T,
           ...args: Parameters<FuncConstructorToType<E[T]>>
         ) => ReturnType<FuncConstructorToType<E[T]>>
+        slot: DefineSlot<Shadow>
       }
     ) => Node | Node[] | void
     props?: DefineProps<P>
@@ -192,9 +213,9 @@ export const defineCustomElement = <
     adopted?: EleCallback
     attributeChanged?: EleAttributeChangedCallback
   },
-  options?: ElementDefinitionOptions
+  options?: CustomElementOption
 ): (() => void) => {
-  if (customElementNameSet.has(name.toLowerCase())) {
+  if (customElementNameMap.has(name.toLowerCase())) {
     /*@__PURE__*/ console.error(`自定义组件 ${name} 重复定义。`)
     return () => {}
   }
@@ -212,11 +233,17 @@ export const defineCustomElement = <
     document.body.appendChild(styleEle)
   }
 
-  class Ele extends BaseElement<
-    {
-      [key in keyof P]: ConstructorToType<P[key]>
-    } & Record<O, string>
-  > {
+  const BaseEle = HTMLExtends.get(options?.extends ?? '') ?? HTMLElement
+
+  class Ele
+    extends BaseEle
+    implements
+      BaseElement<
+        {
+          [key in keyof P]: ConstructorToType<P[key]>
+        } & Record<O, string>
+      >
+  {
     constructor() {
       super()
       // 设置当前组件实例, 并返回父组件实例
@@ -226,7 +253,7 @@ export const defineCustomElement = <
       const _observedAttributes = observedAttributes || []
 
       // TODO: 在解决 "不使用Shadow Root的元素绑定数据时外部会获取到子组件内容" 的问题前, 强制使用Shadow Root
-      if (_shadow) {
+      if (_shadow && !options?.extends) {
         this.$root = this.attachShadow({ mode: 'open' })
       } else {
         this.$root = this
@@ -403,13 +430,22 @@ export const defineCustomElement = <
         }
       }
 
+      const slotData: Record<string, () => Node[]> = {}
+
+      if (!_shadow) {
+        for (const key in this.$slots) {
+          slotData[key] = () => this.$slots[key]
+        }
+      }
+
       const { end: setupEnd } = startSetupRunning()
       // 获取setup中的数据
       const setupData =
         setup(this.$props, {
           expose: exposeData,
           share: shareData,
-          emit: emitFn
+          emit: emitFn,
+          slot: (_shadow ? void 0 : slotData) as DefineSlot<Shadow>
         }) || {}
 
       setupEnd()
@@ -462,7 +498,7 @@ export const defineCustomElement = <
         data: this.$sharedData
       })
       restore()
-      super.__init__(SYMBOL_INIT)
+      this.__init__(SYMBOL_INIT)
     }
 
     adoptedCallback() {
@@ -490,10 +526,53 @@ export const defineCustomElement = <
       )
       restore()
     }
+
+    $props = {} as {
+      [key in keyof P]: ConstructorToType<P[key]>
+    } & Record<O, string>
+
+    $sharedData: Record<string, any> = {}
+
+    $propData: Record<string, any> = {}
+
+    $emitMethods: Record<string, Func> = {}
+
+    $root: ShadowRoot | BaseElement
+
+    $exposedData: Record<string, any> = {}
+
+    $parentComponent: BaseElement | null = null
+
+    $slots: Record<string, Node[]> = {}
+
+    private __init__(symbol: typeof SYMBOL_INIT) {
+      if (symbol !== SYMBOL_INIT) {
+        /*@__PURE__*/ console.error(
+          `${this.localName}: __init__方法只能由xj-web内部调用。`
+        )
+        return false
+      }
+
+      this.$props = {} as {
+        [key in keyof P]: ConstructorToType<P[key]>
+      } & Record<O, string>
+      this.$sharedData = {}
+
+      this.$exposedData = {}
+
+      this.$parentComponent = null
+
+      return true
+    }
   }
 
   return () => {
-    customElementNameSet.add(name.toLowerCase())
-    customElements.define(name, Ele, options)
+    customElementNameMap.set(name.toLowerCase(), {
+      extends: options?.extends ?? null,
+      shadow: _shadow
+    })
+    customElementRegistry.define(name, Ele, {
+      extends: options?.extends ?? undefined
+    })
   }
 }

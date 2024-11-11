@@ -100,8 +100,8 @@ export class AutoAsyncTask {
 export const nextTick = (
   task: Func,
   key?: Func | null,
-  { sync = false } = {}
+  { promSync = false } = {}
 ) => {
-  if (sync) AutoAsyncTask.addSyncTask(task, key)
+  if (promSync) AutoAsyncTask.addSyncTask(task, key)
   else AutoAsyncTask.addTask(task, key)
 }

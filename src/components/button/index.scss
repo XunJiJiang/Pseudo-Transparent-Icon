@@ -1,6 +1,6 @@
 @use 'sass:color';
 
-.c-button {
+.c-button[data-c-button] {
   position: relative;
   border: 1px solid #00000000;
   font-size: 1rem;
@@ -12,7 +12,7 @@
   -webkit-user-select: none;
 }
 
-.c-button[data-type='default'] {
+.c-button[data-type='default'][data-c-button] {
   border-radius: $radius;
   padding: 0.8rem 0rem;
   width: calc(100% - $margin * 2);
@@ -50,7 +50,7 @@
   }
 }
 
-.c-button[data-type='back'] {
+.c-button[data-type='back'][data-c-button] {
   border-radius: 5px;
   padding: 0.3rem 0.5rem 0.3rem 0.3rem;
   background-color: transparent;

@@ -148,7 +148,7 @@ export default defineCustomElement('c-button-group', {
 
     return (
       <c-card no-padding="true" footer="如果你能看到这个" title={title}>
-        <div slot="default" class="button-group">
+        <div data-c-button-group slot="default" class="button-group">
           <div class="button-group-content">
             {content.map(({ label, style }, i) =>
               typeMap[type](

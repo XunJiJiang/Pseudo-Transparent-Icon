@@ -1,4 +1,4 @@
-.button-group {
+.button-group[data-c-button-group] {
   & .button-group-content {
     & .button-item {
       display: block;

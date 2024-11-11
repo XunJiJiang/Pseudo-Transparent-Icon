@@ -12,6 +12,7 @@ export default defineCustomElement('c-icon', {
 
     return (
       <i
+        data-c-icon
         class={`iconfont icon-${props.name}`}
         style={`font-size: ${props.size}; ${props.style}`}
       />

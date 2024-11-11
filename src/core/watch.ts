@@ -53,7 +53,7 @@ type WatchSource<T> =
 interface WatchOptions {
   deep: boolean | number // 默认：false
   flush: 'pre' | 'post' | 'sync' // 默认：'post'
-  sync: boolean // 默认：false 是否启用同步模式 该模式下, 同步修改的依赖的回调会在下一个微任务内同步执行
+  promSync: boolean // 默认：false 是否启用同步模式 该模式下, 同步修改的依赖的回调会在下一个微任务内同步执行
 }
 
 interface WatchHandle {
@@ -151,7 +151,7 @@ const watchForAlone = <T extends Ref<any> | (() => any) | Reactive<any>>(
     ],
     {
       flush: options.flush,
-      sync: options.sync
+      promSync: options.promSync
     }
   )
 }
@@ -214,7 +214,7 @@ const watchForArray = <T extends Readonly<MultiWatchSources>>(
     ],
     {
       flush: options.flush,
-      sync: options.sync
+      promSync: options.promSync
     }
   )
 }
@@ -266,7 +266,7 @@ export function watch<T>(
   const opt: WatchOptions = {
     deep: false,
     flush: 'post',
-    sync: false,
+    promSync: false,
     ...(options ?? {})
   }
 

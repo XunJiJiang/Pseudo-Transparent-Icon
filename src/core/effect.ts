@@ -48,7 +48,7 @@ export interface EffectHandleHasRun {
 
 type EffectOptions = {
   flush?: 'pre' | 'sync' | 'post' // 默认：'post'
-  sync?: boolean // 默认：false 是否启用同步模式 该模式下, 同步修改的依赖的回调会在下一个微任务内同步执行
+  promSync?: boolean // 默认：false 是否启用同步模式 该模式下, 同步修改的依赖的回调会在下一个微任务内同步执行
 }
 
 let currentEffectCallback: EffectCallback | null = null
@@ -114,7 +114,7 @@ export const _effect = (
   const flush = opt?.flush ?? 'post'
   opt = {
     flush,
-    sync: opt?.sync ?? false
+    promSync: opt?.promSync ?? false
   }
 
   if (inSetup && flush !== 'sync') {
@@ -284,7 +284,7 @@ const effectBuild = (
         },
         callback,
         {
-          sync: opt.sync
+          promSync: opt.promSync
         }
       )
     }

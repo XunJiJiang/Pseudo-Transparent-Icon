@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { type Func } from '@type/function'
 
-// #region Description
 export type EventHandlers =
+  // #region Description
   | 'beforeinstallprompt'
   | 'beforexrselect'
   | 'abort'
@@ -120,8 +120,9 @@ export type EventHandlers =
   | 'pageswap'
   | 'pagereveal'
   | 'scrollend'
+// #endregion
 
-const events = [
+export const events = [
   'search',
   'appinstalled',
   'beforeinstallprompt',
@@ -242,7 +243,6 @@ const events = [
   'pagereveal',
   'scrollend'
 ] as EventHandlers[]
-// #endregion
 
 /** 放置外部调用clearRef的标识 */
 export const SYMBOL_INIT = Symbol('clearRef')
@@ -252,55 +252,30 @@ export type EventListeners = {
   handles: EventListener[]
 }
 
-export default class BaseElement<
-  T extends object = object
-> extends HTMLElement {
-  static events = events
-
-  get obAttr(): string[] {
-    return []
-  }
+export default interface BaseElement<T extends object = object>
+  extends HTMLElement {
+  get obAttr(): string[]
 
   /** 整合observedAttributes和从父组件获取的数据 */
-  $props = {} as T
+  $props: T
 
   /** 当前组件给原生生命周期事件共享的数据 */
-  $sharedData: Record<string, any> = {}
+  $sharedData: Record<string, any>
 
   /** 当使用createElement创建dom时，将参数中的属性赋予此处 */
-  $propData: Record<string, any> = {}
+  $propData: Record<string, any>
 
   /** 当使用createElement创建dom时，将参数中的事件赋予此处 */
-  $emitMethods: Record<string, Func> = {}
+  $emitMethods: Record<string, Func>
 
   /** 影子 DOM 根 */
-  $root: ShadowRoot | BaseElement = this
-
+  $root: ShadowRoot | BaseElement
   /** 当前组件暴露给父组件的属性 */
-  $exposedData: Record<string, any> = {}
+  $exposedData: Record<string, any>
 
   /** 父组件 */
-  $parentComponent: BaseElement | null = null
+  $parentComponent: BaseElement | null
 
-  constructor() {
-    super()
-  }
-
-  protected __init__(symbol: typeof SYMBOL_INIT) {
-    if (symbol !== SYMBOL_INIT) {
-      /*@__PURE__*/ console.error(
-        `${this.localName}: __init__方法只能由xj-web内部调用。`
-      )
-      return false
-    }
-
-    this.$props = {} as T
-    this.$sharedData = {}
-
-    this.$exposedData = {}
-
-    this.$parentComponent = null
-
-    return true
-  }
+  /** 子组件slot(仅未开启shadowRoot时可用) */
+  $slots: Record<string, Node[]>
 }

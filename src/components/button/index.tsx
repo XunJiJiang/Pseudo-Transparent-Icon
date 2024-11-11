@@ -22,7 +22,7 @@ export default defineCustomElement('c-button', {
   },
   setup(
     { style, 'data-type': dataType, 'aria-label': ariaLabel },
-    { emit, expose }
+    { emit, expose, slot }
   ) {
     const buttonRef = ref<HTMLButtonElement>(null)
     onMounted(() => {
@@ -61,6 +61,7 @@ export default defineCustomElement('c-button', {
 
     return (
       <button
+        data-c-button
         ref={buttonRef}
         class="c-button"
         aria-label={ariaLabel}
@@ -71,7 +72,7 @@ export default defineCustomElement('c-button', {
           emit('click', e)
         }}
       >
-        <slot name="default" />
+        {slot.default?.()}
       </button>
     )
   }

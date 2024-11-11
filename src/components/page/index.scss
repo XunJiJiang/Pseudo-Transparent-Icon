@@ -1,7 +1,7 @@
 // @media (min-width: 504px) {
 // }
 
-.c-page {
+.c-page[data-c-page] {
   position: absolute;
   transform: translateX(0);
   transition:

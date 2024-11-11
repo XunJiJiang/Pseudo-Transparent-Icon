@@ -5,7 +5,11 @@ import { type StopFn } from '../effect'
 import { watch } from '../watch'
 import { isArray } from '../utils/shared'
 import BaseElement from './BaseElement'
-import { isCustomElement, isReservedKey } from './defineElement'
+import {
+  getCustomElementOption,
+  isCustomElement,
+  isReservedKey
+} from './defineElement'
 import { Reactive } from 'xj-web-core/reactive'
 
 // const eventCheck = /*#__PURE__*/ (
@@ -67,10 +71,60 @@ export const createElement = (
   //   `
   // }
 
-  const el = document.createElement(tag) as XJ.Element<HTMLElement>
+  const customElementOption = getCustomElementOption(tag)
+
+  const el = (() => {
+    if (customElementOption?.extends) {
+      return document.createElement(customElementOption.extends, { is: tag })
+    } else return document.createElement(tag)
+  })() as XJ.Element<HTMLElement>
 
   const isCustomEle = isCustomElement(el, tag)
   const component = el as XJ.Element<BaseElement>
+
+  if (isCustomEle && !customElementOption?.shadow) {
+    children = children?.filter((child) => {
+      if (child instanceof HTMLElement) {
+        if (child.slot) {
+          component.$slots[child.slot] = component.$slots[child.slot] || []
+          if (child instanceof HTMLTemplateElement) {
+            // 获取template的内容
+            const content = child.content
+            const childNodes = content.childNodes
+            childNodes.forEach((childNode) => {
+              if (childNode instanceof HTMLElement) {
+                component.$slots[child.slot].push(childNode)
+                return false
+              } else if (typeof childNode === 'string') {
+                const textNode = document.createTextNode(childNode)
+                component.$slots[child.slot].push(textNode)
+                return false
+              }
+            })
+          } else {
+            component.$slots[child.slot].push(child)
+            return false
+          }
+        } else if (child instanceof HTMLTemplateElement) {
+          // 获取template的内容
+          const content = child.content
+          const childNodes = content.childNodes
+          childNodes.forEach((childNode) => {
+            if (childNode instanceof HTMLElement) {
+              component.$slots['default'].push(childNode)
+            } else if (typeof childNode === 'string') {
+              const textNode = document.createTextNode(childNode)
+              component.$slots['default'].push(textNode)
+            }
+          })
+          return false
+        }
+        return true
+      }
+    })
+    console.dir(component)
+    console.log(component.$slots)
+  }
 
   const EffectStops: Set<StopFn> = new Set()
 
@@ -105,9 +159,13 @@ export const createElement = (
     for (const key in props) {
       if (isCustomEle) {
         if (el.obAttr.includes(key) && isRef<string>(props[key])) {
-          const stop = watch(props[key], (value) => {
-            setAttribute(el, key, value)
-          })
+          const stop = watch(
+            props[key],
+            (value) => {
+              setAttribute(el, key, value)
+            },
+            { promSync: true }
+          )
           EffectStops.add(stop)
         }
       } else {
@@ -121,28 +179,39 @@ export const createElement = (
                   (value) => {
                     el.className = value.join(' ')
                   },
-                  { deep: 1 }
+                  { deep: 1, promSync: true }
                 )
                 EffectStops.add(stop)
               }
             } else if (isRef(props[key])) {
-              console.log('bgColorType.value', props[key].value)
               if (isArray<string[]>(props[key].value)) {
-                const stop = watch(props[key], (value) => {
-                  setAttribute(el, key, value)
-                })
+                const stop = watch(
+                  props[key],
+                  (value) => {
+                    setAttribute(el, key, value)
+                  },
+                  { promSync: true }
+                )
                 EffectStops.add(stop)
               } else {
-                const stop = watch(props[key] as Ref<string>, (value) => {
-                  setAttribute(el, key, value)
-                })
+                const stop = watch(
+                  props[key] as Ref<string>,
+                  (value) => {
+                    setAttribute(el, key, value)
+                  },
+                  { promSync: true }
+                )
                 EffectStops.add(stop)
               }
             }
           } else if (isRef(props[key])) {
-            const stop = watch(props[key], (value) => {
-              setAttribute(el, key, String(value))
-            })
+            const stop = watch(
+              props[key],
+              (value) => {
+                setAttribute(el, key, String(value))
+              },
+              { promSync: true }
+            )
             EffectStops.add(stop)
           }
         }
@@ -252,43 +321,53 @@ export const createElement = (
     if (child instanceof Node) {
       el.appendChild(child)
     } else {
-      const childEl = (() => {
-        if (isRef(child)) {
-          const childEl = document.createTextNode(String(child.value))
-          textNodeEffects.add(() => {
-            textNodeEffectsStops.add(
-              watch(
-                child,
-                (value) => {
-                  childEl.nodeValue = String(value)
-                },
-                { deep: true }
-              )
-            )
-          })
-          return childEl
-        }
-        if (isReactive(child)) {
-          const childEl = document.createTextNode(String(child))
-          textNodeEffects.add(() => {
-            textNodeEffectsStops.add(
-              watch(
-                child as Reactive<unknown[]>,
-                (value) => {
-                  childEl.nodeValue = String(value)
-                },
-                { deep: true }
-              )
-            )
-          })
-          return childEl
-        }
-        return document.createTextNode(String(child))
-      })()
+      const childEl = createWatchNode(
+        child,
+        textNodeEffects,
+        textNodeEffectsStops
+      )
 
       el.appendChild(childEl)
     }
   })
 
   return el
+}
+
+export const createWatchNode = (
+  child: ChildType,
+  textNodeEffects: Set<() => void>,
+  textNodeEffectsStops: Set<StopFn>
+): Node => {
+  if (isRef(child)) {
+    const childEl = document.createTextNode(String(child.value))
+    textNodeEffects.add(() => {
+      textNodeEffectsStops.add(
+        watch(
+          child,
+          (value) => {
+            childEl.nodeValue = String(value)
+          },
+          { deep: true, promSync: true }
+        )
+      )
+    })
+    return childEl
+  }
+  if (isReactive(child)) {
+    const childEl = document.createTextNode(String(child))
+    textNodeEffects.add(() => {
+      textNodeEffectsStops.add(
+        watch(
+          child as Reactive<unknown[]>,
+          (value) => {
+            childEl.nodeValue = String(value)
+          },
+          { deep: true, promSync: true }
+        )
+      )
+    })
+    return childEl
+  }
+  return document.createTextNode(String(child))
 }

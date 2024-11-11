@@ -1,4 +1,4 @@
-.header {
+.header[data-c-card] {
   width: calc(100% - $margin * 2);
   max-width: $component-max-width;
   border: 1px solid #00000000;
@@ -15,7 +15,7 @@
   }
 }
 
-.footer {
+.footer[data-c-card] {
   width: calc(100% - $margin * 2);
   max-width: $component-max-width;
   border: 1px solid #00000000;
@@ -32,7 +32,7 @@
   }
 }
 
-.card {
+.card[data-c-card] {
   width: calc(100% - $margin * 2);
   max-width: $component-max-width;
   border: 1px solid #00000000;
