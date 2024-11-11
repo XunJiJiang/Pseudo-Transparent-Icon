@@ -103,7 +103,7 @@ class Dependency<T extends object> {
         if (key === SYMBOL_DEPENDENCY) return this
         // if (!Reflect.has(target, key)) {
         // }
-        const collect = this.collect.bind(this)
+
         // const distribute = this.distribute.bind(this)
         const _value = Reflect.get(target, key, receiver)
         let _ret = _value
@@ -119,7 +119,7 @@ class Dependency<T extends object> {
           this._isProxy.push(key)
         }
 
-        collect(key)
+        this.collect(key)
 
         return _ret
       },
@@ -200,6 +200,7 @@ class Dependency<T extends object> {
         else run()
       })
     }
+
     if (!updateRun) run()
   }
 

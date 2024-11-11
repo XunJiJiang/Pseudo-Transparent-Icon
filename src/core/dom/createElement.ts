@@ -114,7 +114,8 @@ export const createElement = (
         if (!isReservedKey(key)) {
           if (key === 'class') {
             if (isReactive<string[]>(props[key])) {
-              if (isArray<string>(props[key])) {
+              if (isArray<Reactive<string[]>>(props[key])) {
+                if (!isReactive<string[]>(props[key])) return
                 const stop = watch(
                   props[key],
                   (value) => {
@@ -126,7 +127,7 @@ export const createElement = (
               }
             } else if (isRef(props[key])) {
               console.log('bgColorType.value', props[key].value)
-              if (isArray<string>(props[key].value)) {
+              if (isArray<string[]>(props[key].value)) {
                 const stop = watch(props[key], (value) => {
                   setAttribute(el, key, value)
                 })
@@ -231,7 +232,7 @@ export const createElement = (
         }
         // 对于class
         else if (key === 'class') {
-          if (isArray<string>(props[key])) {
+          if (isArray<string[]>(props[key])) {
             if (!isReactive(props[key])) {
               el.className = props[key].join(' ')
             }
