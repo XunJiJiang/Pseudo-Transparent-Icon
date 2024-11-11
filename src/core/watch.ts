@@ -3,7 +3,7 @@ import { isReactive } from './Dependency'
 import { _effect } from './effect'
 import { Reactive } from './reactive'
 import { isRef, Ref } from './ref'
-import { isArray } from './utils/shared'
+import { isArray, isNewCall } from './utils/shared'
 
 // TODO: 大量使用 as
 
@@ -228,14 +228,6 @@ type WatchAloneSource<T> =
       : never
     : T
 
-// export function watch<T>(
-//   // TODO: 此处source应该是T, 但会导致数组类型的source不能获取指定下标的类型
-//   // 这个理论上和数组类型的source无关
-//   // 可能是因为T没有限制类型导致包括数组类型
-//   source: WatchAloneSource<T>,
-//   callback: WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>,
-//   options?: Partial<WatchOptions>
-// ): WatchHandle
 export function watch<T extends Reactive<any>>(
   source: T,
   callback: WatchCallback<WatchSourceRef<T>, WatchSourceRef<T>>,
@@ -269,7 +261,7 @@ export function watch<T>(
     | WatchCallback<WatchSourceRefs<T>, WatchSourceRefs<T>>,
   options?: Partial<WatchOptions>
 ): WatchHandle {
-  if (new.target) throw new Error('watch: must be called directly')
+  if (isNewCall(new.target)) throw new Error('watch: must be called directly')
 
   const opt: WatchOptions = {
     deep: false,
