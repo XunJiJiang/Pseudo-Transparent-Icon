@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reactive, reactive } from './reactive'
-import { isObject } from './utils/shared'
+import { isObject } from '../utils/shared'
 
 export interface CreateRef {
   <T>(value: null): Ref<T | null>

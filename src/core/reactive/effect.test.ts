@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { effect } from './effect'
 import { ref } from './ref'
-import { wait } from '../../tests/utils/wait'
+import { wait } from '../../../tests/utils/wait'
 
 /**
  * @vitest-environment jsdom

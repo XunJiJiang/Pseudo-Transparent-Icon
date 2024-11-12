@@ -1,7 +1,7 @@
 import { type ChildType, createElement } from './createElement'
 import { isArray } from '../utils/shared'
-import { isRef } from 'xj-web-core/ref'
-import { isReactive } from 'xj-web-core/Dependency'
+import { isRef } from 'xj-web-core/reactive/ref'
+import { isReactive } from 'xj-web-core/reactive/Dependency'
 
 const isFragment = (tag: unknown): tag is typeof Fragment => tag === Fragment
 

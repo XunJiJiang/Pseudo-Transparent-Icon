@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isReactive } from '../Dependency'
-import { isRef, Ref } from '../ref'
-import { type StopFn } from '../effect'
-import { watch } from '../watch'
+import { isReactive } from '../reactive/Dependency'
+import { isRef, Ref } from '../reactive/ref'
+import { type StopFn } from '../reactive/effect'
+import { watch } from '../reactive/watch'
 import { isArray } from '../utils/shared'
 import BaseElement from './BaseElement'
 import {
@@ -10,7 +10,7 @@ import {
   isCustomElement,
   isReservedKey
 } from './defineElement'
-import { Reactive } from 'xj-web-core/reactive'
+import { Reactive } from 'xj-web-core/reactive/reactive'
 
 // const eventCheck = /*#__PURE__*/ (
 //   _key: EventHandlers,

@@ -4,15 +4,15 @@ import { onMounted } from './hooks/lifecycle/mounted'
 
 import { onUnmounted } from './hooks/lifecycle/unmounted'
 
-import { ref, isRef } from './ref'
+import { ref, isRef } from './reactive/ref'
 
-import { reactive } from './reactive'
+import { reactive } from './reactive/reactive'
 
-import { isReactive } from './Dependency'
+import { isReactive } from './reactive/Dependency'
 
-import { effect } from './effect'
+import { effect } from './reactive/effect'
 
-import { watch } from './watch'
+import { watch } from './reactive/watch'
 
 import { defineCustomElement } from './dom/defineElement'
 

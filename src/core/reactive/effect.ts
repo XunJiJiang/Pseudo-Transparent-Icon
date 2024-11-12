@@ -1,8 +1,8 @@
-import { onBeforeMount } from './hooks/lifecycle/beforeMount'
-import { onMounted } from './hooks/lifecycle/mounted'
-import { hasSetupRunning } from './hooks/lifecycle/verifySetup'
-import { nextTick } from './utils/AutoAsyncTask'
-import { isAsyncFunction, isFunction } from './utils/shared'
+import { onBeforeMount } from '../hooks/lifecycle/beforeMount'
+import { onMounted } from '../hooks/lifecycle/mounted'
+import { hasSetupRunning } from '../hooks/lifecycle/verifySetup'
+import { nextTick } from '../utils/AutoAsyncTask'
+import { isAsyncFunction, isFunction } from '../utils/shared'
 
 // ABOUT: flush
 // 对于在setup函数中运行的effect

@@ -3,7 +3,7 @@ import { isReactive } from './Dependency'
 import { _effect } from './effect'
 import { Reactive } from './reactive'
 import { isRef, Ref } from './ref'
-import { isArray, isNewCall } from './utils/shared'
+import { isArray, isNewCall } from '../utils/shared'
 
 // TODO: 大量使用 as
 

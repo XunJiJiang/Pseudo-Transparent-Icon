@@ -6,8 +6,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { ref } from './ref'
 import { reactive } from './reactive'
 import { watch } from './watch'
-import { wait } from '../../tests/utils/wait'
-import { deepClone } from '../../tests/utils/deepClone'
+import { wait } from '../../../tests/utils/wait'
+import { deepClone } from '../../../tests/utils/deepClone'
 
 describe('watch', () => {
   it('浅层观察reactive', async () => {
