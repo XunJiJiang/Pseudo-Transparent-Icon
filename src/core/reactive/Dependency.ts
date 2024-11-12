@@ -16,7 +16,7 @@ import {
   SYMBOL_PRIVATE,
   type EffectCallback
 } from './effect'
-import { isArray, isObject } from '../utils/shared'
+import { isArray, isObject } from 'core/utils/shared'
 
 /** 无key的依赖key */
 const SYMBOL_EFFECT = Symbol('effect')

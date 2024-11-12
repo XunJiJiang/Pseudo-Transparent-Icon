@@ -28,7 +28,10 @@ export default [
           viteConfig: {
             resolve: {
               alias: {
+                // 用于外部引用
                 'xj-web-core': path.resolve(__dirname, 'src/core'),
+                // 用于内部引用
+                core: path.resolve(__dirname, 'src/core'),
                 '@': path.resolve(__dirname, 'src'),
                 '@components': path.resolve(__dirname, 'src/components'),
                 '@utils': path.resolve(__dirname, 'src/utils'),

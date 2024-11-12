@@ -1,10 +1,10 @@
-import BaseElement from '../../dom/BaseElement'
+import BaseElement from 'core/dom/BaseElement'
 import {
   type LifecycleFn,
   type LifecycleCallback,
   hasSetupRunning
 } from './verifySetup'
-import { getCurrentComponent } from '../../dom/fixComponentIns'
+import { getCurrentComponent } from 'core/dom/fixComponentIns'
 
 // onMounted在setup函数中调用
 // setup结束后，构造器调用前执行runMounted

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { type Func } from '@type/function'
+import { type Func } from 'core/utils/types'
 
 export type EventHandlers =
   // #region Description

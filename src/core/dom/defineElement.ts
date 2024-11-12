@@ -7,17 +7,17 @@
  *    就这样挺好, 不需要关心中间的组件实例
  */
 
-import { Func } from '@type/function'
+import { Func } from 'core/utils/types'
 import BaseElement, { SYMBOL_INIT } from './BaseElement'
 import { setComponentIns } from './fixComponentIns'
-import { startSetupRunning } from '../hooks/lifecycle/verifySetup'
+import { startSetupRunning } from 'core/hooks/lifecycle/verifySetup'
 import {
   clearBeforeMount,
   runBeforeMount
 } from '../hooks/lifecycle/beforeMount'
-import { clearMounted, runMounted } from '../hooks/lifecycle/mounted'
-import { hasOwn, isArray, notNull } from '../utils/shared'
-import { type HTMLElementTag, HTMLExtends } from '../utils/HTMLExtends'
+import { clearMounted, runMounted } from 'core/hooks/lifecycle/mounted'
+import { hasOwn, isArray, notNull } from 'core/utils/shared'
+import { type HTMLElementTag, HTMLExtends } from 'core/utils/HTMLExtends'
 
 type Shared = Record<string, any>
 

@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isReactive } from '../reactive/Dependency'
-import { isRef, Ref } from '../reactive/ref'
-import { type StopFn } from '../reactive/effect'
-import { watch } from '../reactive/watch'
-import { isArray } from '../utils/shared'
+import { isReactive } from 'core/reactive/Dependency'
+import { isRef, Ref } from 'core/reactive/ref'
+import { type StopFn } from 'core/reactive/effect'
+import { watch } from 'core/reactive/watch'
+import { isArray } from 'core/utils/shared'
 import BaseElement from './BaseElement'
 import {
   getCustomElementOption,
