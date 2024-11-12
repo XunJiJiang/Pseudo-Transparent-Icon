@@ -122,8 +122,6 @@ export const createElement = (
         return true
       }
     })
-    console.dir(component)
-    console.log(component.$slots)
   }
 
   const EffectStops: Set<StopFn> = new Set()

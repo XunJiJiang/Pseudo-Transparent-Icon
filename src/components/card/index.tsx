@@ -22,6 +22,7 @@ export default defineCustomElement('c-card', {
       type: Boolean
     }
   },
+  slots: ['default'],
   style: css,
   setup({ title, footer, 'no-padding': noPadding }, { slot }) {
     return (

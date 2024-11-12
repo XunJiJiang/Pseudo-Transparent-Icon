@@ -20,6 +20,7 @@ export default defineCustomElement('c-button', {
       type: Function as unknown as () => (e: Event) => void
     }
   },
+  slots: ['default'],
   setup(
     { style, 'data-type': dataType, 'aria-label': ariaLabel },
     { emit, expose, slot }
@@ -72,7 +73,7 @@ export default defineCustomElement('c-button', {
           emit('click', e)
         }}
       >
-        {slot.default?.()}
+        {slot.default()}
       </button>
     )
   }

@@ -26,6 +26,7 @@ export default defineCustomElement('c-page', {
       type: Function as unknown as () => (scrollTop: number) => void
     }
   },
+  slots: ['default'],
   setup({ style, ...props }, { emit, share, slot }) {
     const pageRootRef = ref<HTMLDivElement>(null)
     const scroll = (e: Event) => {
@@ -48,7 +49,7 @@ export default defineCustomElement('c-page', {
 
     return (
       <div data-c-page ref={pageRootRef} class="c-page" style={style}>
-        <main>{slot.default?.()}</main>
+        <main>{slot.default()}</main>
       </div>
     )
   },

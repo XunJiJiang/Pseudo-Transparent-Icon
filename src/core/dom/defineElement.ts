@@ -100,8 +100,23 @@ type DefineEmits<T extends BaseEmits> = {
   }
 }
 
-type DefineSlot<T extends boolean> = T extends false
-  ? Record<string, () => Node[]>
+// type BaseSlots = Record<string, () => Node[] | Node> | string[]
+
+type DefineSlots<T> =
+  | {
+      [key in keyof T]: () => Node[]
+    }
+  | (T extends string[] ? [...T] : never)
+  | void
+
+type DefineSlot<T, Shadow extends boolean> = Shadow extends false
+  ? T extends string[]
+    ? {
+        [key in T[number]]: () => Node[]
+      }
+    : {
+        [key in keyof T]: () => Node[]
+      }
   : void
 
 const customElementRegistry = window.customElements
@@ -173,6 +188,7 @@ export const defineCustomElement = <
   P extends BaseProps,
   E extends BaseEmits,
   O extends string | never = never,
+  S = [],
   Shadow extends boolean = false
 >(
   name: string,
@@ -182,6 +198,7 @@ export const defineCustomElement = <
     setup,
     props,
     emits,
+    slots,
     observedAttributes,
     connected,
     disconnected,
@@ -202,11 +219,12 @@ export const defineCustomElement = <
           key: T,
           ...args: Parameters<FuncConstructorToType<E[T]>>
         ) => ReturnType<FuncConstructorToType<E[T]>>
-        slot: DefineSlot<Shadow>
+        slot: DefineSlot<S, Shadow>
       }
     ) => Node | Node[] | void
     props?: DefineProps<P>
     emits?: DefineEmits<E>
+    slots?: DefineSlots<S>
     observedAttributes?: O[]
     connected?: EleCallback
     disconnected?: EleCallback
@@ -432,9 +450,28 @@ export const defineCustomElement = <
 
       const slotData: Record<string, () => Node[]> = {}
 
-      if (!_shadow) {
-        for (const key in this.$slots) {
-          slotData[key] = () => this.$slots[key]
+      if (!_shadow && slots) {
+        if (Array.isArray(slots)) {
+          for (const key of slots) {
+            const nodes = this.$slots[key]
+            if (nodes) slotData[key] = () => nodes
+            else {
+              /*@__PURE__*/ console.error(
+                `${this.localName}: 未找到插槽 ${key} 的内容。`
+              )
+            }
+          }
+        } else {
+          for (const key in slots) {
+            const nodes = this.$slots[key]
+            if (nodes) slotData[key] = () => nodes
+            else if (slots[key]) slotData[key] = slots[key]
+            else {
+              /*@__PURE__*/ console.error(
+                `${this.localName}: 未找到插槽 ${key} 的内容。`
+              )
+            }
+          }
         }
       }
 
@@ -445,7 +482,7 @@ export const defineCustomElement = <
           expose: exposeData,
           share: shareData,
           emit: emitFn,
-          slot: (_shadow ? void 0 : slotData) as DefineSlot<Shadow>
+          slot: (_shadow ? void 0 : slotData) as DefineSlot<S, Shadow>
         }) || {}
 
       setupEnd()
