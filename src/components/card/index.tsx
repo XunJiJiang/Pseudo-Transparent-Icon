@@ -1,4 +1,4 @@
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement } from 'xj-web-core/index'
 
 export type CardProps = {
@@ -23,7 +23,6 @@ export default defineCustomElement('c-card', {
     }
   },
   slots: ['default'],
-  style: css,
   setup({ title, footer, 'no-padding': noPadding }, { slot }) {
     return (
       <>

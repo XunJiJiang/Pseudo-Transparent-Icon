@@ -1,5 +1,5 @@
 import { type CButtonExpose } from '@components/button'
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement, effect, reactive, ref } from 'xj-web-core/index'
 import BaseElement from 'xj-web-core/dom/BaseElement'
 
@@ -21,7 +21,6 @@ export type SelectDeviceTypeEmit = {
 }
 
 export default defineCustomElement('v-sd-type', {
-  style: css,
   observedAttributes: ['data-status'],
   props: {
     style: {

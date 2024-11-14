@@ -1,9 +1,8 @@
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement } from 'xj-web-core/index'
 import '@/assets/icon/iconfont.scss'
 
 export default defineCustomElement('c-icon', {
-  style: css,
   observedAttributes: ['size', 'name', 'style'],
   setup(props) {
     if (!props.name) {

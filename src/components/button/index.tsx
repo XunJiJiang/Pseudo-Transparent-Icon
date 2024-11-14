@@ -1,4 +1,4 @@
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement, onMounted, ref } from 'xj-web-core/index'
 
 export type CButtonExpose = {
@@ -12,7 +12,6 @@ export type CButtonProps = {
 }
 
 export default defineCustomElement('c-button', {
-  style: css,
   observedAttributes: ['style', 'data-type', 'aria-label'],
   emits: {
     click: {

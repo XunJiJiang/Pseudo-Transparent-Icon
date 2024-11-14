@@ -1,5 +1,5 @@
 import BaseElement from 'xj-web-core/dom/BaseElement'
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement, ref } from 'xj-web-core/index'
 
 export type HomeProps = {
@@ -12,7 +12,6 @@ export type HomeEmit = {
 }
 
 export default defineCustomElement('v-home', {
-  style: css,
   observedAttributes: ['data-status', 'd-test'],
   props: {
     style: {

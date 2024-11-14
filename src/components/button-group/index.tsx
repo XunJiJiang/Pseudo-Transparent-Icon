@@ -1,4 +1,4 @@
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement, useId, ref } from 'xj-web-core/index'
 
 export type ButtonGroupProps = {
@@ -94,7 +94,6 @@ const typeMap: TypeMap = {
 }
 
 export default defineCustomElement('c-button-group', {
-  style: css,
   emits: {
     change: {
       required: true,

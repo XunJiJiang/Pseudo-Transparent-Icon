@@ -1,6 +1,6 @@
 // TODO: 当前[next函数]只能增加，不能减少，计划修改为可以增加和减少。目前没有用到，暂时不修改
 
-import css from './index.scss?raw'
+import './index.scss'
 import {
   defineCustomElement,
   effect,
@@ -24,7 +24,6 @@ effect(() => {
 })
 
 export default defineCustomElement('l-index', {
-  style: css,
   setup() {
     const lIndexRef = ref<HTMLDivElement>(null)
     /** 当前下标 */

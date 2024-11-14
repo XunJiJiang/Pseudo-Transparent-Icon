@@ -1,4 +1,4 @@
-import css from './index.scss?raw'
+import './index.scss'
 import { defineCustomElement, onMounted, ref } from 'xj-web-core/index'
 
 export type PageProps = {
@@ -12,7 +12,6 @@ export type PageEmit = {
 }
 
 export default defineCustomElement('c-page', {
-  style: css,
   observedAttributes: ['data-index', 'data-status'],
   props: {
     style: {
