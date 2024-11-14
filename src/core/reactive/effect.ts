@@ -246,6 +246,10 @@ const effectBuild = (
       dep.delete(callback)
     })
     effectDepsMap.delete(callback)
+    callback = () => {}
+    if (callbackNoCollect) {
+      callbackNoCollect = () => {}
+    }
   }
   effectCallbackReturn.__run__ = (cb) => {
     if (state === EffectStatus.STOP || state === EffectStatus.PAUSE) {

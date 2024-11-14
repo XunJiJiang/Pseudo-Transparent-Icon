@@ -1,5 +1,5 @@
 import Dependency, { SYMBOL_DEPENDENCY } from './Dependency'
-import { effect } from './effect'
+
 // TODO: 当传入的值是dep实例时，是直接返回还是根据dep实例的值返回一个新的dep实例？
 // TODO: 不进行响应式的类
 // type NonReactive<T extends object> = T extends Node | Window | Document
@@ -37,23 +37,3 @@ export const reactive = <T extends object>(obj: T): Reactive<T> => {
 
   return dep.value as Reactive<T>
 }
-
-const source = reactive<{
-  count: number
-  nested?: {
-    count: number
-  }
-}>({ count: 0, nested: { count: 0 } })
-
-const registry = new FinalizationRegistry((value) => {
-  console.log('垃圾回收', value)
-})
-
-registry.register(source.nested!, 'nested')
-
-effect(() => {
-  console.log('effect')
-  console.log('source', source.count, source.nested?.count)
-})
-
-delete source.nested
