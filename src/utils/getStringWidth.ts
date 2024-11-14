@@ -9,13 +9,13 @@
 const getStringWidth = (
   msg: string,
   _style: {
-    fontSize?: string
-    fontFamily?: string
+    size?: string
+    family?: string
   }
 ) => {
   const style = {
-    fontSize: _style.fontSize ?? '12px',
-    fontFamily: _style.fontFamily ?? 'initial'
+    fontSize: _style.size ?? '12px',
+    fontFamily: _style.family ?? 'initial'
   }
   const { fontSize, fontFamily } = style
   const stringWidthDom = document.createElement('span')

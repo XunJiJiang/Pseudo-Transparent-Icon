@@ -174,18 +174,20 @@
             all 0.5s $cubic-bezier,
             color 0.1s ease-in-out;
           height: 1rem;
-          // width: 4rem;
           font-weight: 700;
+
+          & span {
+            height: 1.5rem;
+            transition:
+              all 0.5s $cubic-bezier,
+              color 0.1s ease-in-out;
+            display: inline-block;
+            position: absolute;
+            white-space: nowrap;
+          }
 
           &.add {
             & span {
-              height: 1.5rem;
-              transition:
-                all 0.5s $cubic-bezier,
-                color 0.1s ease-in-out;
-              display: inline-block;
-              position: absolute;
-              white-space: nowrap;
               &:first-child {
                 animation: back-add-1 0.5s $cubic-bezier forwards;
               }
@@ -200,22 +202,54 @@
             }
           }
 
+          &.add-finish {
+            & span {
+              &:first-child {
+                @include backButDisappear {
+                  opacity: 0;
+                }
+              }
+
+              &:last-child {
+                @include backButton {
+                  opacity: 1;
+                }
+              }
+
+              @supports (-webkit-touch-callout: none) {
+                height: 1.4rem;
+              }
+            }
+          }
+
           &.reduce {
             & span {
-              height: 1.5rem;
-              transition:
-                color 0.1 ease-in-out,
-                all 0.5s $cubic-bezier;
-              display: inline-block;
-              position: absolute;
-              white-space: nowrap;
-
               &:first-child {
                 animation: back-reduce-1 0.5s $cubic-bezier forwards;
               }
 
               &:last-child {
                 animation: back-reduce-2 0.5s $cubic-bezier forwards;
+              }
+
+              @supports (-webkit-touch-callout: none) {
+                height: 1.4rem;
+              }
+            }
+          }
+
+          &.reduce-finish {
+            & span {
+              &:first-child {
+                @include backButton {
+                  opacity: 1;
+                }
+              }
+
+              &:last-child {
+                @include butToTitle {
+                  opacity: 0;
+                }
               }
 
               @supports (-webkit-touch-callout: none) {
@@ -297,13 +331,17 @@
       & .title-span {
         display: inline-block;
         transition: all 0.5s $cubic-bezier;
+
+        & span {
+          height: 1.5rem;
+          transition: all 0.5s $cubic-bezier;
+          display: inline-block;
+          position: absolute;
+          white-space: nowrap;
+        }
+
         &.add {
           & span {
-            height: 1.5rem;
-            transition: all 0.5s $cubic-bezier;
-            display: inline-block;
-            position: absolute;
-            white-space: nowrap;
             &:first-child {
               animation: title-add-1 0.5s $cubic-bezier forwards;
             }
@@ -314,19 +352,46 @@
           }
         }
 
+        &.add-finish {
+          & span {
+            &:first-child {
+              @include titleToBackBut {
+                opacity: 0;
+              }
+            }
+
+            &:last-child {
+              @include title {
+                opacity: 1;
+              }
+            }
+          }
+        }
+
         &.reduce {
           & span {
-            height: 1.5rem;
-            transition: all 0.5s $cubic-bezier;
-            display: inline-block;
-            position: absolute;
-            white-space: nowrap;
             &:first-child {
               animation: title-reduce-1 0.5s $cubic-bezier forwards;
             }
 
             &:last-child {
               animation: title-reduce-2 0.5s $cubic-bezier forwards;
+            }
+          }
+        }
+
+        &.reduce-finish {
+          & span {
+            &:first-child {
+              @include title {
+                opacity: 1;
+              }
+            }
+
+            &:last-child {
+              @include titleDisappear {
+                opacity: 0;
+              }
             }
           }
         }

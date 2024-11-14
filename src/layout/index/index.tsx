@@ -136,8 +136,6 @@ export default defineCustomElement('l-index', {
 
     let nowELe: HTMLElement | null = null
 
-    // const titleSpanClass = reactive(['title-span'])
-
     effect((onCleanup) => {
       const nowIndex = index.value
 
@@ -179,6 +177,10 @@ export default defineCustomElement('l-index', {
         titleSpanClass[1] = 'add'
       }
 
+      setTimeout(() => {
+        titleSpanClass[1] = titleSpanClass[1] + '-finish'
+      }, 500)
+
       onCleanup(() => {
         prevIndex = nowIndex
 
@@ -198,8 +200,8 @@ export default defineCustomElement('l-index', {
         if (!isPrev && isPrev !== null) {
           pageList.push(prevTitle)
           stringWidth = getStringWidth(prevTitle, {
-            fontSize: '1rem',
-            fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
+            size: '1rem',
+            family: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
           })
           backSpan[0].value = nowTitle
           backSpan[1].value = prevTitle
@@ -208,13 +210,17 @@ export default defineCustomElement('l-index', {
           const prevTitle = pageList.pop() ?? ''
           const nowTitle = pageList[pageList.length - 1] ?? ''
           stringWidth = getStringWidth(nowTitle, {
-            fontSize: '1rem',
-            fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
+            size: '1rem',
+            family: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'
           })
           backSpan[0].value = nowTitle
           backSpan[1].value = prevTitle
           backSpanClass[1] = 'reduce'
         }
+
+        setTimeout(() => {
+          backSpanClass[1] = backSpanClass[1] + '-finish'
+        }, 500)
 
         backStyle.value = `width: calc(${stringWidth}px + 1.2rem);`
 
