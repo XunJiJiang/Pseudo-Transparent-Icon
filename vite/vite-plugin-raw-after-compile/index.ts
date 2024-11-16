@@ -1,7 +1,7 @@
 import * as sass from 'sass'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { type ResolvedConfig } from 'vite'
+import { Plugin, type ResolvedConfig } from 'vite'
 
 type Options = {
   scss?: {
@@ -25,7 +25,7 @@ const updateGlobalScss = (option: Options | void) => {
   return globalScss
 }
 
-export default (option: Options | void) => {
+export default (option: Options | void): Plugin => {
   let config: ResolvedConfig
 
   /** 用于在生产环境保存css, 文件指纹等信息 */
@@ -86,14 +86,14 @@ export default (option: Options | void) => {
 
   return {
     name: 'vite-plugin-raw-after-compile',
-    configResolved(resolvedConfig: ResolvedConfig) {
+    configResolved(resolvedConfig) {
       // 存储最终解析的配置
       config = resolvedConfig
       globalScssToCss = sass.compileString(globalScss, {
         style: config.command === 'serve' ? 'expanded' : 'compressed'
       })
     },
-    transform(code: string, id: string) {
+    transform(code, id) {
       if (id.endsWith('.scss')) {
         globalScss = updateGlobalScss(option)
       }
@@ -133,7 +133,7 @@ export default (option: Options | void) => {
         }
       }
     },
-    transformIndexHtml(html: string) {
+    transformIndexHtml(html) {
       if (config.command === 'serve') {
         return html
       }
@@ -143,23 +143,15 @@ export default (option: Options | void) => {
         `<link rel="stylesheet" crossorigin href="${config.base}${indexCss.fileName}">`
       )
     },
-    generateBundle(
-      _options: unknown,
-      bundle: {
-        [fileName: string]: {
-          type: string
-          source: string
-          fileName: string
-        }
-      }
-    ) {
+    generateBundle(_options, bundle) {
       for (const fileName in bundle) {
         const file = bundle[fileName]
 
         if (
           file.type === 'asset' &&
           fileName.endsWith('.css') &&
-          fileName.startsWith('assets/index-')
+          fileName.startsWith('assets/index-') &&
+          typeof file.source === 'string'
         ) {
           file.source += indexCss.code.replace(
             file.source.includes(globalScssToCss!.css.toString())

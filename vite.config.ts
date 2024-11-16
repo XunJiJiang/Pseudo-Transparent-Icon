@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite'
-import path from 'node:path'
+import { resolve } from 'node:path'
 import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
 
 /*
@@ -10,25 +10,27 @@ import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
  * 当引入其他模块内的文件时, 使用别名
  */
 
+const joinTo = (...paths: string[]) => resolve(__dirname, ...paths)
+
 const alias = {
   // 用于外部引用
-  'xj-web-core': path.resolve(__dirname, 'src/core'),
+  'xj-web-core': joinTo('src/core'),
   // 用于内部引用
-  core: path.resolve(__dirname, 'src/core'),
-  '@': path.resolve(__dirname, 'src'),
-  '@components': path.resolve(__dirname, 'src/components'),
-  '@utils': path.resolve(__dirname, 'src/utils'),
-  '@views': path.resolve(__dirname, 'src/views'),
-  '@img': path.resolve(__dirname, 'src/assets/images'),
-  '@type': path.resolve(__dirname, 'src/types'),
-  '@layout': path.resolve(__dirname, 'src/layout')
+  core: joinTo('src/core'),
+  '@': joinTo('src'),
+  '@components': joinTo('src/components'),
+  '@utils': joinTo('src/utils'),
+  '@views': joinTo('src/views'),
+  '@img': joinTo('src/assets/images'),
+  '@type': joinTo('src/types'),
+  '@layout': joinTo('src/layout')
 }
 
 export default defineConfig({
   plugins: [
     rawAfterCompile({
       scss: {
-        global: path.resolve(__dirname, 'src/assets/scss/variable.scss')
+        global: joinTo('src/assets/scss/variable.scss')
       }
     })
   ],
@@ -49,8 +51,8 @@ export default defineConfig({
     assetsInlineLimit: 0,
     rollupOptions: {
       input: {
-        index: path.resolve(__dirname, 'index.html'),
-        404: path.resolve(__dirname, '404.html')
+        index: joinTo('index.html'),
+        404: joinTo('404.html')
       }
     }
   },

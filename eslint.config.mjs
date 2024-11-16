@@ -1,4 +1,4 @@
-import path from 'node:path'
+import { dirname, resolve } from 'node:path'
 import globals from 'globals'
 import pluginJs from '@eslint/js'
 import tsEslint from 'typescript-eslint'
@@ -7,7 +7,9 @@ import prettier from 'eslint-plugin-prettier'
 import importPlugin from 'eslint-plugin-import'
 import resolverAlias from 'eslint-import-resolver-alias'
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
+const __dirname = dirname(new URL(import.meta.url).pathname)
+
+const joinTo = (...paths) => resolve(__dirname, ...paths)
 
 export default [
   {
@@ -29,16 +31,16 @@ export default [
             resolve: {
               alias: {
                 // 用于外部引用
-                'xj-web-core': path.resolve(__dirname, 'src/core'),
+                'xj-web-core': joinTo('src/core'),
                 // 用于内部引用
-                core: path.resolve(__dirname, 'src/core'),
-                '@': path.resolve(__dirname, 'src'),
-                '@components': path.resolve(__dirname, 'src/components'),
-                '@utils': path.resolve(__dirname, 'src/utils'),
-                '@views': path.resolve(__dirname, 'src/views'),
-                '@img': path.resolve(__dirname, 'src/assets/images'),
-                '@type': path.resolve(__dirname, 'src/types'),
-                '@layout': path.resolve(__dirname, 'src/layout')
+                core: joinTo('src/core'),
+                '@': joinTo('src'),
+                '@components': joinTo('src/components'),
+                '@utils': joinTo('src/utils'),
+                '@views': joinTo('src/views'),
+                '@img': joinTo('src/assets/images'),
+                '@type': joinTo('src/types'),
+                '@layout': joinTo('src/layout')
               }
             }
           }

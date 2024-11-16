@@ -34,7 +34,10 @@
     /* alias */
     "baseUrl": "./src",
     "paths": {
+      // 用于外部引用
       "xj-web-core/*": ["core/*"],
+      // 用于内部引用
+      "core/*": ["core/*"],
       "@/*": ["*"],
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"],
