@@ -1,5 +1,5 @@
 import './index.scss'
-import { defineCustomElement, useId, ref } from 'xj-web-core/index'
+import { defineCustomElement, useId, ref } from 'xj-fv'
 
 export type ButtonGroupProps = {
   type: 'radio' | 'checkbox' | 'independent'

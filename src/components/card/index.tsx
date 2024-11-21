@@ -1,5 +1,5 @@
 import './index.scss'
-import { defineCustomElement } from 'xj-web-core/index'
+import { defineCustomElement } from 'xj-fv'
 
 export type CardProps = {
   title?: string

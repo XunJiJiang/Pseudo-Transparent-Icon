@@ -1,5 +1,5 @@
 import './index.scss'
-import { defineCustomElement, onMounted, ref } from 'xj-web-core/index'
+import { defineCustomElement, onMounted, ref } from 'xj-fv'
 
 export type PageProps = {
   style: string

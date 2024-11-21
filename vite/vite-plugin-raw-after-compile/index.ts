@@ -177,6 +177,15 @@ export default (option: Options | void): Plugin => {
           bundle[newFileName] = file
         }
       }
+    },
+    config() {
+      return {
+        esbuild: {
+          jsxFactory: '__jsx.h',
+          jsxFragment: '__jsx.Fragment',
+          jsxInject: `import { __jsx } from 'xj-fv'`
+        }
+      }
     }
   }
 }

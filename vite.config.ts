@@ -13,10 +13,6 @@ import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
 const joinTo = (...paths: string[]) => resolve(__dirname, ...paths)
 
 const alias = {
-  // 用于外部引用
-  'xj-web-core': joinTo('src/core'),
-  // 用于内部引用
-  core: joinTo('src/core'),
   '@': joinTo('src'),
   '@components': joinTo('src/components'),
   '@utils': joinTo('src/utils'),
@@ -63,19 +59,7 @@ export default defineConfig({
   preview: {
     port: 8080
   },
-  base: '/pseudo-transparent-icon.io/',
-  test: {
-    // 仅测试src/core内的文件
-    coverage: {
-      include: ['src/core/**'],
-      exclude: ['src/core/index.ts', '**/*.test.ts']
-    }
-  },
-  esbuild: {
-    jsxFactory: '__jsx.h',
-    jsxFragment: '__jsx.Fragment',
-    jsxInject: `import { __jsx } from 'xj-web-core/index'`
-  }
+  base: '/pseudo-transparent-icon.io/'
 })
 
 export const viteConfig = {

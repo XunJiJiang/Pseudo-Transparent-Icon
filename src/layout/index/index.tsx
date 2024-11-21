@@ -6,12 +6,11 @@ import {
   effect,
   onMounted,
   reactive,
-  ref
-} from 'xj-web-core/index'
+  ref,
+  type BaseElement
+} from 'xj-fv'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
-// TODO: 需要单独导出一个interface, 而不暴露BaseElement
-import BaseElement from 'xj-web-core/dom/BaseElement'
 
 type BgColorType = 'pure' | 'vague'
 

@@ -1,6 +1,5 @@
-import BaseElement from 'xj-web-core/dom/BaseElement'
 import './index.scss'
-import { defineCustomElement, ref } from 'xj-web-core/index'
+import { defineCustomElement, ref, type BaseElement } from 'xj-fv'
 
 export type HomeProps = {
   style: string

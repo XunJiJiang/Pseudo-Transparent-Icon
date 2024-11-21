@@ -1,7 +1,12 @@
 import { type CButtonExpose } from '@components/button'
 import './index.scss'
-import { defineCustomElement, effect, reactive, ref } from 'xj-web-core/index'
-import BaseElement from 'xj-web-core/dom/BaseElement'
+import {
+  defineCustomElement,
+  effect,
+  reactive,
+  ref,
+  type BaseElement
+} from 'xj-fv'
 
 export type SelectDeviceTypeProps = {
   'data-status': string

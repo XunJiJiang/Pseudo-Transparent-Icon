@@ -2,6 +2,7 @@
   "include": ["env.d.ts", "src/**/*"],
   "exclude": ["src/**/__tests__/*", "src/**/*.test.*"],
   "compilerOptions": {
+    // TODO: 此处需要专用类型导入
     "jsx": "preserve",
     "jsxFactory": "__jsx.h",
     "jsxFragmentFactory": "__jsx.Fragment",
@@ -34,10 +35,6 @@
     /* alias */
     "baseUrl": "./src",
     "paths": {
-      // 用于外部引用
-      "xj-web-core/*": ["core/*"],
-      // 用于内部引用
-      "core/*": ["core/*"],
       "@/*": ["*"],
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"],
