@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
 import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
