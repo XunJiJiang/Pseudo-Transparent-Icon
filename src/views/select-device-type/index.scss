@@ -1,7 +1,7 @@
 .root[data-v-sd-type] {
   display: flex;
   flex-direction: column;
-  & .card {
+  & .card-content {
     padding-top: $padding;
     & .header-icon {
       // width: 3.9rem;

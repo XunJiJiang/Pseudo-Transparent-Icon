@@ -147,7 +147,7 @@ export default defineCustomElement('v-sd-type', {
       >
         <div data-v-sd-type slot="default" class="root">
           <c-card>
-            <div slot="default" class="card">
+            <div slot="default" class="card-content">
               <div class="header-icon">
                 <span>
                   <c-icon name="mobile" size="3.6rem" />
