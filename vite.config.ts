@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
-import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
+import xjfv from 'vite-plugin-xj-fv'
 
 /*
  * NOTE: 关于 core
@@ -23,7 +23,7 @@ const alias = {
 
 export default defineConfig({
   plugins: [
-    rawAfterCompile({
+    xjfv({
       scss: {
         global: joinTo('src/assets/scss/variable.scss')
       }

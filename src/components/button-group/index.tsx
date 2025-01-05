@@ -38,7 +38,7 @@ const createItem = (
       value: HTMLInputElement | null
     }
   }
-) => {
+): HTMLLabelElement => {
   return (
     <label ref={opt.ref} for={id} class="button-item" style={opt.style}>
       <input
@@ -73,7 +73,7 @@ type TypeMap = {
         value: HTMLInputElement | null
       }
     }
-  ) => string
+  ) => HTMLLabelElement
 }
 
 const typeMap: TypeMap = {
@@ -94,7 +94,8 @@ const typeMap: TypeMap = {
   }
 }
 
-export default defineCustomElement('c-button-group', {
+export default defineCustomElement({
+  name: 'c-button-group',
   emits: {
     change: {
       required: true,
@@ -146,22 +147,29 @@ export default defineCustomElement('c-button-group', {
       }
     }
 
+    // onMounted(() => {
+    //   change(new Event('change'), '0')
+    // })
+
     return (
       <c-card no-padding="true" footer="如果你能看到这个" title={title}>
         <div data-c-button-group slot="default" class="button-group">
           <div class="button-group-content">
-            {content.map(({ label, style }, i) =>
-              typeMap[type](
-                'button-group::' + i + id,
-                'button-group' + id,
-                label,
-                {
-                  event: (event: Event) => change(event, i.toString()),
-                  style,
-                  ref: butRefs[i]
-                }
-              )
-            )}
+            <$for value={content}>
+              {({ label, style }, i, setKey) => {
+                setKey(i)
+                return typeMap[type](
+                  'button-group::' + i + id,
+                  'button-group' + id,
+                  label,
+                  {
+                    event: (event: Event) => change(event, i.toString()),
+                    style,
+                    ref: butRefs[i]
+                  }
+                )
+              }}
+            </$for>
           </div>
         </div>
       </c-card>

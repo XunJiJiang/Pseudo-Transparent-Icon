@@ -1,5 +1,12 @@
 import './index.scss'
-import { defineCustomElement, onMounted, ref } from 'xj-fv'
+import {
+  defineCustomElement,
+  isRef,
+  onMounted,
+  ref,
+  watch,
+  type Ref
+} from 'xj-fv'
 
 export type CButtonExpose = {
   setStatus: (status: 'disabled' | 'normal') => void
@@ -11,8 +18,15 @@ export type CButtonProps = {
   'aria-label': string
 }
 
-export default defineCustomElement('c-button', {
+export default defineCustomElement({
+  name: 'c-button',
   observedAttributes: ['style', 'data-type', 'aria-label'],
+  props: {
+    disabled: {
+      type: Boolean as () => boolean | Ref<boolean>,
+      default: false
+    }
+  },
   emits: {
     click: {
       required: true,
@@ -21,12 +35,16 @@ export default defineCustomElement('c-button', {
   },
   slots: ['default'],
   setup(
-    { style, 'data-type': dataType, 'aria-label': ariaLabel },
-    { emit, expose, slot }
+    { style, disabled, 'data-type': dataType, 'aria-label': ariaLabel },
+    { emit, slot }
   ) {
     const buttonRef = ref<HTMLButtonElement>(null)
     onMounted(() => {
       const button = buttonRef.value
+
+      if ((isRef(disabled) && disabled.value === true) || disabled === true) {
+        button?.setAttribute('disabled', 'true')
+      }
 
       const touchstart = () => {
         button?.classList.add('touch-active')
@@ -46,18 +64,23 @@ export default defineCustomElement('c-button', {
 
     const status = ref('normal')
 
-    expose({
-      setStatus(_status: 'disabled' | 'normal') {
-        const button = buttonRef.value
-        if (!button) return
-        status.value = _status
-        if (_status === 'disabled') {
-          button.classList.add('disabled')
-        } else {
-          button.classList.remove('disabled')
-        }
+    const setStatus = (_status: 'disabled' | 'normal') => {
+      const button = buttonRef.value
+      if (!button) return
+      status.value = _status
+      if (_status === 'disabled') {
+        button.setAttribute('disabled', 'true')
+        button.classList.add('disabled')
+      } else {
+        button.removeAttribute('disabled')
+        button.classList.remove('disabled')
       }
-    })
+    }
+
+    if (isRef(disabled))
+      watch(disabled, (val) => {
+        setStatus(val ? 'disabled' : 'normal')
+      })
 
     return (
       <button

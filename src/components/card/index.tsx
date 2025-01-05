@@ -7,7 +7,8 @@ export type CardProps = {
   'no-padding'?: boolean
 }
 
-export default defineCustomElement('c-card', {
+export default defineCustomElement({
+  name: 'c-card',
   props: {
     title: {
       default: '',

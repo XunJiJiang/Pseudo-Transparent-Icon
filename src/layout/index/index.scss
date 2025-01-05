@@ -32,7 +32,7 @@
     background-color: $background-color-light;
   }
 
-  &.pure header {
+  &.pure header[data-l-index] {
     background-color: $background-color-dark;
     border-bottom-color: #00000000;
 
@@ -41,7 +41,7 @@
     }
   }
 
-  &.vague header {
+  &.vague header[data-l-index] {
     background-color: rgba($bg-black, 0.9);
     border-bottom-color: rgba($bg-white, 0.3);
 
@@ -51,7 +51,7 @@
     }
   }
 
-  & header {
+  & header[data-l-index] {
     position: fixed;
     margin: 0;
     padding: 0;
@@ -154,7 +154,7 @@
       @content;
     }
 
-    & .back {
+    & .back[data-l-index] {
       display: inline-block;
       position: absolute;
       transition: all 0.5s $cubic-bezier;
@@ -165,7 +165,7 @@
       top: 50%;
       transform: translate(0, -50%);
 
-      & .but-slot-def {
+      & .but-slot-def[data-l-index] {
         display: flex;
 
         & .back-span {

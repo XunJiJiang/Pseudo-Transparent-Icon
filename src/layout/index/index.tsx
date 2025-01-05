@@ -22,7 +22,8 @@ effect(() => {
   document.body.classList.add(bgColorType.value)
 })
 
-export default defineCustomElement('l-index', {
+export default defineCustomElement({
+  name: 'l-index',
   setup() {
     const lIndexRef = ref<HTMLDivElement>(null)
     /** 当前下标 */
@@ -262,8 +263,8 @@ export default defineCustomElement('l-index', {
         style={lIndexStyle}
         class={bgColorType}
       >
-        <header class={headerClass}>
-          <span class="back">
+        <header data-l-index class={headerClass}>
+          <span data-l-index class="back">
             <c-button
               on-click={() => {
                 handle.prev()
@@ -272,7 +273,7 @@ export default defineCustomElement('l-index', {
               aria-label="返回"
               style="position: absolute; top: 50%; transform: translate(0, -50%)"
             >
-              <span class="but-slot-def" slot="default">
+              <span data-l-index class="but-slot-def" slot="default">
                 <c-icon
                   name="left"
                   size="1rem"

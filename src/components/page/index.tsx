@@ -11,7 +11,8 @@ export type PageEmit = {
   scroll: (scrollTop: number) => void
 }
 
-export default defineCustomElement('c-page', {
+export default defineCustomElement({
+  name: 'c-page',
   observedAttributes: ['data-index', 'data-status'],
   props: {
     style: {

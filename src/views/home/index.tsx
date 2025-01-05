@@ -10,7 +10,8 @@ export type HomeEmit = {
   next: (index?: number, style?: string) => void
 }
 
-export default defineCustomElement('v-home', {
+export default defineCustomElement({
+  name: 'v-home',
   observedAttributes: ['data-status', 'd-test'],
   props: {
     style: {
@@ -34,6 +35,7 @@ export default defineCustomElement('v-home', {
   setup({ style }, { emit, share }) {
     const cPageRef = ref<BaseElement>(null)
     share({ cPageRef })
+
     return (
       <c-page
         ref={cPageRef}

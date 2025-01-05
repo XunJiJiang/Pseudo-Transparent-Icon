@@ -2,7 +2,8 @@ import './index.scss'
 import { defineCustomElement } from 'xj-fv'
 import '@/assets/icon/iconfont.scss'
 
-export default defineCustomElement('c-icon', {
+export default defineCustomElement({
+  name: 'c-icon',
   observedAttributes: ['size', 'name', 'style'],
   setup(props) {
     if (!props.name) {

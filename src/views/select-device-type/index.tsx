@@ -1,4 +1,3 @@
-import { type CButtonExpose } from '@components/button'
 import './index.scss'
 import {
   defineCustomElement,
@@ -7,6 +6,7 @@ import {
   ref,
   type BaseElement
 } from 'xj-fv'
+import CButton from '@components/button'
 
 export type SelectDeviceTypeProps = {
   'data-status': string
@@ -25,7 +25,8 @@ export type SelectDeviceTypeEmit = {
   ) => void
 }
 
-export default defineCustomElement('v-sd-type', {
+export default defineCustomElement({
+  name: 'v-sd-type',
   observedAttributes: ['data-status'],
   props: {
     style: {
@@ -113,7 +114,6 @@ export default defineCustomElement('v-sd-type', {
         value: 'ipad-mini'
       }
     ])
-    const butExpose = ref<CButtonExpose>(null)
     const nowDevice = ref<{
       index: number
       val: {
@@ -121,12 +121,10 @@ export default defineCustomElement('v-sd-type', {
         value: string
       }
     } | null>(null)
+    const buttonDisabled = ref(true)
+
     effect(() => {
-      if (!nowDevice.value) {
-        butExpose.value?.setStatus('disabled')
-        return
-      }
-      butExpose.value?.setStatus('normal')
+      if (!nowDevice.value) return
       const { index, val } = nowDevice.value
       emit('change', index, val)
     })
@@ -188,18 +186,19 @@ export default defineCustomElement('v-sd-type', {
                 index,
                 val
               }
+              buttonDisabled.value = false
             }}
           />
-          <c-button
-            expose={butExpose}
+          <CButton
             on-click={() => {
               emit('next')
             }}
+            disabled={buttonDisabled}
             data-type="default"
             aria-label="完成设备选择"
           >
             <span slot="default">确认</span>
-          </c-button>
+          </CButton>
         </div>
       </c-page>
     )
