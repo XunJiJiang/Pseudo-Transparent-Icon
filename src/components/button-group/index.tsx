@@ -1,5 +1,7 @@
 import './index.scss'
 import { useId } from '@/hooks/useId'
+import Icon from '@/components/icon'
+import Card from '@/components/card'
 import { defineCustomElement, ref } from 'xj-fv'
 
 export type ButtonGroupProps = {
@@ -53,7 +55,7 @@ const createItem = (
       <span class="button-item-inner">
         <span class="button-item-label">{value}</span>
         <span class="button-item-icon">
-          <c-icon name="check" size="1rem" />
+          <Icon name="check" size="1rem" />
         </span>
       </span>
     </label>
@@ -152,7 +154,7 @@ export default defineCustomElement({
     // })
 
     return (
-      <c-card no-padding="true" footer="如果你能看到这个" title={title}>
+      <Card no-padding={true} title={title}>
         <div data-c-button-group slot="default" class="button-group">
           <div class="button-group-content">
             <$for value={content}>
@@ -172,7 +174,7 @@ export default defineCustomElement({
             </$for>
           </div>
         </div>
-      </c-card>
+      </Card>
     )
   }
 })

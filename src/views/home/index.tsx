@@ -1,5 +1,9 @@
 import './index.scss'
+import Page from '@components/page'
 import { defineCustomElement, ref, type BaseElement } from 'xj-fv'
+import Icon from '@/components/icon'
+import Button from '@/components/button'
+import Card from '@/components/card'
 
 export type HomeProps = {
   style: string
@@ -24,7 +28,7 @@ export default defineCustomElement({
       required: true,
       type: Function as unknown as () => (
         index?: number,
-        style?: string
+        style?: 'relative' | 'absolute'
       ) => void
     },
     scroll: {
@@ -37,49 +41,49 @@ export default defineCustomElement({
     share({ cPageRef })
 
     return (
-      <c-page
+      <Page
         ref={cPageRef}
-        data-index="0"
+        data-index="1"
         on-scroll={(scrollTop: number) => {
           emit('scroll', scrollTop)
         }}
         style={style}
       >
         <div data-v-home slot="default" class="root">
-          <c-card>
+          <Card>
             <div slot="default" class="card">
               <div class="header-icon">
                 <span>
-                  <c-icon name="radius-upleft" size="1.6rem" />
+                  <Icon name="radius-upleft" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-setting" size="1.6rem" />
+                  <Icon name="radius-setting" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-bottomleft" size="1.6rem" />
+                  <Icon name="radius-bottomleft" size="1.6rem" />
                 </span>
                 <span>
-                  <c-icon name="radius-bottomright" size="1.6rem" />
+                  <Icon name="radius-bottomright" size="1.6rem" />
                 </span>
               </div>
               <div class="content">
                 <h1>快速创建伪透明图标</h1>
                 <p>
-                  使用xj-web构建的快速伪透明图标生成，创建美妙绝伦无与伦比完美无缺喵喵喵喵的完美壁纸。
+                  使用xj-web构建的快速伪透明图标生成，创建美妙绝伦无与伦比完美无缺喵喵喵喵的比较完美壁纸。
                 </p>
                 <p>
                   <a
                     href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon"
                     target="_blank"
                   >
-                    <c-icon name="github-fill" size="0.8rem" />
-                    &nbsp; 进一步了解伪透明图标和xj-web...
+                    <Icon name="github-fill" size="0.8rem" />
+                    &nbsp;进一步了解伪透明图标和xj-web...
                   </a>
                 </p>
               </div>
             </div>
-          </c-card>
-          <c-button
+          </Card>
+          <Button
             on-click={() => {
               emit('next')
             }}
@@ -87,9 +91,9 @@ export default defineCustomElement({
             aria-label="开始"
           >
             <span slot="default">现在开始</span>
-          </c-button>
+          </Button>
         </div>
-      </c-page>
+      </Page>
     )
   },
   attributeChanged({ name, newValue }, { data }) {

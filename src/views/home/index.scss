@@ -10,7 +10,7 @@
   }
 
   & .card {
-    padding-top: 3px;
+    padding-top: 8px;
     & .header-icon {
       // 内含四个icon，正方形排列gird, 紧凑居中,总体呈正方形,不占满父元素
       display: grid;
@@ -30,7 +30,8 @@
     }
     & .content {
       & h1 {
-        margin: 0 0 $margin;
+        margin: 0;
+        padding: 0 0 $padding;
         font-size: 1.2rem;
         line-height: 1.2rem;
 
@@ -43,7 +44,7 @@
       & p {
         margin: 0;
         font-size: 0.8rem;
-        line-height: 1rem;
+        line-height: 1.1rem;
         & a {
           color: $fg-blue;
 

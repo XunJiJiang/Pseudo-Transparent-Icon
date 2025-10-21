@@ -16,7 +16,8 @@
     }
     & .content {
       & h4 {
-        margin: 0 0 $padding;
+        margin: 0;
+        padding: 0 0 $padding;
         font-size: 1.2rem;
         line-height: 1.2rem;
 
@@ -29,7 +30,7 @@
       & p {
         margin: 0;
         font-size: 0.8rem;
-        line-height: 1rem;
+        line-height: 1.1rem;
 
         & a {
           color: $fg-blue;

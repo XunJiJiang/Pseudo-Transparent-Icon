@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
 import xjfv from 'vite-plugin-xj-fv'
+import goodNews from 'vite-plugin-good-news'
 
 /*
  * NOTE: 关于 core
@@ -27,7 +28,8 @@ export default defineConfig({
       scss: {
         global: joinTo('src/assets/scss/variable.scss')
       }
-    })
+    }),
+    goodNews()
   ],
   css: {
     preprocessorOptions: {

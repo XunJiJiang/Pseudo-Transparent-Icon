@@ -22,7 +22,6 @@
     "coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@babel/preset-react": "^7.26.3",
     "@eslint/js": "^9.17.0",
     "@tsconfig/node20": "^20.1.4",
     "@types/eslint__js": "^8.42.3",
@@ -41,6 +40,7 @@
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0",
     "vite": "^6.0.7",
+    "vite-plugin-good-news": "^1.0.1",
     "vite-plugin-xj-fv": "^0.0.6"
   },
   "dependencies": {

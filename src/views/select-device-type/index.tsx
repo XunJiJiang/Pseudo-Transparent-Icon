@@ -6,7 +6,11 @@ import {
   ref,
   type BaseElement
 } from 'xj-fv'
-import CButton from '@components/button'
+import Button from '@components/button'
+import Icon from '@/components/icon'
+import Page from '@/components/page'
+import ButtonGroup from '@/components/button-group'
+import Card from '@/components/card'
 
 export type SelectDeviceTypeProps = {
   'data-status': string
@@ -39,7 +43,7 @@ export default defineCustomElement({
       required: true,
       type: Function as unknown as () => (
         index?: number,
-        style?: string
+        style?: 'relative' | 'absolute'
       ) => void
     },
     scroll: {
@@ -135,7 +139,7 @@ export default defineCustomElement({
     })
 
     return (
-      <c-page
+      <Page
         ref={cPageRef}
         data-index="1"
         on-scroll={(scrollTop: number) => {
@@ -144,14 +148,14 @@ export default defineCustomElement({
         style={style}
       >
         <div data-v-sd-type slot="default" class="root">
-          <c-card>
+          <Card>
             <div slot="default" class="card-content">
               <div class="header-icon">
                 <span>
-                  <c-icon name="mobile" size="3.6rem" />
+                  <Icon name="mobile" size="3.6rem" />
                 </span>
                 <span>
-                  <c-icon name="tablet" size="3.6rem" />
+                  <Icon name="tablet" size="3.6rem" />
                 </span>
               </div>
               <div class="content">
@@ -164,14 +168,14 @@ export default defineCustomElement({
                     href="https://github.com/XunJiJiang/Pseudo-Transparent-Icon?tab=readme-ov-file#创建的图标在旋转后无法对齐"
                     target="_blank"
                   >
-                    <c-icon name="github-fill" size="0.8rem" />
-                    &nbsp; 为什么会这样?
+                    <Icon name="github-fill" size="0.8rem" />
+                    &nbsp;为什么会这样?
                   </a>
                 </p>
               </div>
             </div>
-          </c-card>
-          <c-button-group
+          </Card>
+          <ButtonGroup
             title="选择您的设备"
             content={devices}
             type="radio"
@@ -189,7 +193,7 @@ export default defineCustomElement({
               buttonDisabled.value = false
             }}
           />
-          <CButton
+          <Button
             on-click={() => {
               emit('next')
             }}
@@ -198,9 +202,9 @@ export default defineCustomElement({
             aria-label="完成设备选择"
           >
             <span slot="default">确认</span>
-          </CButton>
+          </Button>
         </div>
-      </c-page>
+      </Page>
     )
   },
   attributeChanged({ name, newValue }, { data }) {

@@ -9,6 +9,10 @@ import {
   ref,
   type BaseElement
 } from 'xj-fv'
+import Icon from '@/components/icon'
+import Button from '@/components/button'
+import VHome from '@/views/home/index'
+import VSdType from '@/views/select-device-type/index'
 import throttling from '@utils/throttling'
 import getStringWidth from '@utils/getStringWidth'
 
@@ -32,8 +36,8 @@ export default defineCustomElement({
     const lIndexStyle = ref(`--root-width: 0px;`)
     const backStyle = ref(`width: 0px;`)
     const headerClass = reactive(['hide'])
-    const backSpanClass = reactive(['back-span'])
-    const titleSpanClass = reactive(['title-span'])
+    const backSpanClass = ref('')
+    const titleSpanClass = ref('')
 
     const handle = {
       ...throttling(
@@ -80,28 +84,22 @@ export default defineCustomElement({
     }
 
     const views: [string, () => BaseElement][] = [
-      [
-        '首页',
-        () => <v-home on-next={handle.next} on-scroll={handle.scroll} />
-      ],
+      ['首页', () => <VHome on-next={handle.next} on-scroll={handle.scroll} />],
       [
         '选择设备类型',
         () => (
-          <v-sd-type
+          <VSdType
             on-next={handle.next}
             on-scroll={handle.scroll}
             on-change={handle.deviceChange}
           />
         )
       ],
-      [
-        '首页',
-        () => <v-home on-next={handle.next} on-scroll={handle.scroll} />
-      ],
+      ['首页', () => <VHome on-next={handle.next} on-scroll={handle.scroll} />],
       [
         '选择设备类型',
         () => (
-          <v-sd-type
+          <VSdType
             on-next={handle.next}
             on-scroll={handle.scroll}
             on-change={handle.deviceChange}
@@ -168,16 +166,17 @@ export default defineCustomElement({
         // reduce
         titleSpan[0].value = nowTitle
         titleSpan[1].value = prevTitle
-        titleSpanClass[1] = 'reduce'
+        titleSpanClass.value = 'reduce'
       } else if (isPrev !== null) {
         // add
         titleSpan[0].value = prevTitle
         titleSpan[1].value = nowTitle
-        titleSpanClass[1] = 'add'
+        titleSpanClass.value = 'add'
       }
 
       setTimeout(() => {
-        titleSpanClass[1] = titleSpanClass[1] + '-finish'
+        if (titleSpanClass.value.endsWith('-finish')) return
+        titleSpanClass.value = titleSpanClass.value + '-finish'
       }, 500)
 
       onCleanup(() => {
@@ -204,7 +203,7 @@ export default defineCustomElement({
           })
           backSpan[0].value = nowTitle
           backSpan[1].value = prevTitle
-          backSpanClass[1] = 'add'
+          backSpanClass.value = 'add'
         } else if (isPrev !== null) {
           const prevTitle = pageList.pop() ?? ''
           const nowTitle = pageList[pageList.length - 1] ?? ''
@@ -214,11 +213,12 @@ export default defineCustomElement({
           })
           backSpan[0].value = nowTitle
           backSpan[1].value = prevTitle
-          backSpanClass[1] = 'reduce'
+          backSpanClass.value = 'reduce'
         }
 
         setTimeout(() => {
-          backSpanClass[1] = backSpanClass[1] + '-finish'
+          if (backSpanClass.value.endsWith('-finish')) return
+          backSpanClass.value = backSpanClass.value + '-finish'
         }, 500)
 
         backStyle.value = `width: calc(${stringWidth}px + 1.2rem);`
@@ -265,7 +265,7 @@ export default defineCustomElement({
       >
         <header data-l-index class={headerClass}>
           <span data-l-index class="back">
-            <c-button
+            <Button
               on-click={() => {
                 handle.prev()
               }}
@@ -274,7 +274,7 @@ export default defineCustomElement({
               style="position: absolute; top: 50%; transform: translate(0, -50%)"
             >
               <span data-l-index class="but-slot-def" slot="default">
-                <c-icon
+                <Icon
                   name="left"
                   size="1rem"
                   style="
@@ -284,15 +284,15 @@ export default defineCustomElement({
                     line-height: 1.5rem;
                   "
                 />
-                <span class={backSpanClass} style={backStyle}>
+                <span class={['back-span', backSpanClass]} style={backStyle}>
                   <span>{backSpan[0]}</span>
                   <span>{backSpan[1]}</span>
                 </span>
               </span>
-            </c-button>
+            </Button>
           </span>
           <span class="title">
-            <span class={titleSpanClass}>
+            <span class={['title-span', titleSpanClass]}>
               <span>{titleSpan[0]}</span>
               <span>{titleSpan[1]}</span>
             </span>
