@@ -1,8 +1,21 @@
 {
-  "name": "svelte",
-  "private": true,
-  "version": "0.0.0",
+  "name": "create-pseudo-transparent-icon",
+  "version": "1.0.0",
   "type": "module",
+  "description": "创建伪透明图标",
+  "author": "xunji",
+  "license": "MIT",
+  "homepage": "https://github.com/XunJiJiang/Pseudo-Transparent-Icon",
+  "bugs": {
+    "url": "https://github.com/XunJiJiang/Pseudo-Transparent-Icon/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XunJiJiang/Pseudo-Transparent-Icon.git"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
