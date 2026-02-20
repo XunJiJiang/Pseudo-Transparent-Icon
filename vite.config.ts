@@ -1,12 +1,14 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite'
 import path from 'node:path'
-import rawAfterCompile from './vite/vite-plugin-raw-after-compile'
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import tailwindcss from '@tailwindcss/vite'
+import devtoolsJson from 'vite-plugin-devtools-json'
+import { paraglideVitePlugin } from '@inlang/paraglide-js'
 
 const alias = {
-  'xj-web-core': path.resolve(__dirname, 'src/core'),
   '@': path.resolve(__dirname, 'src'),
-  '@components': path.resolve(__dirname, 'src/components'),
+  '@lib': path.resolve(__dirname, 'src/lib'),
+  '@comps': path.resolve(__dirname, 'src/components'),
   '@utils': path.resolve(__dirname, 'src/utils'),
   '@views': path.resolve(__dirname, 'src/views'),
   '@img': path.resolve(__dirname, 'src/assets/images'),
@@ -14,59 +16,36 @@ const alias = {
   '@layout': path.resolve(__dirname, 'src/layout')
 }
 
+// https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    rawAfterCompile({
-      scss: {
-        global: path.resolve(__dirname, 'src/assets/scss/variable.scss')
-      }
-    })
+    svelte(),
+    tailwindcss(),
+    devtoolsJson(),
+    paraglideVitePlugin({ project: './project.inlang', outdir: './src/lib/paraglide' })
   ],
-  css: {
-    preprocessorOptions: {
-      scss: {
-        additionalData:
-          '@use "@/assets/scss/variable.scss" as *;@import "@/assets/scss/global.scss";'
-      }
-    }
-  },
   resolve: {
     alias
   },
   build: {
-    outDir: 'dist',
+    outDir: 'build',
     assetsInlineLimit: 0,
     rollupOptions: {
       input: {
         index: path.resolve(__dirname, 'index.html'),
-        404: path.resolve(__dirname, '404.html')
+        ['404']: path.resolve(__dirname, '404.html')
       }
     }
   },
+  base:
+    process.env.NODE_ENV === 'production'
+      ? (process.env.BASE_URL ?? '/pseudo-transparent-icon.io/')
+      : '/',
   server: {
     host: true,
-    port: 3000
+    port: 3330
   },
   preview: {
     port: 8080
-  },
-  base: '/pseudo-transparent-icon.io/',
-  test: {
-    // 仅测试src/core内的文件
-    coverage: {
-      include: ['src/core/**'],
-      exclude: ['src/core/index.ts', '**/*.test.ts']
-    }
-  },
-  esbuild: {
-    jsxFactory: '__jsx.h',
-    jsxFragment: '__jsx.Fragment',
-    jsxInject: `import { __jsx } from 'xj-web-core/index'`
   }
 })
-
-export const viteConfig = {
-  resolve: {
-    alias
-  }
-}

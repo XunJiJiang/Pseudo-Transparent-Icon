@@ -1,4 +1,4 @@
-output=$("npm.cmd" run format-check)
+output=$(npm run format:check || "npm.cmd" run format:check)
 
 if echo "$output" | grep -i "warn"; then
 echo "代码格式化检查包含警告，提交已取消。"

@@ -7,13 +7,13 @@
 安装依赖包
 
 ```shell
-pnpm i
+bun i
 ```
 
 启动开发服务器
 
 ```shell
-npm run dev
+bun dev
 ```
 
 ## Q&A

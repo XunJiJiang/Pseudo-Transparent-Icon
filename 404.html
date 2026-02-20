@@ -3,9 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>React App</title>
+    <title>%sveltekit.status% - %sveltekit.error.message%</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        background-color: #f8f8f8;
+        color: #333;
+        margin: 0;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .error-page {
+        text-align: center;
+      }
+      .status {
+        font-size: 1.5rem;
+        margin-top: 1rem;
+      }
+      .message {
+        font-size: 1.2rem;
+        margin-top: 0.5rem;
+      }
+    </style>
   </head>
   <body>
+    <div class="error-page">
+      <h1>Oops! Something went wrong.</h1>
+      <p class="status">Status: %sveltekit.status%</p>
+      <p class="message">Message: %sveltekit.error.message%</p>
+    </div>
     <script type="text/javascript">
       // If you're creating a Project Pages site and NOT using a custom domain,
       // then set pathSegmentsToKeep to 1 (enterprise users may need to set it to > 1).
