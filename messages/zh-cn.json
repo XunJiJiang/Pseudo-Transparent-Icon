@@ -1,4 +1,6 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
-  "hello_world": "Hello, {name} from zh-cn!"
+  "hero": {
+    "title": "创建伪透明图标"
+  }
 }

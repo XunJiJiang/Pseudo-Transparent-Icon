@@ -6,14 +6,12 @@ import devtoolsJson from 'vite-plugin-devtools-json'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
 
 const alias = {
-  '@': path.resolve(__dirname, 'src'),
-  '@lib': path.resolve(__dirname, 'src/lib'),
-  '@comps': path.resolve(__dirname, 'src/components'),
-  '@utils': path.resolve(__dirname, 'src/utils'),
-  '@views': path.resolve(__dirname, 'src/views'),
-  '@img': path.resolve(__dirname, 'src/assets/images'),
-  '@type': path.resolve(__dirname, 'src/types'),
-  '@layout': path.resolve(__dirname, 'src/layout')
+  $: path.resolve(__dirname, 'src'),
+  $lib: path.resolve(__dirname, 'src/lib'),
+  $utils: path.resolve(__dirname, 'src/utils'),
+  $img: path.resolve(__dirname, 'src/assets/images'),
+  $type: path.resolve(__dirname, 'src/types'),
+  $layout: path.resolve(__dirname, 'src/layout')
 }
 
 // https://vite.dev/config/

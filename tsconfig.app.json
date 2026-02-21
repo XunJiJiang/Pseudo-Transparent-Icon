@@ -12,14 +12,12 @@
     "moduleDetection": "force",
 
     "paths": {
-      "@/*": ["./src/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@comps/*": ["./src/components/*"],
-      "@utils/*": ["./src/utils/*"],
-      "@views/*": ["./src/views/*"],
-      "@img/*": ["./src/assets/images/*"],
-      "@type/*": ["./src/types/*"],
-      "@layout/*": ["./src/layout/*"]
+      "$/*": ["./src/*"],
+      "$lib/*": ["./src/lib/*"],
+      "$utils/*": ["./src/utils/*"],
+      "$img/*": ["./src/assets/images/*"],
+      "$type/*": ["./src/types/*"],
+      "$layout/*": ["./src/layout/*"]
     }
   },
   "include": [
