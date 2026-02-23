@@ -6,6 +6,7 @@
   import '@vscode/codicons/dist/codicon.css'
 
   const {
+    className,
     iconName,
     size,
     color = 'currentColor',
@@ -14,6 +15,7 @@
     left,
     right
   }: {
+    className?: string
     iconName: string
     size: number
     color?: string
@@ -45,7 +47,7 @@
 </script>
 
 <span
-  class={`codicon codicon-${iconName} relative`}
+  class={[`codicon codicon-${iconName} relative`, className]}
   style={`font-size: ${size}em; color: ${color}; ${Object.entries(positionStyles)
     .map(([key, value]) => `${key}: ${value};`)
     .join(' ')}`}

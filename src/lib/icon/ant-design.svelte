@@ -5,6 +5,7 @@
   type IconDefinition = keyof typeof icons
 
   const {
+    className,
     iconName,
     size,
     color = 'currentColor',
@@ -13,6 +14,7 @@
     left,
     right
   }: {
+    className?: string
     iconName: string
     size: number
     color?: string
@@ -80,7 +82,7 @@
 
 {#if svgHTMLString}
   <span
-    class="relative"
+    class={['relative', className]}
     style={Object.entries(positionStyles)
       .map(([key, value]) => `${key}: ${value};`)
       .join(' ')}>{@html svgHTMLString}</span

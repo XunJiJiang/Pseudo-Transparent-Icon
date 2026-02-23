@@ -2,6 +2,7 @@
   import VscIcon from './vscode-codicons.svelte'
   import AntIcon from './ant-design.svelte'
   const {
+    class: className = '',
     origin = 'vscode',
     iconName,
     size = 1,
@@ -11,6 +12,7 @@
     left,
     right
   }: {
+    class?: string
     origin?: 'ant' | 'vscode'
     iconName: string
     size?: number
@@ -23,9 +25,9 @@
 </script>
 
 {#if origin === 'ant'}
-  <AntIcon {iconName} {size} {color} {top} {bottom} {left} {right} />
+  <AntIcon {className} {iconName} {size} {color} {top} {bottom} {left} {right} />
 {:else if origin === 'vscode'}
-  <VscIcon {iconName} {size} {color} {top} {bottom} {left} {right} />
+  <VscIcon {className} {iconName} {size} {color} {top} {bottom} {left} {right} />
 {:else}
   <span class="icon-not-found">{($inspect(`Invalid icon origin: ${origin}`), '')}</span>
 {/if}
