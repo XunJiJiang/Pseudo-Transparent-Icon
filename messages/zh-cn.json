@@ -1,6 +1,19 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "hero": {
-    "title": "创建伪透明图标"
+    "title": "创建伪透明图标",
+    "change_language": {
+      "aria_label": "切换语言"
+    },
+    "github": {
+      "aria_label": "在 GitHub 上查看"
+    }
+  },
+  "home": {
+    "title": "Create Pseudo Transparent Icon",
+    "title_description": "创建伪透明图标",
+    "description": "Pseudo Transparent Icon 是一个开源项目",
+    "get_started": "开始使用",
+    "github": "在 GitHub 上查看"
   }
 }

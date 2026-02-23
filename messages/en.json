@@ -1,6 +1,19 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "hero": {
-    "title": "Create icon"
+    "title": "Create Icon",
+    "change_language": {
+      "aria_label": "Switch Language"
+    },
+    "github": {
+      "aria_label": "View on GitHub"
+    }
+  },
+  "home": {
+    "title": "Create Pseudo Transparent Icon",
+    "title_description": "Create Pseudo Transparent Icon",
+    "description": "Pseudo Transparent Icon is an open source project",
+    "get_started": "Get Started",
+    "github": "View on GitHub"
   }
 }
