@@ -1,69 +1,7 @@
 <script lang="ts">
+  import Home from '$/pages/home.svelte'
 </script>
 
-<main class="m-auto w-screen max-w-7xl p-4 wrap-break-word">
-  <p>
-    12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg
-  </p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgagjadssdjhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjghadsjhgfdsagjadssdhgadsjhgfasdhjg</p>
-  <p>12498764238976ewryewgydagjdshjgasdj</p>
-  <p>12498764238976ewryewgydagjdshjgasdjhgadsjg</p>
+<main class="m-auto w-screen max-w-4xl p-4 wrap-break-word">
+  <Home />
 </main>
