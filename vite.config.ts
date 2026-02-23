@@ -11,7 +11,8 @@ const alias = {
   $utils: path.resolve(__dirname, 'src/utils'),
   $img: path.resolve(__dirname, 'src/assets/images'),
   $type: path.resolve(__dirname, 'src/types'),
-  $layout: path.resolve(__dirname, 'src/layout')
+  $layout: path.resolve(__dirname, 'src/layout'),
+  $pages: path.resolve(__dirname, 'src/pages')
 }
 
 // https://vite.dev/config/

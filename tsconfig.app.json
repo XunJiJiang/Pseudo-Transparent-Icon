@@ -17,7 +17,8 @@
       "$utils/*": ["./src/utils/*"],
       "$img/*": ["./src/assets/images/*"],
       "$type/*": ["./src/types/*"],
-      "$layout/*": ["./src/layout/*"]
+      "$layout/*": ["./src/layout/*"],
+      "$pages/*": ["./src/pages/*"]
     }
   },
   "include": [
