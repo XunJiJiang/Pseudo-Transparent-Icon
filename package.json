@@ -57,6 +57,7 @@
   },
   "dependencies": {
     "@ant-design/icons-svg": "^4.4.2",
-    "@vscode/codicons": "^0.0.44"
+    "@vscode/codicons": "^0.0.44",
+    "csstype": "^3.2.3"
   }
 }
