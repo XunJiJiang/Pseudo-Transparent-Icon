@@ -15,5 +15,16 @@
     "description": "Pseudo Transparent Icon 是一个开源项目",
     "get_started": "开始使用",
     "github": "在 GitHub 上查看"
+  },
+  "list": {
+    "decision_config": {
+      "header": {
+        "title": "配置选项",
+        "aria_label": "配置选项"
+      },
+      "content": {
+        "description": "在这里你可以选择现成的图标位置配置、导入配置或创建配置"
+      }
+    }
   }
 }

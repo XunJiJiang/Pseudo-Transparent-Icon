@@ -6,7 +6,7 @@
 
   let {
     class: className,
-    isOpen = $bindable(false),
+    open = $bindable(false),
     ontoggle,
     onopen,
     onclose,
@@ -17,7 +17,7 @@
     disabled = false
   }: {
     class?: ClassValue
-    isOpen?: boolean
+    open?: boolean
     ontoggle?: (isOpen: boolean) => void
     onopen?: () => void
     onclose?: () => void
@@ -25,13 +25,14 @@
     content: Snippet
     headerAriaLabel?: string
     contentAriaLabel?: string
+    /** 仅禁用展开/收起功能，不影响内容的交互 */
     disabled?: boolean
   } = $props()
 
   function toggle() {
-    isOpen = !isOpen
-    ontoggle?.(isOpen)
-    if (isOpen) {
+    open = !open
+    ontoggle?.(open)
+    if (open) {
       onopen?.()
     } else {
       onclose?.()
@@ -43,13 +44,13 @@
   let buttonHeight = $derived(buttonContentElement?.offsetHeight ?? 0)
 
   let mainElement = $state<HTMLElement>()
-  // 当 isOpen 变化时，调整 mainElement 的高度以触发过渡动画
+  // 当 open 变化时，调整 mainElement 的高度以触发过渡动画
   $effect(() => {
     if (!mainElement) {
       return
     }
 
-    if (isOpen) {
+    if (open) {
       requestAnimationFrame(() => {
         if (!mainElement) {
           return
@@ -73,7 +74,7 @@
   // 在打开时延迟渲染内容
   // 在关闭动画结束后卸载内容
   $effect(() => {
-    if (isOpen) {
+    if (open) {
       renderContent = true
     } else {
       const timeout = setTimeout(() => {
@@ -93,7 +94,7 @@
 >
   <header aria-label={headerAriaLabel}>
     <Button
-      style={isOpen ? 'secondary' : 'outline'}
+      style={open ? 'secondary' : 'outline'}
       class="flex w-full ps-2 pe-2"
       onclick={toggle}
       {disabled}
@@ -107,7 +108,7 @@
       <div>
         <Icon
           iconName="chevron-left"
-          class={[isOpen ? '-rotate-90' : '', 'transition-transform']}
+          class={[open ? '-rotate-90' : '', 'transition-transform']}
           origin="vscode"
           top={buttonHeight / 2 - 19.2 / 2}
           size={1.2}
