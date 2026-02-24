@@ -4,6 +4,7 @@
 
 <script lang="ts">
   import '@vscode/codicons/dist/codicon.css'
+  import type { ClassValue } from 'svelte/elements'
 
   const {
     className,
@@ -15,7 +16,7 @@
     left,
     right
   }: {
-    className?: string
+    className?: ClassValue
     iconName: string
     size: number
     color?: string

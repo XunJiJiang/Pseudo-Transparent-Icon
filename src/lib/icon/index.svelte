@@ -1,6 +1,7 @@
 <script lang="ts">
   import VscIcon from './vscode-codicons.svelte'
   import AntIcon from './ant-design.svelte'
+  import type { ClassValue } from 'svelte/elements'
   const {
     class: className = '',
     origin = 'vscode',
@@ -12,7 +13,7 @@
     left,
     right
   }: {
-    class?: string
+    class?: ClassValue
     origin?: 'ant' | 'vscode'
     iconName: string
     size?: number

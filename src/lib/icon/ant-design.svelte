@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as icons from '@ant-design/icons-svg'
   import { renderIconDefinitionToSVGElement } from '@ant-design/icons-svg/es/helpers'
+  import type { ClassValue } from 'svelte/elements'
 
   type IconDefinition = keyof typeof icons
 
@@ -14,7 +15,7 @@
     left,
     right
   }: {
-    className?: string
+    className?: ClassValue
     iconName: string
     size: number
     color?: string
