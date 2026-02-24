@@ -3,7 +3,7 @@
   import Main from './main.svelte'
 </script>
 
-<div class="flex min-h-screen flex-col">
+<div class="flex min-h-full flex-col">
   <Header />
   <Main />
 </div>

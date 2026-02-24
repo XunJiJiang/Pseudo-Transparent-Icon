@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Button, { STYLE_MAP } from '$/lib/button.svelte'
+  import Button from '$/lib/button.svelte'
   import Link from '$lib/link.svelte'
   import Icon from '$lib/icon/index.svelte'
   import { m } from '$lib/paraglide/messages'
