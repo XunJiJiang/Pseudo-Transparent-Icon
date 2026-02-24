@@ -7,6 +7,7 @@
   let {
     class: className,
     open = $bindable(false),
+    onHeightChange,
     ontoggle,
     onopen,
     onclose,
@@ -18,11 +19,16 @@
   }: {
     class?: ClassValue
     open?: boolean
+    /** 内容高度变化时触发，参数为新的高度和旧的高度 */
+    onHeightChange?: (height: number, oldHeight?: number) => void
+    /** 用户交互时触发 */
     ontoggle?: (isOpen: boolean) => void
+    /** 打开时触发, 不限于用户交互 */
     onopen?: () => void
+    /** 关闭时触发, 不限于用户交互 */
     onclose?: () => void
     header: Snippet
-    content: Snippet
+    content: Snippet<[(height?: number) => void]>
     headerAriaLabel?: string
     contentAriaLabel?: string
     /** 仅禁用展开/收起功能，不影响内容的交互 */
@@ -32,12 +38,15 @@
   function toggle() {
     open = !open
     ontoggle?.(open)
+  }
+
+  $effect(() => {
     if (open) {
       onopen?.()
     } else {
       onclose?.()
     }
-  }
+  })
 
   let buttonContentElement = $state<HTMLElement>()
   /** 按钮的高度，用于计算图标的垂直居中位置 */
@@ -83,11 +92,35 @@
       return () => clearTimeout(timeout)
     }
   })
+
+  /** 重新计算 main 高度 */
+  export function recalculateHeight(height?: number) {
+    if (open && mainElement) {
+      if (height !== void 0) {
+        const oldHeight = mainElement.offsetHeight
+        mainElement.style.height = `${height}px`
+        onHeightChange?.(height, oldHeight)
+        return
+      }
+
+      const oldHeight = mainElement.offsetHeight
+      mainElement.style.height = 'auto'
+      const _height = mainElement.offsetHeight
+      mainElement.style.height = `${oldHeight}px`
+      requestAnimationFrame(() => {
+        if (!mainElement) {
+          return
+        }
+        mainElement.style.height = `${_height}px`
+        onHeightChange?.(_height, oldHeight)
+      })
+    }
+  }
 </script>
 
 <div
   class={[
-    'mb-4 rounded-2xl border-2 border-[#535353] bg-transparent p-2 backdrop-blur-sm dark:border-[#9f9f9f]',
+    'mt-4 rounded-2xl border-2 border-[#535353] bg-transparent p-2 backdrop-blur-sm dark:border-[#9f9f9f]',
     disabled ? 'border-[#53535366] dark:border-[#9f9f9f66]!' : '',
     className
   ]}
@@ -123,7 +156,7 @@
   >
     {#if renderContent}
       <div class="ps-2 pe-2 pt-3 pb-1.5 text-left">
-        {@render content()}
+        {@render content(recalculateHeight)}
       </div>
     {/if}
   </main>
