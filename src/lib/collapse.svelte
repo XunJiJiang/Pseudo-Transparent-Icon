@@ -8,7 +8,7 @@
   import { type Snippet, setContext, getContext } from 'svelte'
   import { type ClassValue } from 'svelte/elements'
   import { EventBus } from '$utils/eventBus'
-  import { debounce } from 'es-toolkit'
+  import { useHeightUpdateSubscriber } from '$utils/heightUpdate.svelte'
 
   const thisID = id++
   const namespace = `collapse-${thisID}`
@@ -23,52 +23,8 @@
     setContext<EventBus>('event-bus', new EventBus())
   }
 
-  let interval: number
-
   /** 监听事件总线 */
   const eventBus = getContext<EventBus>('event-bus')
-
-  $effect(() => {
-    // 监听来自子组件的高度更新事件，参数为子组件的深度
-    const unlisten = eventBus.subscribe(
-      `height-update`,
-      (_depth: number, timeout = 300, times = 1) => {
-        if (_depth <= depth) {
-          return
-        }
-
-        clearInterval(interval)
-        console.log(depth, _depth, thisID)
-
-        if (times <= 0) {
-          times = 1
-        }
-
-        /** 单次延时 */
-        const singleTimeout = timeout / times
-
-        /** 已经执行次数 */
-        let executedTimes = 0
-
-        interval = setInterval(() => {
-          recalculateHeight()
-          executedTimes++
-          console.count('recalculateHeight called')
-          if (executedTimes >= times) {
-            clearInterval(interval)
-          }
-        }, singleTimeout)
-
-        // for (let i = 1; i < times; i++) {
-        //   setTimeout(() => {
-        //     recalculateHeight()
-        //   }, singleTimeout * i)
-        // }
-      }
-    )
-
-    return unlisten
-  })
 
   let {
     class: className,
@@ -94,17 +50,76 @@
     /** 关闭时触发, 不限于用户交互 */
     onclose?: () => void
     header: Snippet
-    content: Snippet<[(height?: number) => void]>
+    content: Snippet<[(info: { height?: number; changeHeight?: number }) => void]>
     headerAriaLabel?: string
     contentAriaLabel?: string
     /** 仅禁用展开/收起功能，不影响内容的交互 */
     disabled?: boolean
   } = $props()
 
+  /** 重新计算 main 高度 */
+  export const recalculateHeight = ({
+    height,
+    changeHeight
+  }: { height?: number; changeHeight?: number } = {}) => {
+    if (open && mainElement) {
+      if (height !== void 0) {
+        const oldHeight = mainElement.offsetHeight
+
+        if (height === oldHeight) {
+          return
+        }
+
+        mainElement.style.height = `${height}px`
+        setCurrentHeight(height)
+        onHeightChange?.(height, oldHeight)
+        return
+      }
+
+      if (changeHeight !== void 0) {
+        if (changeHeight === 0) {
+          return
+        }
+
+        const oldHeight = parseFloat(mainElement.style.height) ?? mainElement.offsetHeight
+        const newHeight = oldHeight + changeHeight
+
+        if (newHeight <= 0) {
+          return
+        }
+
+        setCurrentHeight(newHeight)
+        mainElement.style.height = `${newHeight}px`
+        onHeightChange?.(newHeight, oldHeight)
+        return
+      }
+
+      const oldHeight = mainElement.offsetHeight
+      mainElement.style.height = 'auto'
+      const _height = mainElement.offsetHeight
+      mainElement.style.height = `${oldHeight}px`
+
+      if (_height === oldHeight) {
+        return
+      }
+
+      requestAnimationFrame(() => {
+        if (!mainElement) {
+          return
+        }
+        mainElement.style.height = `${_height}px`
+        setCurrentHeight(_height)
+        onHeightChange?.(_height, oldHeight)
+      })
+    }
+  }
+
+  const { getLastIsRender, setLastIsRender, getCurrentHeight, setCurrentHeight } =
+    useHeightUpdateSubscriber(eventBus, depth, () => open, recalculateHeight)
+
   function toggle() {
     open = !open
     ontoggle?.(open)
-    eventBus.publish(`height-update`, depth, 300, 2)
   }
 
   $effect(() => {
@@ -133,18 +148,20 @@
         }
         mainElement.style.height = 'auto'
         const height = mainElement.offsetHeight
+        setCurrentHeight(height)
         mainElement.style.height = '0'
         requestAnimationFrame(() => {
           if (!mainElement) {
             return
           }
           mainElement.style.height = `${height}px`
-          eventBus.publish(`height-update`, depth, 300, 2)
+          eventBus.publish(`height-update`, depth, getCurrentHeight(), 0, 1)
         })
       })
     } else {
       mainElement.style.height = '0'
-      eventBus.publish(`height-update`, depth, 300, 2)
+      eventBus.publish(`height-update`, depth, -getCurrentHeight(), 0, 1)
+      setCurrentHeight(0)
     }
   })
 
@@ -157,46 +174,11 @@
     } else {
       const timeout = setTimeout(() => {
         renderContent = false
+        setLastIsRender(false)
       }, 300) // 这个时间应该和 CSS 中的过渡时间一致
       return () => clearTimeout(timeout)
     }
   })
-
-  /** 重新计算 main 高度 */
-  export const recalculateHeight = debounce((height?: number) => {
-    if (open && mainElement) {
-      if (height !== void 0) {
-        const oldHeight = mainElement.offsetHeight
-
-        if (height === oldHeight) {
-          return
-        }
-
-        mainElement.style.height = `${height}px`
-        onHeightChange?.(height, oldHeight)
-        eventBus.publish(`height-update`, depth, 300, 2)
-        return
-      }
-
-      const oldHeight = mainElement.offsetHeight
-      mainElement.style.height = 'auto'
-      const _height = mainElement.offsetHeight
-      mainElement.style.height = `${oldHeight}px`
-
-      if (_height === oldHeight) {
-        return
-      }
-
-      requestAnimationFrame(() => {
-        if (!mainElement) {
-          return
-        }
-        mainElement.style.height = `${_height}px`
-        onHeightChange?.(_height, oldHeight)
-        eventBus.publish(`height-update`, depth, 300, 2)
-      })
-    }
-  }, 30)
 </script>
 
 <div

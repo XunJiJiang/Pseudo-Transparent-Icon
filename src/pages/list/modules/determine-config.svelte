@@ -50,17 +50,17 @@
   {/snippet}
   {#snippet content(change)}
     {m['list.determine_config.content.description']()}
-    <Collapse open headerAriaLabel={'test'} contentAriaLabel={'test'}>
+    <Collapse open headerAriaLabel={'test1'} contentAriaLabel={'test1'}>
       {#snippet header()}
-        <h4 class="text-md font-medium">test</h4>
+        <h4 class="text-md font-medium">test1</h4>
       {/snippet}
       {#snippet content(change)}
-        <Collapse open headerAriaLabel={'test'} contentAriaLabel={'test'}>
+        <Collapse open headerAriaLabel={'test2'} contentAriaLabel={'test2'}>
           {#snippet header()}
-            <h4 class="text-md font-medium">test</h4>
+            <h4 class="text-md font-medium">test2</h4>
           {/snippet}
           {#snippet content()}
-            test
+            test2
           {/snippet}
         </Collapse>
       {/snippet}
