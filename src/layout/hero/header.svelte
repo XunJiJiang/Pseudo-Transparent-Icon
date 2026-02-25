@@ -13,7 +13,7 @@
   }
 </script>
 
-<header class="sticky top-0 min-w-screen">
+<header class="sticky top-0 z-99999999 min-w-screen">
   <div
     class={[
       'max-w-[100vw] border-b border-b-[#999] px-4 text-center leading-relaxed md:text-left dark:border-b-[#555]',
