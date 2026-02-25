@@ -1,8 +1,74 @@
+<script lang="ts" module>
+  let id = 0
+</script>
+
 <script lang="ts">
-  import { type Snippet } from 'svelte'
   import Button from '$lib/button.svelte'
   import Icon from '$lib/icon/index.svelte'
+  import { type Snippet, setContext, getContext } from 'svelte'
   import { type ClassValue } from 'svelte/elements'
+  import { EventBus } from '$utils/eventBus'
+  import { debounce } from 'es-toolkit'
+
+  const thisID = id++
+  const namespace = `collapse-${thisID}`
+
+  /** 当前组件深度 */
+  const depth = getContext<number>('collapse-depth') ?? 0
+  setContext('collapse-depth', depth + 1)
+
+  /** 由深度为 0 的根组件创建事件总线 */
+  if (depth === 0) {
+    // BUG: 总线穿线
+    setContext<EventBus>('event-bus', new EventBus())
+  }
+
+  let interval: number
+
+  /** 监听事件总线 */
+  const eventBus = getContext<EventBus>('event-bus')
+
+  $effect(() => {
+    // 监听来自子组件的高度更新事件，参数为子组件的深度
+    const unlisten = eventBus.subscribe(
+      `height-update`,
+      (_depth: number, timeout = 300, times = 1) => {
+        if (_depth <= depth) {
+          return
+        }
+
+        clearInterval(interval)
+        console.log(depth, _depth, thisID)
+
+        if (times <= 0) {
+          times = 1
+        }
+
+        /** 单次延时 */
+        const singleTimeout = timeout / times
+
+        /** 已经执行次数 */
+        let executedTimes = 0
+
+        interval = setInterval(() => {
+          recalculateHeight()
+          executedTimes++
+          console.count('recalculateHeight called')
+          if (executedTimes >= times) {
+            clearInterval(interval)
+          }
+        }, singleTimeout)
+
+        // for (let i = 1; i < times; i++) {
+        //   setTimeout(() => {
+        //     recalculateHeight()
+        //   }, singleTimeout * i)
+        // }
+      }
+    )
+
+    return unlisten
+  })
 
   let {
     class: className,
@@ -38,6 +104,7 @@
   function toggle() {
     open = !open
     ontoggle?.(open)
+    eventBus.publish(`height-update`, depth, 300, 2)
   }
 
   $effect(() => {
@@ -72,10 +139,12 @@
             return
           }
           mainElement.style.height = `${height}px`
+          eventBus.publish(`height-update`, depth, 300, 2)
         })
       })
     } else {
       mainElement.style.height = '0'
+      eventBus.publish(`height-update`, depth, 300, 2)
     }
   })
 
@@ -94,12 +163,18 @@
   })
 
   /** 重新计算 main 高度 */
-  export function recalculateHeight(height?: number) {
+  export const recalculateHeight = debounce((height?: number) => {
     if (open && mainElement) {
       if (height !== void 0) {
         const oldHeight = mainElement.offsetHeight
+
+        if (height === oldHeight) {
+          return
+        }
+
         mainElement.style.height = `${height}px`
         onHeightChange?.(height, oldHeight)
+        eventBus.publish(`height-update`, depth, 300, 2)
         return
       }
 
@@ -107,21 +182,28 @@
       mainElement.style.height = 'auto'
       const _height = mainElement.offsetHeight
       mainElement.style.height = `${oldHeight}px`
+
+      if (_height === oldHeight) {
+        return
+      }
+
       requestAnimationFrame(() => {
         if (!mainElement) {
           return
         }
         mainElement.style.height = `${_height}px`
         onHeightChange?.(_height, oldHeight)
+        eventBus.publish(`height-update`, depth, 300, 2)
       })
     }
-  }
+  }, 30)
 </script>
 
 <div
   class={[
     'mt-4 rounded-2xl border-2 border-[#535353] bg-transparent p-2 backdrop-blur-sm dark:border-[#9f9f9f]',
     disabled ? 'border-[#53535366] dark:border-[#9f9f9f66]!' : '',
+    depth > 0 ? 'mt-1! mb-1 rounded-lg' : '',
     className
   ]}
 >

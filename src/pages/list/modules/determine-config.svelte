@@ -50,49 +50,12 @@
   {/snippet}
   {#snippet content(change)}
     {m['list.determine_config.content.description']()}
-    <Collapse
-      class="mt-1! mb-1 rounded-lg"
-      headerAriaLabel={'test'}
-      contentAriaLabel={'test'}
-      ontoggle={() => {
-        const interval = setInterval(() => {
-          change()
-        }, 151 /* 值越小, 响应越快, 但是太小会卡顿 */)
-        setTimeout(() => {
-          clearInterval(interval)
-          change()
-        }, 300 /* 开始尺寸变化到结束的持续时常 */)
-      }}
-      onHeightChange={(h, o) => {
-        console.log('new:', h, 'old:', o)
-        const interval = setInterval(() => {
-          change()
-        }, 151 /* 值越小, 响应越快, 但是太小会卡顿 */)
-        setTimeout(() => {
-          clearInterval(interval)
-          change()
-        }, 300 /* 开始尺寸变化到结束的持续时常 */)
-      }}
-    >
+    <Collapse open headerAriaLabel={'test'} contentAriaLabel={'test'}>
       {#snippet header()}
         <h4 class="text-md font-medium">test</h4>
       {/snippet}
       {#snippet content(change)}
-        <Collapse
-          open
-          class="mt-1! mb-1 rounded-lg"
-          headerAriaLabel={'test'}
-          contentAriaLabel={'test'}
-          ontoggle={() => {
-            const interval = setInterval(() => {
-              change()
-            }, 151 /* 值越小, 响应越快, 但是太小会卡顿 */)
-            setTimeout(() => {
-              clearInterval(interval)
-              change()
-            }, 300 /* 开始尺寸变化到结束的持续时常 */)
-          }}
-        >
+        <Collapse open headerAriaLabel={'test'} contentAriaLabel={'test'}>
           {#snippet header()}
             <h4 class="text-md font-medium">test</h4>
           {/snippet}
