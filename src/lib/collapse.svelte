@@ -114,8 +114,13 @@
     }
   }
 
-  const { getLastIsRender, setLastIsRender, getCurrentHeight, setCurrentHeight } =
-    useHeightUpdateSubscriber(eventBus, depth, () => open, recalculateHeight)
+  const {
+    publishHeightUpdate,
+    getLastIsRender,
+    setLastIsRender,
+    getCurrentHeight,
+    setCurrentHeight
+  } = useHeightUpdateSubscriber(eventBus, depth, () => open, recalculateHeight)
 
   function toggle() {
     open = !open
@@ -148,19 +153,19 @@
         }
         mainElement.style.height = 'auto'
         const height = mainElement.offsetHeight
-        setCurrentHeight(height)
         mainElement.style.height = '0'
         requestAnimationFrame(() => {
           if (!mainElement) {
             return
           }
           mainElement.style.height = `${height}px`
-          eventBus.publish(`height-update`, depth, getCurrentHeight(), 0, 1)
+          setCurrentHeight(height)
+          publishHeightUpdate(getCurrentHeight())
         })
       })
     } else {
       mainElement.style.height = '0'
-      eventBus.publish(`height-update`, depth, -getCurrentHeight(), 0, 1)
+      publishHeightUpdate(-getCurrentHeight())
       setCurrentHeight(0)
     }
   })

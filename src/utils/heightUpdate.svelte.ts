@@ -1,8 +1,19 @@
 import type { EventBus } from './eventBus'
 
+/**
+ *
+ * @param eventBus 事件总线实例，用于订阅和发布高度更新事件
+ * @param depth 当前组件的深度，根组件深度为 0
+ * @param getRenderState 获取当前组件中高度可变部分的内容的渲染状态(是否渲染了内容)，用于判断子组件是首次渲染还是更新高度
+ * @param recalculateHeight 重新计算当前组件的高度，参数为可选对象，包含 height 和 changeHeight 两个可选属性，height 表示当前组件可变高度部分的最新高度，changeHeight 表示当前组件可变高度部分的高度变化值
+ * @returns
+ */
 export function useHeightUpdateSubscriber(
   eventBus: EventBus,
   depth: number,
+  /**
+   * 获取当前组件中高度可变部分的内容的渲染状态(是否渲染了内容)，用于判断子组件是首次渲染还是更新高度
+   */
   getRenderState: () => boolean,
   recalculateHeight: (info?: { height?: number; changeHeight?: number }) => void
 ) {
@@ -31,7 +42,6 @@ export function useHeightUpdateSubscriber(
         }
 
         const render = getRenderState()
-        console.log(lastIsRender, render, timeout)
 
         if (lastIsRender !== true && render && timeout === 0) {
           lastIsRender = true
@@ -91,6 +101,9 @@ export function useHeightUpdateSubscriber(
     getCurrentHeight() {
       return currentHeight
     },
+    /**
+     * 设置当前组件可变高度部分的高度
+     */
     setCurrentHeight(height: number) {
       currentHeight = height
     }
