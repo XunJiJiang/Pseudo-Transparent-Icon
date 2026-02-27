@@ -40,8 +40,18 @@
   $effect(() => {
     if (transition.finished) {
       openCollapse = open
-    } else {
     }
+  })
+
+  let timeout: number
+
+  $effect(() => {
+    if (open === openCollapse) {
+      return
+    }
+    timeout = setTimeout(() => {
+      open = openCollapse
+    }, 300)
   })
 
   /**
@@ -81,8 +91,10 @@
   {/snippet}
   {#snippet content()}
     {m['list.determine_config.content.description']()}
-    <Button class="mt-4" onclick={() => onchange()}>trigger change</Button>
-    <Collapse open headerAriaLabel={'test1'} contentAriaLabel={'test1'} class="mt-4">
+    <Button class="p-1 ps-2.5 pe-2.5 text-[1em] font-medium" onclick={() => onchange()}
+      >trigger change</Button
+    >
+    <Collapse open headerAriaLabel={'test1'} contentAriaLabel={'test1'} class="mt-3">
       {#snippet header()}
         <h4 class="text-md font-medium">test1</h4>
       {/snippet}
