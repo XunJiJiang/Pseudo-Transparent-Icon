@@ -230,7 +230,7 @@
     aria-label={contentAriaLabel}
   >
     {#if renderContent}
-      <div class="ps-2 pe-2 pt-3 pb-1.5 text-left">
+      <div class="ps-2 pe-2 pt-3 pb-2 text-left">
         {@render content(recalculateHeight)}
       </div>
     {/if}
