@@ -57,6 +57,11 @@
     disabled?: boolean
   } = $props()
 
+  /** 根元素 */
+  let rootElement = $state<HTMLElement>()
+
+  export const getElement = () => rootElement
+
   /** 重新计算 main 高度 */
   export const recalculateHeight = ({
     height,
@@ -187,6 +192,7 @@
 </script>
 
 <div
+  bind:this={rootElement}
   class={[
     'mt-4 rounded-2xl border-2 border-[#535353] bg-transparent p-2 backdrop-blur-sm dark:border-[#9f9f9f]',
     disabled ? 'border-[#53535366] dark:border-[#9f9f9f66]!' : '',

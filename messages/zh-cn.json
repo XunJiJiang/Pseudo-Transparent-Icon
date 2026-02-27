@@ -17,13 +17,40 @@
     "github": "在 GitHub 上查看"
   },
   "list": {
-    "decision_config": {
+    "determine_config": {
       "header": {
         "title": "配置选项",
         "aria_label": "配置选项"
       },
       "content": {
-        "description": "在这里你可以选择现成的图标位置配置、导入配置或创建配置"
+        "description": "可以选择现成的图标位置配置、导入配置或创建配置"
+      }
+    },
+    "create_config": {
+      "header": {
+        "title": "创建配置",
+        "aria_label": "创建配置"
+      },
+      "content": {
+        "description": "创建一个新的图标位置配置"
+      }
+    },
+    "import_background": {
+      "header": {
+        "title": "导入背景图",
+        "aria_label": "导入背景图"
+      },
+      "content": {
+        "description": "导入作为背景的图片"
+      }
+    },
+    "custom_icons": {
+      "header": {
+        "title": "自定义图标",
+        "aria_label": "自定义图标"
+      },
+      "content": {
+        "description": "为指定位置选择图标或导入图标"
       }
     }
   }
