@@ -48,7 +48,7 @@
       collapseElement = node.getElement()
     }
   }
-  class={[ClassName, transition.class]}
+  class={['mb-4', ClassName, transition.class]}
   bind:open
   {disabled}
   headerAriaLabel={m['list.create_config.header.aria_label']()}

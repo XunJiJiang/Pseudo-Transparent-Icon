@@ -64,7 +64,7 @@
       collapseElement = node.getElement()
     }
   }
-  class={[ClassName, transition.class]}
+  class={['mb-4', ClassName, transition.class]}
   bind:open={openCollapse}
   {disabled}
   headerAriaLabel={m['list.determine_config.header.aria_label']()}
@@ -82,7 +82,7 @@
   {#snippet content()}
     {m['list.determine_config.content.description']()}
     <Button class="mt-4" onclick={() => onchange()}>trigger change</Button>
-    <Collapse open headerAriaLabel={'test1'} contentAriaLabel={'test1'}>
+    <Collapse open headerAriaLabel={'test1'} contentAriaLabel={'test1'} class="mt-4">
       {#snippet header()}
         <h4 class="text-md font-medium">test1</h4>
       {/snippet}
