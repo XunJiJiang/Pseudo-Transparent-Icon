@@ -13,6 +13,9 @@ export const useTransition = (
     '1000': 'duration-1000'
   }
 
+  /** 常规过渡时常 */
+  const NORMAL_DURATION = 300
+
   /** 记录上次执行进出过渡效果时 visible 的值 */
   let oldVisible: boolean
   // let oldIsLast: boolean
@@ -52,7 +55,7 @@ export const useTransition = (
           state.transitionDuration = DURATIONS['0']
           state.opacity = false
           requestAnimationFrame(() => {
-            state.transitionDuration = DURATIONS['1000']
+            state.transitionDuration = DURATIONS[NORMAL_DURATION]
             state.opacity = true
           })
         } else {
@@ -104,7 +107,7 @@ export const useTransition = (
             collapseElement.style.borderBottomWidth = `${nowBorderBottomWidth}px`
 
             requestAnimationFrame(() => {
-              state.transitionDuration = DURATIONS['300']
+              state.transitionDuration = DURATIONS[NORMAL_DURATION]
               requestAnimationFrame(() => {
                 // 设置为过渡的目标状态
                 state.opacity = true
@@ -128,10 +131,10 @@ export const useTransition = (
                     collapseElement.style.borderTopWidth = ''
                     collapseElement.style.borderBottomWidth = ''
                     requestAnimationFrame(() => {
-                      state.transitionDuration = DURATIONS['300']
+                      state.transitionDuration = DURATIONS[NORMAL_DURATION]
                     })
                     // })
-                  }, 300)
+                  }, NORMAL_DURATION)
                 )
               })
             })
@@ -153,7 +156,7 @@ export const useTransition = (
                   'ease-[cubic-bezier(.26,.87,.26,1)]': heightChanged
                 }
               ]
-            }, 300)
+            }, NORMAL_DURATION)
           )
           // }
         }
@@ -169,14 +172,14 @@ export const useTransition = (
           // 不可见时脱离文档流，防止占位
           collapseElement.style.position = 'absolute'
         } else {
-          state.transitionDuration = DURATIONS['300']
+          state.transitionDuration = DURATIONS[NORMAL_DURATION]
           // 不可见时脱离文档流，防止占位
           timeouts.push(
             setTimeout(() => {
               if (collapseElement) {
                 collapseElement.style.position = 'absolute'
               }
-            }, 300)
+            }, NORMAL_DURATION)
           )
         }
         state.opacity = false
@@ -197,13 +200,16 @@ export const useTransition = (
         collapseElement.style.borderTopWidth = `${borderTopWidth}px`
         collapseElement.style.borderBottomWidth = `${borderBottomWidth}px`
         requestAnimationFrame(() => {
-          collapseElement.style.height = '0'
-          collapseElement.style.marginTop = '0'
-          collapseElement.style.marginBottom = '0'
-          collapseElement.style.paddingTop = '0'
-          collapseElement.style.paddingBottom = '0'
-          collapseElement.style.borderTopWidth = '0'
-          collapseElement.style.borderBottomWidth = '0'
+          state.transitionDuration = DURATIONS[NORMAL_DURATION]
+          requestAnimationFrame(() => {
+            collapseElement.style.height = '0'
+            collapseElement.style.marginTop = '0'
+            collapseElement.style.marginBottom = '0'
+            collapseElement.style.paddingTop = '0'
+            collapseElement.style.paddingBottom = '0'
+            collapseElement.style.borderTopWidth = '0'
+            collapseElement.style.borderBottomWidth = '0'
+          })
         })
 
         heightChanged = true
@@ -222,7 +228,7 @@ export const useTransition = (
                 'ease-[cubic-bezier(.26,.87,.26,1)]': heightChanged
               }
             ]
-          }, 300)
+          }, NORMAL_DURATION)
         )
         // }
       }
