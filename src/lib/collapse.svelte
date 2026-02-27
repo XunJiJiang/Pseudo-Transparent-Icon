@@ -142,7 +142,14 @@
 
   let buttonContentElement = $state<HTMLElement>()
   /** 按钮的高度，用于计算图标的垂直居中位置 */
-  let buttonHeight = $derived(buttonContentElement?.offsetHeight ?? 0)
+  let buttonHeight = $state(0)
+
+  $effect(() => {
+    if (!buttonContentElement) {
+      return
+    }
+    buttonHeight = buttonContentElement.offsetHeight
+  })
 
   let mainElement = $state<HTMLElement>()
   // 当 open 变化时，调整 mainElement 的高度以触发过渡动画
