@@ -194,9 +194,9 @@
 <div
   bind:this={rootElement}
   class={[
-    'mt-4 rounded-2xl border-2 border-[#535353] bg-transparent p-2 backdrop-blur-sm dark:border-[#9f9f9f]',
+    'rounded-2xl border-2 border-[#535353] bg-transparent p-2 backdrop-blur-sm dark:border-[#9f9f9f]',
     disabled ? 'border-[#53535366] dark:border-[#9f9f9f66]!' : '',
-    depth > 0 ? 'mt-1! mb-1 rounded-lg' : '',
+    depth > 0 ? 'rounded-lg' : '',
     className
   ]}
 >
