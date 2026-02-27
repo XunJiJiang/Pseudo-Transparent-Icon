@@ -66,5 +66,20 @@
   {/snippet}
   {#snippet content()}
     {m['list.custom_icons.content.description']()}
+    <Collapse open headerAriaLabel={'test3'} contentAriaLabel={'test3'} class="mt-3">
+      {#snippet header()}
+        <h4 class="text-md font-medium">test3</h4>
+      {/snippet}
+      {#snippet content()}
+        <Collapse open headerAriaLabel={'test4'} contentAriaLabel={'test4'}>
+          {#snippet header()}
+            <h4 class="text-md font-medium">test4</h4>
+          {/snippet}
+          {#snippet content()}
+            test4
+          {/snippet}
+        </Collapse>
+      {/snippet}
+    </Collapse>
   {/snippet}
 </Collapse>
