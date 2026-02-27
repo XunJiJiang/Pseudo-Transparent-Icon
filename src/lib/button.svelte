@@ -2,16 +2,16 @@
   export const STYLE_MAP = {
     // TODO
     primary:
-      'text-[#fff] bg-[#000a] border-[#5550] hover:border-[#999] focus:ring-gray-600 focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:text-[#000] dark:bg-[#fffc] dark:border-[#5550] dark:hover:border-[#777] dark:focus:ring-gray-300 dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
+      'text-[#fff] bg-[#000a] border-[#5550] hover:border-[#999] focus:ring-gray-600 active:ring-transparent focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:text-[#000] dark:bg-[#fffc] dark:border-[#5550] dark:hover:border-[#777] dark:focus:ring-gray-300 dark:active:ring-transparent dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
     secondary:
-      'bg-[#8885] border-[#5550] hover:border-[#bbb] focus:ring-gray-600 focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#6666] dark:border-[#5550] dark:hover:border-[#555] dark:focus:ring-gray-300 dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
+      'bg-[#8885] border-[#5550] hover:border-[#bbb] focus:ring-gray-600 active:ring-transparent focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#6666] dark:border-[#5550] dark:hover:border-[#555] dark:focus:ring-gray-300 dark:active:ring-transparent dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
     danger:
       // TODO
-      'bg-[#8885] border-[#5550] hover:border-[#bbb] focus:ring-gray-600 focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#6666] dark:border-[#5550] dark:hover:border-[#555] dark:focus:ring-gray-300 dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
-    text: 'bg-[#8885] border-[#5550] hover:border-[#bbb] focus:ring-gray-600 focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#6666] dark:border-[#5550] dark:hover:border-[#555] dark:focus:ring-gray-300 dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
-    link: 'bg-[#0000] border-[#0000] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#0000] dark:border-[#0000] dark:disabled:bg-[#343434] dark:disabled:text-[#999] hover:underline focus:ring-gray-600 focus:ring-offset-[#eee] dark:focus:ring-gray-300 dark:focus:ring-offset-[#242424]',
+      'bg-[#8885] border-[#5550] hover:border-[#bbb] focus:ring-gray-600 active:ring-transparent focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#6666] dark:border-[#5550] dark:hover:border-[#555] dark:focus:ring-gray-300 dark:active:ring-transparent dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
+    text: 'bg-[#8885] border-[#5550] hover:border-[#bbb] focus:ring-gray-600 active:ring-transparent focus:ring-offset-[#eee] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#6666] dark:border-[#5550] dark:hover:border-[#555] dark:focus:ring-gray-300 dark:active:ring-transparent dark:focus:ring-offset-[#242424] dark:disabled:bg-[#343434] dark:disabled:text-[#999]',
+    link: 'bg-[#0000] border-[#0000] disabled:bg-gray-100 disabled:text-gray-400 dark:bg-[#0000] dark:border-[#0000] dark:disabled:bg-[#343434] dark:disabled:text-[#999] hover:underline focus:ring-gray-600 active:ring-transparent focus:ring-offset-[#eee] dark:focus:ring-gray-300 dark:active:ring-transparent dark:focus:ring-offset-[#242424]',
     outline:
-      'bg-[#0000] border-[#0000] hover:bg-[#8885] focus:ring-gray-600 focus:ring-offset-[#eee] disabled:text-gray-400 dark:bg-[#0000] dark:border-[#0000] dark:hover:bg-[#6666] dark:focus:ring-gray-300 dark:focus:ring-offset-[#242424] dark:disabled:bg-[#0000] dark:disabled:text-[#999]'
+      'bg-[#0000] border-[#0000] hover:bg-[#8885] focus:ring-gray-600 active:ring-transparent focus:ring-offset-[#eee] disabled:text-gray-400 dark:bg-[#0000] dark:border-[#0000] dark:hover:bg-[#6666] dark:focus:ring-gray-300 dark:active:ring-transparent dark:focus:ring-offset-[#242424] dark:disabled:bg-[#0000] dark:disabled:text-[#999]'
   } as const
 </script>
 
