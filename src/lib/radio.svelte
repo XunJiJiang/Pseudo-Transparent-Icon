@@ -10,7 +10,7 @@
 
   let {
     name = `radio-${id++}`,
-    value = $bindable(null),
+    value = $bindable(),
     disabled = false,
     class: className,
     onchange = () => {},
