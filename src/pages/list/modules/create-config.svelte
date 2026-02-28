@@ -9,15 +9,15 @@
     isLast,
     disabled = false,
     open = $bindable(false),
-    class: ClassName
+    class: className,
+    onchange = () => {}
   }: {
-    /** 是否可见，控制整个组件的显示与隐藏 */
     visible: boolean
-    /** 是否为列表中的最后一个配置项，影响组件的显示动画 */
     isLast: boolean
     disabled?: boolean
     open?: boolean
     class?: ClassValue
+    onchange?: (...args: any[]) => void
   } = $props()
 
   let collapseElement = $state<HTMLElement>()
@@ -48,7 +48,7 @@
       collapseElement = node.getElement()
     }
   }
-  class={['mb-4', ClassName, transition.class]}
+  class={['mb-4', className, transition.class]}
   bind:open
   {disabled}
   headerAriaLabel={m['list.create_config.header.aria_label']()}

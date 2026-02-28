@@ -1,6 +1,6 @@
 <script lang="ts">
   import { m } from '$lib/paraglide/messages'
-  import Collapse from '$/lib/collapse.svelte'
+  import Collapse from '$lib/collapse.svelte'
   import type { ClassValue } from 'svelte/elements'
   import { useTransition } from './utils/transition.svelte'
   import Button from '$/lib/button.svelte'
@@ -10,7 +10,7 @@
     isLast,
     disabled = false,
     open = $bindable(false),
-    class: ClassName,
+    class: className,
     onchange = () => {}
   }: {
     /** 是否可见，控制整个组件的显示与隐藏 */
@@ -22,7 +22,7 @@
     open?: boolean
     class?: ClassValue
     /** 配置变化时触发 */
-    onchange?: (...args: unknown[]) => void
+    onchange?: (config: TConfig | null) => void
   } = $props()
 
   /** Collapse 组件根元素 */
@@ -74,7 +74,7 @@
       collapseElement = node.getElement()
     }
   }
-  class={['mb-4', ClassName, transition.class]}
+  class={['mb-4', className, transition.class]}
   bind:open={openCollapse}
   {disabled}
   headerAriaLabel={m['list.determine_config.header.aria_label']()}
