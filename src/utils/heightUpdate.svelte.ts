@@ -1,11 +1,19 @@
+/**
+ * 虽然可以使用 ResizeObserver 来监听组件中高度可变部分的高度变化
+ * 为了防止在某些场景下，可能触发频繁的高度变化事件，导致性能问题，因此设置了防抖
+ * 这导致可能会出现高度更新不及时的问题
+ * 为了对不会频繁触发高度变化事件的场景进行优化，提供 publishHeightUpdate 用于立刻响应高度更新事件
+ */
+
+import { debounce } from 'es-toolkit'
 import type { EventBus } from './eventBus'
 
 /**
- *
  * @param eventBus 事件总线实例，用于订阅和发布高度更新事件
  * @param depth 当前组件的深度，根组件深度为 0
  * @param getRenderState 获取当前组件中高度可变部分的内容的渲染状态(是否渲染了内容)，用于判断子组件是首次渲染还是更新高度
  * @param recalculateHeight 重新计算当前组件的高度，参数为可选对象，包含 height 和 changeHeight 两个可选属性，height 表示当前组件可变高度部分的最新高度，changeHeight 表示当前组件可变高度部分的高度变化值
+ * @param getHeightContainer 获取高度容器, 这个容器的高度必须完全由内部元素的高度决定, 如果没有这个容器, 则传入 null 或者不传入
  * @returns
  */
 export function useHeightUpdateSubscriber(
@@ -15,7 +23,8 @@ export function useHeightUpdateSubscriber(
    * 获取当前组件中高度可变部分的内容的渲染状态(是否渲染了内容)，用于判断子组件是首次渲染还是更新高度
    */
   getRenderState: () => boolean,
-  recalculateHeight: (info?: { height?: number; changeHeight?: number }) => void
+  recalculateHeight: (info?: { height?: number; changeHeight?: number }) => void,
+  getHeightContainer?: (() => HTMLElement | null | undefined) | null | undefined
 ) {
   /** 当前组件可变高度部分的高度 */
   let currentHeight = 0
@@ -36,7 +45,11 @@ export function useHeightUpdateSubscriber(
     // 监听来自子组件的高度更新事件，参数为子组件的深度
     const unlisten = eventBus.subscribe(
       `height-update`,
-      (_depth: number, changeHeight?: number, timeout = 300, times = 1) => {
+      (_depth: number, changeHeight?: number, timeout = 0, times = 1) => {
+        if (timeout > 0) {
+          console.warn('延迟高度更新建议由组件自带的 ResizeObserver 来触发')
+        }
+
         if (_depth !== depth + 1) {
           return
         }
@@ -71,7 +84,6 @@ export function useHeightUpdateSubscriber(
         interval = setInterval(() => {
           recalculateHeight()
           executedTimes++
-          console.count('recalculateHeight called')
           if (depth > 0) {
             eventBus.publish(`height-update`, depth, changeHeight, 300, 2)
           }
@@ -88,10 +100,71 @@ export function useHeightUpdateSubscriber(
     return unlisten
   })
 
-  return {
-    publishHeightUpdate(changeHeight?: number) {
+  function publishHeightUpdate(changeHeight?: number) {
+    if (depth > 0) {
       eventBus.publish(`height-update`, depth, changeHeight, 0, 1)
+    }
+  }
+
+  const debouncedPublishHeightUpdate = debounce(
+    (entry: ResizeObserverEntry) => {
+      const newHeight =
+        entry.contentRect.height +
+        (parseFloat(getComputedStyle(entry.target).paddingTop) || 0) +
+        (parseFloat(getComputedStyle(entry.target).paddingBottom) || 0) +
+        (parseFloat(getComputedStyle(entry.target).borderTopWidth) || 0) +
+        (parseFloat(getComputedStyle(entry.target).borderBottomWidth) || 0) +
+        (parseFloat(getComputedStyle(entry.target).marginTop) || 0) +
+        (parseFloat(getComputedStyle(entry.target).marginBottom) || 0)
+      const oldHeight = currentHeight
+      if (newHeight !== oldHeight) {
+        const change = newHeight - oldHeight
+        recalculateHeight({ changeHeight: change })
+        publishHeightUpdate(change)
+      }
     },
+    30,
+    { edges: ['trailing'] }
+  )
+
+  const resizeObserver = new ResizeObserver((entries) => {
+    const mainContentElement = getHeightContainer ? getHeightContainer() : null
+    if (!mainContentElement) {
+      return
+    }
+    for (const entry of entries) {
+      if (entry.target === mainContentElement) {
+        debouncedPublishHeightUpdate(entry)
+      }
+    }
+  })
+
+  $effect(() => {
+    const mainContentElement = getHeightContainer ? getHeightContainer() : null
+    const open = getRenderState()
+    if (!mainContentElement || !resizeObserver) {
+      return
+    }
+    if (open) {
+      setTimeout(() => {
+        if (!mainContentElement || !resizeObserver) {
+          return
+        }
+        resizeObserver.observe(mainContentElement)
+      }, 50)
+    } else {
+      resizeObserver.unobserve(mainContentElement)
+    }
+    return () => {
+      if (!mainContentElement || !resizeObserver) {
+        return
+      }
+      resizeObserver.unobserve(mainContentElement)
+    }
+  })
+
+  return {
+    publishHeightUpdate,
     getLastIsRender() {
       return lastIsRender
     },
