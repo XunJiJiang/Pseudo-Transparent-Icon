@@ -119,13 +119,21 @@
     }
   }
 
+  let mainContentElement = $state<HTMLElement>()
+
   const {
     publishHeightUpdate,
     getLastIsRender,
     setLastIsRender,
     getCurrentHeight,
     setCurrentHeight
-  } = useHeightUpdateSubscriber(eventBus, depth, () => open, recalculateHeight)
+  } = useHeightUpdateSubscriber(
+    eventBus,
+    depth,
+    () => open,
+    recalculateHeight,
+    () => mainContentElement
+  )
 
   function toggle() {
     open = !open
@@ -223,7 +231,7 @@
     aria-label={contentAriaLabel}
   >
     {#if renderContent}
-      <div class="ps-2 pe-2 pt-3 pb-2 text-left">
+      <div bind:this={mainContentElement} class="ps-2 pe-2 pt-3 pb-2 text-left">
         {@render content(recalculateHeight)}
       </div>
     {/if}
