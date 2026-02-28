@@ -140,17 +140,6 @@
     }
   })
 
-  let buttonContentElement = $state<HTMLElement>()
-  /** 按钮的高度，用于计算图标的垂直居中位置 */
-  let buttonHeight = $state(0)
-
-  $effect(() => {
-    if (!buttonContentElement) {
-      return
-    }
-    buttonHeight = buttonContentElement.offsetHeight
-  })
-
   let mainElement = $state<HTMLElement>()
   // 当 open 变化时，调整 mainElement 的高度以触发过渡动画
   $effect(() => {
@@ -210,22 +199,19 @@
   <header aria-label={headerAriaLabel}>
     <Button
       style={open ? 'secondary' : 'outline'}
-      class="flex w-full ps-2 pe-2"
+      class="flex w-full items-center ps-2 pe-2"
       onclick={toggle}
       {disabled}
     >
-      <div
-        bind:this={buttonContentElement}
-        class="w-[calc(100%-1.5em)] flex-1 text-left wrap-break-word"
-      >
+      <div class="w-[calc(100%-1.5em)] flex-1 text-left wrap-break-word">
         {@render header()}
       </div>
       <div>
         <Icon
           iconName="chevron-left"
-          class={[open ? '-rotate-90' : '', 'transition-transform']}
+          class={[open ? '-rotate-90' : '', 'transition-transform ']}
           origin="vscode"
-          top={buttonHeight / 2 - 19.2 / 2}
+          top={3}
           size={1.2}
         />
       </div>
