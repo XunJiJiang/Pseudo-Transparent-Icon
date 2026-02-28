@@ -36,7 +36,6 @@ export const useTransition = (
 
   // 执行进出过渡效果
   $effect(() => {
-    console.log('execute transition effect')
     const collapseElement = getCollapseElement()
     const visible = getVisible()
 
