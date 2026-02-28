@@ -28,19 +28,18 @@ export function useHeightUpdateSubscriber(
 ) {
   /** 当前组件可变高度部分的高度 */
   let currentHeight = 0
-
   /** 定时器 ID，用于清除定时器 */
   let interval: number
-
   /** 子组件高度变化时的上次的内容渲染状态*/
   let lastIsRender: boolean
+  /** 设置为 true 时, 标记本次高度更新由子组件主动触发, 不需要 ResizeObserver 处理 */
+  let activeUpdate = false
   // 如果上次为关闭, 本次为开启, 说明子组件首次渲染
   // 此时若子组件的建议高度更新延时(timeout)为 0, 说明子组件是通过设置 auto 来立刻获取高度
   // 由于当前组件此时通过设置 auto 来获取高度, 此时获取到的高度就是子组件为 auto 时的高度, 即正确的高度
   // 此时可以直接使用这个高度来设置当前组件的高度
   // 如果上次为开启, 本次为开启, 说明子组件更新了高度
   // 此时当前组件没有触发过设置 auto 来获取高度, 获取到的高度不正确, 需要通过 changeHeight 来增量更新当前组件的高度
-
   $effect(() => {
     // 监听来自子组件的高度更新事件，参数为子组件的深度
     const unlisten = eventBus.subscribe(
@@ -56,6 +55,10 @@ export function useHeightUpdateSubscriber(
 
         const render = getRenderState()
 
+        // 如果上次为关闭, 本次为开启, 说明子组件首次渲染
+        // 此时若子组件的建议高度更新延时(timeout)为 0, 说明子组件是通过设置 auto 来立刻获取高度
+        // 由于当前组件此时通过设置 auto 来获取高度, 此时获取到的高度就是子组件为 auto 时的高度, 即正确的高度
+        // 此时不需要通过 changeHeight 来增量更新当前组件的高度
         if (lastIsRender !== true && render && timeout === 0) {
           lastIsRender = true
           return
@@ -63,7 +66,9 @@ export function useHeightUpdateSubscriber(
 
         clearInterval(interval)
 
+        // 如果 changeHeight 已经提供，说明子组件已经计算出了高度变化值，可以直接使用这个值来更新当前组件的高度，而不需要等待 ResizeObserver 的回调
         if (changeHeight !== void 0) {
+          activeUpdate = true
           recalculateHeight({ changeHeight })
           if (depth > 0) {
             eventBus.publish(`height-update`, depth, changeHeight, timeout, times)
@@ -82,6 +87,7 @@ export function useHeightUpdateSubscriber(
         let executedTimes = 0
 
         interval = setInterval(() => {
+          activeUpdate = true
           recalculateHeight()
           executedTimes++
           if (depth > 0) {
@@ -108,6 +114,11 @@ export function useHeightUpdateSubscriber(
 
   const debouncedPublishHeightUpdate = debounce(
     (entry: ResizeObserverEntry) => {
+      // 如果 activeUpdate 为 true，表示本次高度更新是由子组件主动触发的，不需要 ResizeObserver 处理
+      if (activeUpdate) {
+        activeUpdate = false
+        return
+      }
       const newHeight =
         entry.contentRect.height +
         (parseFloat(getComputedStyle(entry.target).paddingTop) || 0) +
