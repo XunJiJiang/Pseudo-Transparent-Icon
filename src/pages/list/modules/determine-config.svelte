@@ -3,7 +3,31 @@
   import Collapse from '$lib/collapse.svelte'
   import type { ClassValue } from 'svelte/elements'
   import { useTransition } from './utils/transition.svelte'
-  import Button from '$/lib/button.svelte'
+  import Button from '$lib/button.svelte'
+  import Radio from '$lib/radio.svelte'
+
+  type TIconPositionConfig = {
+    /** 要求的背景图尺寸 */
+    backgroundSize: {
+      width: number
+      height: number
+    }
+    /** 图标位置列表，单位为像素，左上角为原点 */
+    iconPositions: {
+      x: number
+      y: number
+      width: number
+      height: number
+    }[]
+  }
+
+  type TConfig =
+    | {
+        iconPositionConfig: TIconPositionConfig
+      }
+    | {
+        type: 'create-config'
+      }
 
   let {
     visible,
@@ -54,16 +78,87 @@
     }, 300)
   })
 
+  let importFileName = $state('')
+
+  let radioElement = $state<Radio>()
+  let radioValue = $state<'import-config' | 'create-config' | TIconPositionConfig>()
+
+  /** 检查导入的文件是否符合类型要求 */
+  function validateConfig(config: any): config is TIconPositionConfig {
+    if (
+      typeof config !== 'object' ||
+      typeof config.backgroundSize !== 'object' ||
+      typeof config.backgroundSize.width !== 'number' ||
+      typeof config.backgroundSize.height !== 'number' ||
+      !Array.isArray(config.iconPositions)
+    ) {
+      return false
+    }
+    for (const pos of config.iconPositions) {
+      if (
+        typeof pos !== 'object' ||
+        typeof pos.x !== 'number' ||
+        typeof pos.y !== 'number' ||
+        typeof pos.width !== 'number' ||
+        typeof pos.height !== 'number'
+      ) {
+        return false
+      }
+    }
+    return true
+  }
+
+  /** 导入配置 */
+  function importConfig() {
+    // 导入文件
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.multiple = false
+    input.accept = '.json'
+    input.onchange = () => {
+      const file = input.files?.[0]
+      if (!file) {
+        radioElement?.reset()
+        return
+      }
+      importFileName = file.name
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target?.result as string)
+          if (validateConfig(json)) {
+            onchange({
+              iconPositionConfig: json
+            })
+          } else {
+            console.error('Invalid config file')
+          }
+        } catch (err) {
+          console.error('Failed to parse JSON:', err)
+        }
+      }
+      reader.readAsText(file)
+    }
+    input.oncancel = () => {
+      radioElement?.reset()
+      onchange(null)
+    }
+    input.click()
+  }
+
   /**
    * 重置配置项到初始状态
    */
-  export function reset() {}
+  export function reset() {
+    importFileName = ''
+    radioElement?.reset()
+  }
 
   /**
    * 获取当前配置项的值
    */
-  export function getConfig() {
-    return {}
+  export function getConfig(): TConfig | null {
+    return null
   }
 </script>
 
@@ -91,23 +186,46 @@
   {/snippet}
   {#snippet content()}
     {m['list.determine_config.content.description']()}
-    <Button class="p-1 ps-2.5 pe-2.5 text-[1em] font-medium" onclick={() => onchange()}
-      >trigger change</Button
-    >
-    <Collapse open headerAriaLabel={'test1'} contentAriaLabel={'test1'} class="mt-3">
-      {#snippet header()}
-        <h4 class="text-md font-medium">test1</h4>
-      {/snippet}
-      {#snippet content()}
-        <Collapse open headerAriaLabel={'test2'} contentAriaLabel={'test2'}>
-          {#snippet header()}
-            <h4 class="text-md font-medium">test2</h4>
-          {/snippet}
-          {#snippet content()}
-            test2
-          {/snippet}
-        </Collapse>
-      {/snippet}
-    </Collapse>
+    <Button class="p-1 ps-2.5 pe-2.5 text-[1em] font-medium" onclick={() => onchange(null)}>
+      trigger change
+    </Button>
+    <Radio
+      bind:this={radioElement}
+      bind:value={radioValue}
+      class="mt-3"
+      name="determine-config-options"
+      options={[
+        {
+          label: m['list.determine_config.content.iphone_pro_12_15'](),
+          value: {}
+        },
+        {
+          label: m['list.determine_config.content.import_config'](),
+          value: 'import-config',
+          description: importFileName
+            ? m['list.determine_config.content.import_config_description']({
+                filename: importFileName
+              })
+            : undefined
+        },
+        {
+          label: m['list.determine_config.content.create_config'](),
+          value: 'create-config'
+        }
+      ]}
+      onchange={(value: 'import-config' | 'create-config' | TIconPositionConfig) => {
+        if (value === 'create-config') {
+          onchange({
+            type: 'create-config'
+          })
+        } else if (value === 'import-config') {
+          importConfig()
+        } else {
+          onchange({
+            iconPositionConfig: value
+          })
+        }
+      }}
+    />
   {/snippet}
 </Collapse>
