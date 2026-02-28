@@ -17,6 +17,7 @@
 
 <script lang="ts">
   import type { Snippet } from 'svelte'
+  import type { ClassValue } from 'svelte/elements'
 
   const {
     disabled = false,
@@ -34,7 +35,7 @@
     disabled?: boolean
     children?: Snippet
     onclick?: (event: MouseEvent) => void
-    class?: string
+    class?: ClassValue
     type?: 'button' | 'submit' | 'reset'
     style?: 'primary' | 'secondary' | 'danger' | 'text' | 'link' | 'outline'
     ariaLabel?: string // ARIA 标签, 用于无障碍访问
