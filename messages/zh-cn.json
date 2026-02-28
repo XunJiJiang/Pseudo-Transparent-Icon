@@ -23,7 +23,11 @@
         "aria_label": "配置选项"
       },
       "content": {
-        "description": "可以选择现成的图标位置配置、导入配置或创建配置"
+        "description": "可以选择现成的图标位置配置、导入配置或创建配置",
+        "iphone_pro_12_15": "iPhone Pro 12 - 15",
+        "import_config": "导入配置",
+        "import_config_description": "导入的文件: {filename}",
+        "create_config": "创建配置"
       }
     },
     "create_config": {
