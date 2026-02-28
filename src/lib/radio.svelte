@@ -5,7 +5,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import { type ClassValue } from 'svelte/elements'
-  import Button, { STYLE_MAP } from '$lib/button.svelte'
+  import Button from '$lib/button.svelte'
   import Icon from '$lib/icon/index.svelte'
 
   let {
